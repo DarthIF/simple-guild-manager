@@ -17,6 +17,12 @@
     let { onClick }: FabType = $props();
 </script>
 
+<!--
+    @component
+    @deprecated
+    Botão FAB para teste
+-->
+
 <button
     class="fab fab-hidden"
     bind:this={el_fab}

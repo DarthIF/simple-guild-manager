@@ -7,11 +7,24 @@
     import {
         Database,
         ReactiveData,
+        type MemberType,
     } from "$lib/utils/reactive-database.svelte";
     import { parseCompactNumber } from "$lib/utils/number-util";
+    import SmuiTextField from "../smui/smui-text-field.svelte";
+    import Card, {
+        Content,
+        PrimaryAction,
+        Actions,
+        ActionButtons,
+        ActionIcons,
+    } from "@smui/card";
+    import Button, { Label } from "@smui/button";
+    import { getAppropriatedString, type LocalizedString } from "$lib/strings";
+    import { action, fragments } from "$lib/strings/strings";
+    import SmuiSettingsCard from "../smui/smui-settings-card.svelte";
 
     function saveNewName() {
-        const value = el_inputNewOrgName.value.trim();
+        const value = temp_newName.trim();
         if (value.length < 1) {
             alert("ERROR");
             return;
@@ -42,7 +55,17 @@
         el_inputMemberPower.value = "0";
     }
 
+    function getTitleOfCard(members: MemberType[]): LocalizedString {
+        const base = fragments.title_membersList;
+        return {
+            en: base.en.replace("%s", members.length.toString()),
+            pt: base.pt.replace("%s", members.length.toString()),
+        };
+    }
+
     onMount(() => {});
+
+    let temp_newName = $state(ReactiveData.organization);
 
     let el_inputNewOrgName: HTMLInputElement;
     let el_inputMemberName: HTMLInputElement;
@@ -50,24 +73,6 @@
 </script>
 
 <div class="fragment">
-    <CardSettings title="Mudar Nome da Organização">
-        <div class="form-group">
-            <label class="form-label" for="newOrgName">Novo Nome</label>
-            <input
-                type="text"
-                class="form-input"
-                id="newOrgName"
-                bind:this={el_inputNewOrgName}
-                value={ReactiveData.organization}
-            />
-        </div>
-        <div class="form-actions">
-            <MaterialButton type={ButtonTypes.PRIMARY} onClick={saveNewName}>
-                Salvar
-            </MaterialButton>
-        </div>
-    </CardSettings>
-
     <CardSettings title="Gerenciar Membros">
         <div class="form-group">
             <label class="form-label" for="memberName">Nome do Membro</label>
@@ -115,6 +120,33 @@
             {/if}
         </ul>
     </CardSettings>
+</div>
+
+<div class="fragment">
+    <SmuiSettingsCard title={fragments.title_changeOrgName}>
+        <Content>
+            <SmuiTextField
+                style="width: 100%;"
+                bind:value={temp_newName}
+                variant="outlined"
+                label={getAppropriatedString(fragments.new_name)}
+            />
+        </Content>
+        <Actions style="display: flex; justify-content: end;">
+            <Button
+                style="margin-right: 8px;"
+                variant="unelevated"
+                onclick={saveNewName}
+            >
+                <Label>{getAppropriatedString(action.save)}</Label>
+            </Button>
+        </Actions>
+    </SmuiSettingsCard>
+
+    <SmuiSettingsCard title={fragments.title_manageMembers}></SmuiSettingsCard>
+
+    <SmuiSettingsCard title={getTitleOfCard(ReactiveData.members)}
+    ></SmuiSettingsCard>
 </div>
 
 <style>

@@ -9,13 +9,5 @@
 <span class="material-symbols-rounded">{icon}</span>
 
 <style>
-    @import url(https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200);
-
-    .material-symbols-rounded {
-        font-variation-settings:
-            "FILL" 1,
-            "wght" 400,
-            "GRAD" 0,
-            "opsz" 24;
-    }
+    @import "./material-symbols.css";
 </style>

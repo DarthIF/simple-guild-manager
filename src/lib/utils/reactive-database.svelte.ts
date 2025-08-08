@@ -59,6 +59,11 @@ export enum Actions {
     ADD_MEMBER_TO_TEAM = 'add_member_to_team',
     REMOVE_MEMBER_FROM_TEAM = 'remove_member_from_team',
     CHANGE_ORGANIZATION_NAME = 'change_org_name',
+    COMMISSION_ADD_CLOSED = 'commission_add_closed',
+    COMMISSION_REMOVE_CLOSED = 'commission_remove_closed',
+    COMMISSION_ADD_EXCLUDED = 'commission_add_excluded',
+    COMMISSION_REMOVE_EXCLUDED = 'commission_remove_excluded',
+    COMMISSION_RESET_CYCLE = 'commission_reset_cycle'
 }
 
 export enum GameEvents {
@@ -389,12 +394,14 @@ export class Database {
                 return ReactiveData.events.cassinoOnYacht
             default:
                 throw new Error('REACTIVE DATABASE ERROR: getEventTeams(), gameEvent invalido!', gameEvent)
-
         }
     }
 
 
-    public static findMember(id: string | undefined) {
+    public static findMember(id: string | undefined): MemberType | undefined {
+        if (!id)
+            return undefined
+
         return ReactiveData.members.find(member => member.id === id)
     }
 
@@ -458,6 +465,58 @@ export class Database {
     }
 
 
+    public static addMemberToCommissionClosed(member: MemberType) {
+        ReactiveData.commissions.closed.push(member.id)
 
+        // Adicionar ao registro de auditoria, salvamento automático
+        this.addAuditLog(Actions.COMMISSION_ADD_CLOSED, { memberId: member.id })
+    }
+
+    public static removeMemberToCommissionClosed(member: MemberType): boolean {
+        // Procurar o índice
+        const memberIndex = ReactiveData.commissions.closed.indexOf(member.id)
+        if (memberIndex < 0)
+            return false
+
+        // Remover o membro da lista
+        ReactiveData.commissions.closed.splice(memberIndex, 1)
+
+        // Adicionar ao registro de auditoria, salvamento automático
+        this.addAuditLog(Actions.COMMISSION_REMOVE_CLOSED, { memberId: member.id })
+
+        return true
+    }
+
+
+    public static addMemberToCommissionExcluded(member: MemberType) {
+        ReactiveData.commissions.excluded.push(member.id)
+
+        // Adicionar ao registro de auditoria, salvamento automático
+        this.addAuditLog(Actions.COMMISSION_ADD_EXCLUDED, { memberId: member.id })
+    }
+
+    public static removeMemberToCommissionExcluded(member: MemberType): boolean {
+        // Procurar o índice
+        const memberIndex = ReactiveData.commissions.excluded.indexOf(member.id)
+        if (memberIndex < 0)
+            return false
+
+        // Remover o membro da lista
+        ReactiveData.commissions.excluded.splice(memberIndex, 1)
+
+        // Adicionar ao registro de auditoria, salvamento automático
+        this.addAuditLog(Actions.COMMISSION_REMOVE_EXCLUDED, { memberId: member.id })
+
+        return true
+    }
+
+
+    public static resetCommissionCycle() {
+        const size = ReactiveData.commissions.closed.length
+        ReactiveData.commissions.closed.splice(0, size)
+
+        // Adicionar ao registro de auditoria, salvamento automático
+        this.addAuditLog(Actions.COMMISSION_RESET_CYCLE, {})
+    }
 
 }

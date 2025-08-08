@@ -20,15 +20,11 @@
         }
     }
 
-    onMount(() => {
-        availableMembers = Database.listCommissionAvailableMembers();
-        closedMembers = Database.listCommissionClosedMembers();
-        excludedMembers = Database.listCommissionExcludedMembers();
-    });
+    onMount(() => {});
 
-    let availableMembers: MemberType[] = $state([]);
-    let closedMembers: MemberType[] = $state([]);
-    let excludedMembers: MemberType[] = $state([]);
+    let availableMembers = $derived.by(Database.listCommissionAvailableMembers);
+    let closedMembers = $derived.by(Database.listCommissionClosedMembers);
+    let excludedMembers = $derived.by(Database.listCommissionExcludedMembers);
 </script>
 
 <div class="fragment">
@@ -46,37 +42,68 @@
                 <MaterialSymbols icon="quick_reference_all" />
                 <span>Disponível</span>
             </div>
-            <ul>
+
+            <div class="members-list">
                 {#each availableMembers as member}
-                    <li>
+                    <div class="members-list-item">
                         <span>{member.name}</span>
-                        <MaterialIconButton icon="approval_delegation" />
-                        <MaterialIconButton icon="group_remove" />
-                    </li>
+                        <MaterialIconButton
+                            icon="approval_delegation"
+                            onClick={() => {
+                                Database.addMemberToCommissionClosed(member);
+                            }}
+                        />
+                        <MaterialIconButton
+                            icon="group_remove"
+                            onClick={() => {
+                                Database.addMemberToCommissionExcluded(member);
+                            }}
+                        />
+                    </div>
                 {/each}
-            </ul>
+            </div>
         </div>
+
         <div class="card">
             <div class="card-title commission-card-title">
                 <MaterialSymbols icon="approval_delegation" />
                 <span>Fechado</span>
             </div>
-            <ul>
+
+            <div class="members-list">
                 {#each closedMembers as member}
-                    <li>{member.name}</li>
+                    <div class="members-list-item">
+                        <span>{member.name}</span>
+                        <MaterialIconButton
+                            icon="close"
+                            onClick={() => {
+                                Database.removeMemberToCommissionClosed(member);
+                            }}
+                        />
+                    </div>
                 {/each}
-            </ul>
+            </div>
         </div>
+
         <div class="card">
             <div class="card-title commission-card-title">
                 <MaterialSymbols icon="group_remove" />
                 <span>Excluído</span>
             </div>
-            <ul>
+
+            <div class="members-list">
                 {#each excludedMembers as member}
-                    <li>{member.name}</li>
+                    <div class="members-list-item">
+                        <span>{member.name}</span>
+                        <MaterialIconButton
+                            icon="close"
+                            onClick={() => {
+                                Database.removeMemberToCommissionExcluded(member);
+                            }}
+                        />
+                    </div>
                 {/each}
-            </ul>
+            </div>
         </div>
     </div>
 </div>
@@ -90,6 +117,7 @@
 
     .fragment {
         padding: 16px;
+        user-select: none;
     }
 
     .commission-card-title {
@@ -107,5 +135,22 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 16px;
+    }
+
+    .members-list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .members-list-item {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        user-select: none;
+    }
+
+    .members-list-item span {
+        flex-grow: 1;
     }
 </style>

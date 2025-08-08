@@ -1,11 +1,9 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import DrawerLayout from "$lib/components/drawer/drawer-layout.svelte";
-    import Fab from "$lib/components/fab.svelte";
-    import Toolbar from "$lib/components/toolbar.svelte";
     import {
         Database,
         GameEvents,
+        ReactiveData,
         type TeamType,
     } from "$lib/utils/reactive-database.svelte";
     import { Fragments } from "$lib/components/fragments/fragments";
@@ -17,6 +15,10 @@
     import DialogImport from "$lib/components/dialogs/dialog-import.svelte";
     import { saveElementAsImage } from "$lib/utils/image-util";
     import FragmentCommissions from "$lib/components/fragments/fragment-commissions.svelte";
+    import "svelte-material-ui/bare.css";
+    import SmuiFab from "$lib/components/smui/smui-fab.svelte";
+    import SmuiToolbar from "$lib/components/smui/smui-toolbar.svelte";
+    import SmuiDrawer from "$lib/components/smui/smui-drawer.svelte";
 
     function ev_OnConfirmCreateTeam(value: string) {
         if (!el_fragmentManageTeams) return;
@@ -50,15 +52,15 @@
         if (!el_fragmentManageTeams) return;
         if (!confirm("DELETE?")) return;
 
-        // Deletar o time 
+        // Deletar o time
         Database.deleteTeam(gameEvent, team);
     }
 
     function ev_OnClickListener_ToolbarDrawerMenu() {
-        el_drawer.open();
+        el_smuiDrawer.openDrawer();
     }
 
-    function ev_OnClickListener_ToolbarExport() {
+    function ev_OnClickListener_ToolbarGenerateImage() {
         if (lockExport || !el_fragmentManageTeams) {
             console.error("Aguarde...");
             return;
@@ -80,9 +82,11 @@
         }
 
         if (newHash !== "#manageTeams") {
-            el_fab.hide();
-            enableExportButton = false;
+            el_smuiFab.hide();
+            enableGenerateImageButton = false;
         }
+
+        el_smuiDrawer.setActive(newHash);
 
         // Atualizar o fragmento
         switch (newHash) {
@@ -92,8 +96,8 @@
             case "#manageTeams":
                 currentFragment = Fragments.MANAGE_TEAMS;
 
-                el_fab.show();
-                enableExportButton = true;
+                el_smuiFab.show();
+                enableGenerateImageButton = true;
                 break;
             case "#manageCommissions":
                 currentFragment = Fragments.COMMISSIONS;
@@ -118,15 +122,15 @@
         onUpdateHash();
 
         // Adicionar a referencia
-        el_drawer.setDialogImportInstance(el_dialogImport);
+        el_smuiDrawer.setDialogImportInstance(el_dialogImport);
     });
 
     let lockExport = false;
     let currentFragment: Fragments = $state(Fragments.UNDEFINED);
-    let enableExportButton: boolean = $state(false);
+    let enableGenerateImageButton: boolean = $state(false);
 
-    let el_drawer: DrawerLayout;
-    let el_fab: Fab;
+    let el_smuiFab: SmuiFab;
+    let el_smuiDrawer: SmuiDrawer;
     let el_fragmentOrganization: FragmentOrganization | null = $state(null);
     let el_fragmentManageTeams: FragmentManageTeams | null = $state(null);
     let el_fragmentAuditLog: FragmentAuditLog | null = $state(null);
@@ -136,42 +140,46 @@
 </script>
 
 <main class="app-container">
-    <Toolbar
-        showExportImage={enableExportButton}
-        onDrawerClick={ev_OnClickListener_ToolbarDrawerMenu}
-        onExportImgClick={ev_OnClickListener_ToolbarExport}
+    <SmuiToolbar
+        title={ReactiveData.organization}
+        showGenerateImageButton={enableGenerateImageButton}
+        onClickDrawer={ev_OnClickListener_ToolbarDrawerMenu}
+        onClickGenerateImage={ev_OnClickListener_ToolbarGenerateImage}
+        onClickImport={() => {}}
+        onClickExport={() => {}}
     />
-    <DrawerLayout bind:this={el_drawer}>
-        <!-- Main content -->
-        <div class="page-content">
-            {#if currentFragment === Fragments.MANAGE_ORGANIZATION}
-                <!-- Manage Organization Page -->
-                <FragmentOrganization bind:this={el_fragmentOrganization} />
-            {:else if currentFragment === Fragments.MANAGE_TEAMS}
-                <!-- Manage Teams Page -->
-                <FragmentManageTeams
-                    bind:this={el_fragmentManageTeams}
-                    onAddMemberClick={ev_OnClickListener_AddMember}
-                    onDeleteTeamClick={ev_OnClickListener_DeleteTeam}
-                />
-            {:else if currentFragment === Fragments.COMMISSIONS}
-                <!-- Commissions fragment -->
-                <FragmentCommissions />
-            {:else if currentFragment === Fragments.AUDIT_LOG}
-                <!-- Audit Log Page -->
-                <FragmentAuditLog bind:this={el_fragmentAuditLog} />
-            {/if}
-        </div>
-    </DrawerLayout>
+    <SmuiDrawer bind:this={el_smuiDrawer} />
 
-    <Fab bind:this={el_fab} onClick={ev_FabClick} />
+    <!-- Main content -->
+    <div class="page-content">
+        {#if currentFragment === Fragments.MANAGE_ORGANIZATION}
+            <!-- Manage Organization Page -->
+            <FragmentOrganization bind:this={el_fragmentOrganization} />
+        {:else if currentFragment === Fragments.MANAGE_TEAMS}
+            <!-- Manage Teams Page -->
+            <FragmentManageTeams
+                bind:this={el_fragmentManageTeams}
+                onAddMemberClick={ev_OnClickListener_AddMember}
+                onDeleteTeamClick={ev_OnClickListener_DeleteTeam}
+            />
+        {:else if currentFragment === Fragments.COMMISSIONS}
+            <!-- Commissions fragment -->
+            <FragmentCommissions />
+        {:else if currentFragment === Fragments.AUDIT_LOG}
+            <!-- Audit Log Page -->
+            <FragmentAuditLog bind:this={el_fragmentAuditLog} />
+        {:else}
+            <div class="blank-page"></div>
+        {/if}
+    </div>
+
+    <SmuiFab bind:this={el_smuiFab} icon="add" onClick={ev_FabClick} />
 
     <!-- Diálogos -->
     <DialogCreateTeam
         bind:this={el_dialogCreateTeam}
         onConfirm={ev_OnConfirmCreateTeam}
     />
-
     <DialogAddMember bind:this={el_dialogAddMember} />
     <DialogImport bind:this={el_dialogImport} />
 </main>
@@ -192,5 +200,13 @@
         position: relative;
         overflow-y: auto;
         flex: 1;
+    }
+
+    .blank-page {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 </style>
