@@ -3,15 +3,19 @@
     import { getAppropriatedString, type LocalizedString } from "$lib/strings";
 
     type CardSettingsType = {
-        children?: any;
         title?: LocalizedString;
+        padded?: boolean;
+        children?: any;
     };
 
-    let { title = { en: "", pt: "" }, children = undefined }: CardSettingsType =
-        $props();
+    let {
+        title = { en: "", pt: "" },
+        padded = false,
+        children = undefined,
+    }: CardSettingsType = $props();
 </script>
 
-<Card padded={true}>
+<Card padded={padded}>
     <Content>
         <h2 class="mdc-typography--headline6 card-item-title">
             {getAppropriatedString(title)}

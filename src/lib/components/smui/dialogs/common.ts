@@ -1,0 +1,1 @@
+export type OnDialogClosedListener = (e: CustomEvent<{ action: string }>) => void;

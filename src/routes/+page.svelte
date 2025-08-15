@@ -81,12 +81,11 @@
             newHash = window.location.hash;
         }
 
-        if (newHash !== "#manageTeams") {
-            el_smuiFab.hide();
-            enableGenerateImageButton = false;
-        }
-
+        // Definir o item selecionado
         el_smuiDrawer.setActive(newHash);
+
+        //el_smuiFab.hide();
+        enableGenerateImageButton = false;
 
         // Atualizar o fragmento
         switch (newHash) {
@@ -95,9 +94,6 @@
                 break;
             case "#manageTeams":
                 currentFragment = Fragments.MANAGE_TEAMS;
-
-                el_smuiFab.show();
-                enableGenerateImageButton = true;
                 break;
             case "#manageCommissions":
                 currentFragment = Fragments.COMMISSIONS;
@@ -115,8 +111,6 @@
         // Carregar o banco de dados no cache
         Database.loadData();
 
-        // Visibilidade do FAB
-
         // Renderizar o fragmento
         window.addEventListener("hashchange", (e) => onUpdateHash());
         onUpdateHash();
@@ -129,7 +123,17 @@
     let currentFragment: Fragments = $state(Fragments.UNDEFINED);
     let enableGenerateImageButton: boolean = $state(false);
 
-    let el_smuiFab: SmuiFab;
+    $effect(() => {
+        if (currentFragment === Fragments.MANAGE_TEAMS) {
+            //el_smuiFab.show();
+            enableGenerateImageButton = true;
+        } else {
+            //el_smuiFab.hide();
+            enableGenerateImageButton = false;
+        }
+    });
+
+    //let el_smuiFab: SmuiFab;
     let el_smuiDrawer: SmuiDrawer;
     let el_fragmentOrganization: FragmentOrganization | null = $state(null);
     let el_fragmentManageTeams: FragmentManageTeams | null = $state(null);
@@ -173,7 +177,7 @@
         {/if}
     </div>
 
-    <SmuiFab bind:this={el_smuiFab} icon="add" onClick={ev_FabClick} />
+    <!-- <SmuiFab bind:this={el_smuiFab} icon="add" onClick={ev_FabClick} /> -->
 
     <!-- Diálogos -->
     <DialogCreateTeam

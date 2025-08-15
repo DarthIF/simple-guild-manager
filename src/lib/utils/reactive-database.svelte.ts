@@ -1,4 +1,4 @@
-import { formatNumberCompact } from "./number-util"
+import { formatNumberCompact, parseCompactNumber } from "./number-util"
 
 
 export type DatabaseType = {
@@ -63,7 +63,8 @@ export enum Actions {
     COMMISSION_REMOVE_CLOSED = 'commission_remove_closed',
     COMMISSION_ADD_EXCLUDED = 'commission_add_excluded',
     COMMISSION_REMOVE_EXCLUDED = 'commission_remove_excluded',
-    COMMISSION_RESET_CYCLE = 'commission_reset_cycle'
+    COMMISSION_RESET_CYCLE = 'commission_reset_cycle',
+    EDIT_MEMBER = 'edit_member',
 }
 
 export enum GameEvents {
@@ -171,7 +172,7 @@ export class Database {
         ReactiveData.auditLog = [{ timestamp, action, details }, ...ReactiveData.auditLog]
 
         if (autoSave)
-            this.saveData()
+            Database.saveData()
     }
 
     public static addMember(name: string, power: number): boolean {
@@ -188,15 +189,17 @@ export class Database {
         }]
 
         // Adicionar ao registro de auditoria, salvamento automático
-        this.addAuditLog(Actions.ADD_MEMBER, { name, power })
+        Database.addAuditLog(Actions.ADD_MEMBER, { name, power })
 
         print('Membro adicionado com sucesso!', { name, power })
 
         return true
     }
 
-    public static deleteMember(index: number) {
-        const member = ReactiveData.members[index]
+    public static deleteMemberV2(member: MemberType, index: number = -1) {
+        // Procurar o índice
+        if (index < 0)
+            index = ReactiveData.members.indexOf(member)
 
         // Primeiro remover o membro dos times
         forEachEvent(eventTeams => {
@@ -207,16 +210,17 @@ export class Database {
                     team.members.splice(memberIndex, 1)
 
                     // Adicionar o registro de auditoria
-                    this.addAuditLog(Actions.REMOVE_MEMBER_FROM_TEAM, { teamName: team.name, memberId: member.id }, false)
+                    Database.addAuditLog(Actions.REMOVE_MEMBER_FROM_TEAM, { teamName: team.name, memberId: member.id }, false)
                 }
             })
         })
 
         // Remover o membro do banco de dados
-        ReactiveData.members.splice(index, 1)
+        if (index > -1)
+            ReactiveData.members.splice(index, 1)
 
         // Adicionar ao registro de auditoria, salvamento automático
-        this.addAuditLog(Actions.REMOVE_MEMBER, { name: member.name })
+        Database.addAuditLog(Actions.REMOVE_MEMBER, { name: member.name })
 
         print('Membro removido com sucesso!', member)
     }
@@ -227,14 +231,14 @@ export class Database {
             return false
 
         // Adicionar o novo time
-        this.getEventTeams(gameEvent).push({
+        Database.getEventTeams(gameEvent).push({
             id: Date.now().toString(),
             name,
             members: []
         })
 
         // Adicionar ao registro de auditoria, salvamento automático
-        this.addAuditLog(Actions.CREATE_TEAM, { gameEvent, name })
+        Database.addAuditLog(Actions.CREATE_TEAM, { gameEvent, name })
 
         print('Equipe criada com sucesso!')
 
@@ -242,20 +246,20 @@ export class Database {
     }
 
     public static deleteTeamByIndex(gameEvent: GameEvents, index: number) {
-        const teams = this.getEventTeams(gameEvent)
+        const teams = Database.getEventTeams(gameEvent)
         const team = teams[index]
 
         // Deletar o time 
         teams.splice(index, 1)
 
         // Adicionar ao registro de auditoria, salvamento automático
-        this.addAuditLog(Actions.DELETE_TEAM, { name: team.name })
+        Database.addAuditLog(Actions.DELETE_TEAM, { name: team.name })
 
         print('Equipe removida com sucesso!')
     }
 
     public static deleteTeam(gameEvent: GameEvents, team: TeamType): boolean {
-        const teams = this.getEventTeams(gameEvent)
+        const teams = Database.getEventTeams(gameEvent)
         const index = teams.indexOf(team)
 
         if (index < 0)
@@ -267,7 +271,7 @@ export class Database {
 
 
     public static addMemberToTeamV2(gameEvent: GameEvents, teamId: string, memberId: string) {
-        const teams = this.getEventTeams(gameEvent)
+        const teams = Database.getEventTeams(gameEvent)
         const team = teams.find(t => t.id === teamId)
 
         // Time não encontrado ou cheio
@@ -278,7 +282,7 @@ export class Database {
         team.members.push(memberId)
 
         // Adicionar ao registro de auditoria, salvamento automático
-        this.addAuditLog(Actions.ADD_MEMBER_TO_TEAM, { teamName: team.name, memberId })
+        Database.addAuditLog(Actions.ADD_MEMBER_TO_TEAM, { teamName: team.name, memberId })
 
         print('Membro adicionado à equipe com sucesso!')
 
@@ -286,7 +290,7 @@ export class Database {
     }
 
     public static removeMemberFromTeamV2(gameEvent: GameEvents, teamId: string, memberId: string) {
-        const teams = this.getEventTeams(gameEvent)
+        const teams = Database.getEventTeams(gameEvent)
         const team = teams.find(t => t.id === teamId)
 
         // Time não encontrado
@@ -302,7 +306,7 @@ export class Database {
         team.members.splice(memberIndex, 1)
 
         // Adicionar ao registro de auditoria, salvamento automático
-        this.addAuditLog(Actions.REMOVE_MEMBER_FROM_TEAM, { teamName: team.name, memberId })
+        Database.addAuditLog(Actions.REMOVE_MEMBER_FROM_TEAM, { teamName: team.name, memberId })
 
         print('Membro removido da equipe com sucesso!')
     }
@@ -317,7 +321,7 @@ export class Database {
         ReactiveData.organization = newName
 
         // Adicionar ao registro de auditoria, salvamento automático
-        this.addAuditLog(Actions.CHANGE_ORGANIZATION_NAME, { oldName, newName })
+        Database.addAuditLog(Actions.CHANGE_ORGANIZATION_NAME, { oldName, newName })
 
         print('Nome da organização alterado com sucesso!')
 
@@ -420,7 +424,7 @@ export class Database {
 
     public static listFreeMembers(gameEvent: GameEvents): MemberType[] {
         const freeMembers = [...ReactiveData.members]
-        const teams = this.getEventTeams(gameEvent)
+        const teams = Database.getEventTeams(gameEvent)
 
         for (const team of teams) {
             for (const teamMember of team.members) {
@@ -469,7 +473,7 @@ export class Database {
         ReactiveData.commissions.closed.push(member.id)
 
         // Adicionar ao registro de auditoria, salvamento automático
-        this.addAuditLog(Actions.COMMISSION_ADD_CLOSED, { memberId: member.id })
+        Database.addAuditLog(Actions.COMMISSION_ADD_CLOSED, { memberId: member.id })
     }
 
     public static removeMemberToCommissionClosed(member: MemberType): boolean {
@@ -482,7 +486,7 @@ export class Database {
         ReactiveData.commissions.closed.splice(memberIndex, 1)
 
         // Adicionar ao registro de auditoria, salvamento automático
-        this.addAuditLog(Actions.COMMISSION_REMOVE_CLOSED, { memberId: member.id })
+        Database.addAuditLog(Actions.COMMISSION_REMOVE_CLOSED, { memberId: member.id })
 
         return true
     }
@@ -492,7 +496,7 @@ export class Database {
         ReactiveData.commissions.excluded.push(member.id)
 
         // Adicionar ao registro de auditoria, salvamento automático
-        this.addAuditLog(Actions.COMMISSION_ADD_EXCLUDED, { memberId: member.id })
+        Database.addAuditLog(Actions.COMMISSION_ADD_EXCLUDED, { memberId: member.id })
     }
 
     public static removeMemberToCommissionExcluded(member: MemberType): boolean {
@@ -505,7 +509,7 @@ export class Database {
         ReactiveData.commissions.excluded.splice(memberIndex, 1)
 
         // Adicionar ao registro de auditoria, salvamento automático
-        this.addAuditLog(Actions.COMMISSION_REMOVE_EXCLUDED, { memberId: member.id })
+        Database.addAuditLog(Actions.COMMISSION_REMOVE_EXCLUDED, { memberId: member.id })
 
         return true
     }
@@ -516,7 +520,26 @@ export class Database {
         ReactiveData.commissions.closed.splice(0, size)
 
         // Adicionar ao registro de auditoria, salvamento automático
-        this.addAuditLog(Actions.COMMISSION_RESET_CYCLE, {})
+        Database.addAuditLog(Actions.COMMISSION_RESET_CYCLE, {})
+    }
+
+
+
+    public static editMember(id: string, newName: string, newPower: number | string): boolean {
+        if (typeof newPower === 'string')
+            newPower = parseCompactNumber(newPower)
+
+        const member = Database.findMember(id)
+        if (!member)
+            return false
+
+        member.name = newName
+        member.power = newPower
+
+        // Adicionar ao registro de auditoria, salvamento automático
+        Database.addAuditLog(Actions.EDIT_MEMBER, { memberId: member.id })
+
+        return true
     }
 
 }

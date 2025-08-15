@@ -2,29 +2,27 @@
     import Fab, { Icon } from "@smui/fab";
 
     export function hide() {
-        element.getElement().classList.add("smui-fab-hidden");
+        visibility = false;
     }
 
     export function show() {
-        element.getElement().classList.remove("smui-fab-hidden");
+        visibility = true;
     }
 
-    let element: Fab;
+    let visibility = $state(true);
     let { icon, onClick } = $props();
 </script>
 
-<Fab bind:this={element} class="smui-fab" onclick={onClick}>
-    <Icon class="material-symbols-rounded">{icon}</Icon>
-</Fab>
+{#if visibility}
+    <Fab class="smui-fab" onclick={onClick}>
+        <Icon class="material-symbols-rounded">{icon}</Icon>
+    </Fab>
+{/if}
 
 <style>
     :global(.smui-fab) {
-        position: fixed;
+        position: fixed !important;
         bottom: 24px;
         right: 24px;
-    }
-
-    :global(.smui-fab-hidden) {
-        display: none;
     }
 </style>
