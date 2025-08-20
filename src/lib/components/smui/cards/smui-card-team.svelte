@@ -10,6 +10,7 @@
         calculateTeamPowerToDisplay,
         Database,
         type GameEvents,
+        type MemberType,
         type TeamType,
     } from "$lib/utils/reactive-database.svelte";
     import { ReactiveSettings } from "$lib/utils/reactive-settings.svelte";
@@ -32,6 +33,11 @@
         onDeleteTeamClick: (gameEvent: GameEvents, team: TeamType) => void;
     };
 
+    function onClick_RemoveMember(member: MemberType | undefined) {
+        if (member)
+            Database.removeMemberFromTeamV2(gameEvent, team.id, member.id);
+    }
+
     onMount(() => {
         const element = el_card.getElement();
         const color = getColorListItemForIndex(index);
@@ -52,12 +58,14 @@
 
 <Card
     bind:this={el_card}
+    padded={false}
+    class="smui-team-card"
     style="user-select: none; justify-content: space-between;"
 >
-    <Content>
+    <Content style="padding: 16px 0;">
         <List nonInteractive style="margin-top: -12px; padding: 0;">
             <Item style="padding: 0;">
-                <Text>
+                <Text style="margin-left: 16px;">
                     <PrimaryText>
                         {team.name}
                     </PrimaryText>
@@ -66,14 +74,16 @@
                         {calculateTeamPowerToDisplay(team)}
                     </SecondaryText>
                 </Text>
-                <Meta>
+                <Meta style="padding-right: 5px;">
                     <!-- Botões para gerenciar o time -->
                     {#if !ReactiveSettings.screenShotMode}
                         <!-- Botão para adicionar um membro -->
                         {#if team.members.length < 4}
                             <IconButton
                                 class="material-symbols-rounded"
-                                onclick={() => {}}
+                                onclick={() => {
+                                    onAddMemberClick(gameEvent, team);
+                                }}
                             >
                                 person_add
                             </IconButton>
@@ -82,7 +92,9 @@
                         <!-- Botão para apagar o time -->
                         <IconButton
                             class="material-symbols-rounded"
-                            onclick={() => {}}
+                            onclick={() => {
+                                onDeleteTeamClick(gameEvent, team);
+                            }}
                         >
                             delete
                         </IconButton>
@@ -94,7 +106,7 @@
         <List nonInteractive style="padding-bottom: 0;">
             {#each team.members.map( (id) => Database.findMember(id), ) as member, index}
                 <Item class="team-member" style="">
-                    <Text style="margin-top: -16px;">
+                    <Text style="margin-top: -16px; margin-left: 16px;">
                         <PrimaryText>
                             {member?.name}
                         </PrimaryText>
@@ -102,11 +114,11 @@
                             {formatNumberCompact(member?.power || 0)}
                         </SecondaryText>
                     </Text>
-                    <Meta>
+                    <Meta style="padding-right: 5px;">
                         {#if !ReactiveSettings.screenShotMode}
                             <IconButton
                                 class="material-symbols-rounded"
-                                onclick={() => {}}
+                                onclick={() => onClick_RemoveMember(member)}
                             >
                                 person_remove
                             </IconButton>

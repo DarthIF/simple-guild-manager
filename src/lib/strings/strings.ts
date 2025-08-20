@@ -29,6 +29,8 @@ export const fragment_manage = {
 export const fragment_teams = {
     dialog_new_team: { en: 'New team', pt: 'Nova equipe' },
     dialog_team_name: { en: 'Team name', pt: 'Nome da equipe' },
+
+    no_teams: { en: 'No teams', pt: 'Sem equipes' },
 }
 
 
@@ -36,5 +38,5 @@ export const component_card_team = {
     add: { en: 'Add member', pt: 'Adicionar membro' },
     delete: { en: 'Delete team', pt: 'Apagar o time' },
 
-    total_power: {en:'Total power:', pt:'Poder total:'},
+    total_power: { en: 'Total power:', pt: 'Poder total:' },
 }

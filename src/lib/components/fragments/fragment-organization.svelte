@@ -37,9 +37,10 @@
     } from "@smui/list";
     import SmuiDialogMember from "../smui/dialogs/smui-dialog-member.svelte";
     import SmuiFab from "../smui/smui-fab.svelte";
+    import { getPlaceholderImageUrl } from "./fragments";
 
     function saveNewOrgName() {
-        const value = temp_newName.trim();
+        const value = tempNewName.trim();
         if (value.length < 1) {
             alert("ERROR");
             return;
@@ -101,16 +102,13 @@
         };
     }
 
-    function getPlaceholderImageUrl(member: MemberType) {
-        const char = member.name.trim().charAt(0);
-        return `url(https://placehold.co/72?font=roboto&text=${char})`;
-    }
-
     onMount(() => {
         el_dialogMember.setOnDialogClosed(dialogMemberCloseHandler);
     });
 
-    let temp_newName = $state(ReactiveData.organization);
+    const bodyStyle = getComputedStyle(document.body);
+    let tempNewName = $state(ReactiveData.organization);
+
     let el_dialogMember: SmuiDialogMember;
 </script>
 
@@ -119,7 +117,7 @@
         <Content>
             <SmuiTextField
                 style="width: 100%;"
-                bind:value={temp_newName}
+                bind:value={tempNewName}
                 variant="outlined"
                 label={getAppropriatedString(fragment_manage.new_name)}
             />
@@ -143,7 +141,10 @@
                 <Item>
                     <Graphic
                         class="fragment-organization-list-item-image"
-                        style="--bg: {getPlaceholderImageUrl(member)}"
+                        style="--bg: {getPlaceholderImageUrl(
+                            bodyStyle,
+                            member,
+                        )}"
                     />
                     <Text>
                         <PrimaryText>

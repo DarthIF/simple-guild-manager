@@ -17,9 +17,11 @@ $test: hsl(218, 62%, 6%);
   $background: color.change($source-color-hsl , $lightness: 99%),
   $error: color.change($source-color-hsl , $hue: 0),
 );
+@use '@material/theme/styles';
 
 // Material Typography
 @use '@material/typography/index' as typography;
+
 
 html,
 body {

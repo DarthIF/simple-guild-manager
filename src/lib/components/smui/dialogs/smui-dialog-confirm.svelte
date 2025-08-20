@@ -6,30 +6,14 @@
         InitialFocus,
     } from "@smui/dialog";
     import Button, { Label } from "@smui/button";
-    import Textfield from "@smui/textfield";
-    import type { OnDialogClosedListener } from "./common";
     import { getAppropriatedString, type LocalizedString } from "$lib/strings";
+    import type { OnDialogClosedListener } from "./common";
 
     type ExportTypes = {
         title?: string | LocalizedString;
         label?: string | LocalizedString;
     };
 
-    export function open(event: OnDialogClosedListener) {
-        onDialogClosed = event;
-        visible = true;
-    }
-
-    export function close() {
-        visible = false;
-        onDialogClosed = undefined;
-    }
-
-    export function getValue() {
-        return promptValue.trim();
-    }
-
-    let promptValue: string = $state("");
     let visible: boolean = $state(false);
     let onDialogClosed: OnDialogClosedListener | undefined = $state(undefined);
 
@@ -47,15 +31,7 @@
 >
     <Title>{dialog_title}</Title>
     <Content>
-        <div class="dialog-content">
-            {/* @ts-ignore */ null}
-            <Textfield
-                bind:value={promptValue}
-                {dialog_label}
-                required
-                variant="outlined"
-            />
-        </div>
+        {dialog_label}
     </Content>
     <Actions>
         <Button action="cancel">
@@ -67,19 +43,4 @@
     </Actions>
 </Dialog>
 
-<style>
-    .dialog-content {
-        min-width: 300px;
-        margin: 0 -8px 0 -8px;
-        padding-top: 8px;
-
-        display: flex;
-        flex-direction: column;
-    }
-
-    @media (min-width: 600px) {
-        .dialog-content {
-            margin: 0;
-        }
-    }
-</style>
+<style></style>

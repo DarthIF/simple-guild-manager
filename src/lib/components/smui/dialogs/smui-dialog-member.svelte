@@ -60,6 +60,7 @@
     let valuePower: string = $state("");
 </script>
 
+{/* @ts-ignore */ null}
 <Dialog bind:open={visible} onSMUIDialogClosed={onDialogClosed}>
     <Title>Add member</Title>
     <Content>
