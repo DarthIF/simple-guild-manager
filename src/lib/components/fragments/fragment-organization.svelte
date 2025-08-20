@@ -1,8 +1,8 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { ButtonTypes } from "../buttons/button-types";
+    import { ButtonTypes } from "../remover/buttons/button-types";
     import CardSettings from "../cards/card-settings.svelte";
-    import MaterialButton from "../buttons/material-button.svelte";
+    import MaterialButton from "../remover/buttons/material-button.svelte";
     import MemberItem from "../list/member-item.svelte";
     import {
         Database,
@@ -14,7 +14,7 @@
         parseCompactNumber,
     } from "$lib/utils/number-util";
     import { getAppropriatedString, type LocalizedString } from "$lib/strings";
-    import { action, fragments } from "$lib/strings/strings";
+    import { action, fragment_manage } from "$lib/strings/strings";
     import SmuiTextField from "../smui/smui-text-field.svelte";
     import Card, {
         Content,
@@ -94,7 +94,7 @@
     }
 
     function getTitleOfCard(members: MemberType[]): LocalizedString {
-        const base = fragments.title_membersList;
+        const base = fragment_manage.title_membersList;
         return {
             en: base.en.replace("%s", members.length.toString()),
             pt: base.pt.replace("%s", members.length.toString()),
@@ -115,13 +115,13 @@
 </script>
 
 <div class="fragment">
-    <SmuiSettingsCard title={fragments.title_changeOrgName}>
+    <SmuiSettingsCard title={fragment_manage.title_changeOrgName}>
         <Content>
             <SmuiTextField
                 style="width: 100%;"
                 bind:value={temp_newName}
                 variant="outlined"
-                label={getAppropriatedString(fragments.new_name)}
+                label={getAppropriatedString(fragment_manage.new_name)}
             />
         </Content>
         <Actions style="display: flex; justify-content: end;">
@@ -170,27 +170,6 @@
             {/each}
         </List>
     </SmuiSettingsCard>
-</div>
-<div class="fragment">
-    <CardSettings
-        title={`Lista de Membros (${ReactiveData.members.length}/30)`}
-    >
-        <ul class="list" id="membersList">
-            {#if ReactiveData.members.length < 1}
-                <MemberItem noMemberMode={true} />
-            {:else}
-                {#each ReactiveData.members as member, index}
-                    <MemberItem
-                        memberName={member.name}
-                        memberPower={member.power}
-                        onClick={() => {
-                            Database.deleteMemberV2(member, index);
-                        }}
-                    />
-                {/each}
-            {/if}
-        </ul>
-    </CardSettings>
 </div>
 
 <SmuiFab

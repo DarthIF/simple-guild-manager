@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { ButtonTypes } from "../buttons/button-types";
-    import MaterialButton from "../buttons/material-button.svelte";
+    import { ButtonTypes } from "../remover/buttons/button-types";
+    import MaterialButton from "../remover/buttons/material-button.svelte";
 
     type MaterialDialogType = {
         title?: string;

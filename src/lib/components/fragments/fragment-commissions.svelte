@@ -5,10 +5,10 @@
         type MemberType,
     } from "$lib/utils/reactive-database.svelte";
     import { onMount } from "svelte";
-    import MaterialButton from "../buttons/material-button.svelte";
-    import { ButtonTypes } from "../buttons/button-types";
-    import MaterialIconButton from "../buttons/material-icon-button.svelte";
-    import MaterialSymbols from "../material-symbols.svelte";
+    import MaterialButton from "../remover/buttons/material-button.svelte";
+    import { ButtonTypes } from "../remover/buttons/button-types";
+    import MaterialIconButton from "../remover/buttons/material-icon-button.svelte";
+    import MaterialSymbols from "../remover/material-symbols.svelte";
 
     function ev_OnClickListener_ResetCycle() {
         if (

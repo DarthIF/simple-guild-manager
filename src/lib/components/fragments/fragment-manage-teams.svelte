@@ -6,25 +6,26 @@
         type TeamType,
     } from "$lib/utils/reactive-database.svelte";
     import { onMount } from "svelte";
-    import { ButtonTypes } from "../buttons/button-types";
-    import MaterialButton from "../buttons/material-button.svelte";
     import CardTeam from "../cards/card-team.svelte";
     import EventSelector from "../event-selector.svelte";
-    import MaterialSymbols from "../material-symbols.svelte";
+    import MaterialSymbols from "../remover/material-symbols.svelte";
     import SmuiDialogPrompt from "../smui/dialogs/smui-dialog-prompt.svelte";
     import SmuiFab from "../smui/smui-fab.svelte";
+    import SmuiCardTeam from "../smui/cards/smui-card-team.svelte";
+    import EventSelectorV2 from "../event-selectorV2.svelte";
+    import { fragment_teams } from "$lib/strings/strings";
 
-    type FragmentManageTeamsType = {
+    type ExportType = {
         onAddMemberClick: (gameEvent: GameEvents, team: TeamType) => void;
         onDeleteTeamClick: (gameEvent: GameEvents, team: TeamType) => void;
     };
 
     export function getElementToRender(): HTMLElement {
-        return el_root;
+        return el_cardsGrid;
     }
 
-    export function getCurrentGameEvent(): GameEvents {
-        return currentGameEvent;
+    export function getGameEvent(): GameEvents {
+        return GAME_EVENT;
     }
 
     function onDialogClosed(e: CustomEvent<{ action: string }>) {
@@ -42,50 +43,39 @@
         }
 
         // Criar o time
-        Database.addTeam(currentGameEvent, value);
+        Database.addTeam(GAME_EVENT, value);
     }
+
+    // --------------------------------
 
     onMount(() => {
         el_dialogCreateTeam.setOnDialogClosed(onDialogClosed);
     });
 
-    let currentGameEvent: GameEvents = $state(GameEvents.WORLD_TREE);
-    let currentEventTeams = $derived(Database.getEventTeams(currentGameEvent));
+    let GAME_EVENT: GameEvents = $state(GameEvents.WORLD_TREE);
+    let EVENT_TEAMS: TeamType[] = $derived(Database.getEventTeams(GAME_EVENT));
 
-    let el_root: HTMLDivElement;
+    let el_cardsGrid: HTMLDivElement;
     let el_dialogCreateTeam: SmuiDialogPrompt;
 
-    let { onAddMemberClick, onDeleteTeamClick }: FragmentManageTeamsType =
-        $props();
+    let { onAddMemberClick, onDeleteTeamClick }: ExportType = $props();
 </script>
 
-<EventSelector
-    style="padding: 16px;"
-    currentEvent={currentGameEvent}
-    onSelectionListener={(gameEvent) => {
-        currentGameEvent = gameEvent;
-    }}
-/>
+<EventSelectorV2 class="event-selector" bind:selected={GAME_EVENT} />
 
-<div class="fragment" bind:this={el_root}>
-    {#if currentEventTeams.length < 1}
-        <!-- Nenhuma equipe -->
-        <div
-            class="card"
-            style="display: flex; align-items: center; justify-content: center;"
-        >
-            <span>Nenhuma equipe criada. Clique no botão</span>
-            <MaterialSymbols icon="add" />
-            <span>para criar uma.</span>
-        </div>
+<div bind:this={el_cardsGrid}>
+    <!-- Nenhuma equipe -->
+    {#if EVENT_TEAMS.length < 1}
+        <span>sem time</span>
     {:else}
-        <div class="team-grid">
-            {#each currentEventTeams as team}
-                <CardTeam
+        <div class="cards-responsive-grid">
+            {#each EVENT_TEAMS as team, index}
+                <SmuiCardTeam
+                    {index}
                     {team}
                     {onAddMemberClick}
                     {onDeleteTeamClick}
-                    gameEvent={currentGameEvent}
+                    gameEvent={GAME_EVENT}
                 />
             {/each}
         </div>
@@ -98,17 +88,22 @@
         el_dialogCreateTeam.open();
     }}
 />
-<SmuiDialogPrompt bind:this={el_dialogCreateTeam} />
+<SmuiDialogPrompt
+    title={fragment_teams.dialog_new_team}
+    label={fragment_teams.dialog_team_name}
+    bind:this={el_dialogCreateTeam}
+/>
 
 <style>
-    @import "../cards/card.css";
-
-    .fragment {
+    :global(.event-selector) {
         padding: 16px;
-        padding-top: 0;
+        padding-bottom: 8px;
     }
 
-    .team-grid {
+    .cards-responsive-grid {
+        padding: 16px;
+        padding-top: 8px;
+
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 16px;

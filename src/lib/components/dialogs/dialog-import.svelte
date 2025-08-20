@@ -58,5 +58,5 @@
 
 <style>
     @import "./dialog.css";
-    @import "../form/form.css";
+    @import "../remover/form/form.css";
 </style>

@@ -6,9 +6,9 @@
         type TeamType,
     } from "$lib/utils/reactive-database.svelte";
     import { ReactiveSettings } from "$lib/utils/reactive-settings.svelte";
-    import { ButtonTypes } from "../buttons/button-types";
-    import MaterialButton from "../buttons/material-button.svelte";
-    import MaterialIconButton from "../buttons/material-icon-button.svelte";
+    import { ButtonTypes } from "../remover/buttons/button-types";
+    import MaterialButton from "../remover/buttons/material-button.svelte";
+    import MaterialIconButton from "../remover/buttons/material-icon-button.svelte";
 
     type CardTeamType = {
         team: TeamType;
@@ -25,7 +25,7 @@
     <div class="card-title team-card-title">
         <span>{team.name}</span>
 
-        <!-- Botão para deletar o timeX -->
+        <!-- Botão para deletar o time -->
         {#if !ReactiveSettings.screenShotMode}
             <MaterialIconButton
                 icon="delete"

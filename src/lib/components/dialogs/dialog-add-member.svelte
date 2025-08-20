@@ -6,8 +6,8 @@
         type MemberType,
         type TeamType,
     } from "$lib/utils/reactive-database.svelte";
-    import { ButtonTypes } from "../buttons/button-types";
-    import MaterialButton from "../buttons/material-button.svelte";
+    import { ButtonTypes } from "../remover/buttons/button-types";
+    import MaterialButton from "../remover/buttons/material-button.svelte";
     import MaterialDialog from "./material-dialog.svelte";
 
     export async function show() {

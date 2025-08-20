@@ -15,10 +15,9 @@
     import DialogImport from "$lib/components/dialogs/dialog-import.svelte";
     import { saveElementAsImage } from "$lib/utils/image-util";
     import FragmentCommissions from "$lib/components/fragments/fragment-commissions.svelte";
-    import "svelte-material-ui/bare.css";
-    import SmuiFab from "$lib/components/smui/smui-fab.svelte";
     import SmuiToolbar from "$lib/components/smui/smui-toolbar.svelte";
     import SmuiDrawer from "$lib/components/smui/smui-drawer.svelte";
+    // import "svelte-material-ui/bare.css"; // SMUI
 
     function ev_OnConfirmCreateTeam(value: string) {
         if (!el_fragmentManageTeams) return;
@@ -29,7 +28,7 @@
         }
 
         // Criar o time
-        const gameEvent = el_fragmentManageTeams.getCurrentGameEvent();
+        const gameEvent = el_fragmentManageTeams.getGameEvent();
         Database.addTeam(gameEvent, value);
     }
 

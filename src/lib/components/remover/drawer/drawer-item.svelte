@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import MaterialSymbols from "../material-symbols.svelte";
+    import MaterialSymbols from "../remover/material-symbols.svelte";
 
     type DrawerItemType = {
         text: string;

@@ -1,6 +1,6 @@
 <script lang="ts">
     import { formatNumberCompact } from "$lib/utils/number-util";
-    import MaterialSymbols from "../material-symbols.svelte";
+    import MaterialSymbols from "../remover/material-symbols.svelte";
 
     let {
         memberName = "",
@@ -28,6 +28,6 @@
 {/if}
 
 <style>
-    @import "../buttons/icon-button.css";
+    @import "../remover/buttons/icon-button.css";
     @import "./list.css";
 </style>

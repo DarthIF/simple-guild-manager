@@ -4,7 +4,7 @@
         ReactiveData,
     } from "$lib/utils/reactive-database.svelte";
     import { onMount } from "svelte";
-    import MaterialSymbols from "../material-symbols.svelte";
+    import MaterialSymbols from "../remover/material-symbols.svelte";
     import DialogImport from "../dialogs/dialog-import.svelte";
     import DrawerItem from "./drawer-item.svelte";
 

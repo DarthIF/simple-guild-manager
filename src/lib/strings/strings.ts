@@ -17,12 +17,24 @@ export const action = {
     cancel: { en: 'Cancel', pt: 'Cancelar' },
 }
 
-export const fragments = {
+export const fragment_manage = {
     title_changeOrgName: { en: 'Change Organization Name', pt: 'Mudar Nome da Organização' },
     new_name: { en: 'New name', pt: 'Novo nome' },
 
     title_manageMembers: { en: 'Manage Members', pt: 'Gerenciar Membros' },
 
-    title_membersList: { en: 'Member List (%s/30)', pt: 'Lista de Membros (%s/30)' }
+    title_membersList: { en: 'Member List (%s/30)', pt: 'Lista de Membros (%s/30)' },
+}
 
+export const fragment_teams = {
+    dialog_new_team: { en: 'New team', pt: 'Nova equipe' },
+    dialog_team_name: { en: 'Team name', pt: 'Nome da equipe' },
+}
+
+
+export const component_card_team = {
+    add: { en: 'Add member', pt: 'Adicionar membro' },
+    delete: { en: 'Delete team', pt: 'Apagar o time' },
+
+    total_power: {en:'Total power:', pt:'Poder total:'},
 }

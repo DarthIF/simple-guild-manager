@@ -1,0 +1,89 @@
+@use 'sass:color';
+@use '@material/theme/color-palette';
+
+
+$source-color: #769CDF;
+$source-color-hsl: hsl(218, 62%, 67%);
+$test: hsl(218, 62%, 6%);
+
+// Svelte Colors!
+@use '@material/theme/index' as theme with ( //
+  $primary: $source-color ,
+  $on-primary: color.change($source-color-hsl , $lightness: 16%),
+  $secondary: color.change($source-color-hsl , $saturation: 25%),
+  $on-secondary: color.change($source-color-hsl , $saturation: 25%, $lightness: 16%),
+  $surface: color.change($source-color-hsl , $lightness: 98%),
+  $on-surface: color.change($source-color-hsl , $lightness: 12%),
+  $background: color.change($source-color-hsl , $lightness: 99%),
+  $error: color.change($source-color-hsl , $hue: 0),
+);
+
+// Material Typography
+@use '@material/typography/index' as typography;
+
+html,
+body {
+  background-color: theme.$background;
+  color: theme.$on-surface;
+}
+
+a {
+  color: $source-color;
+}
+
+a:visited {
+  color: color.scale($source-color, $lightness: -35%);
+}
+
+
+// Material Typography --------------------------
+
+html {
+  @include typography.typography('body1');
+}
+
+h1 {
+  @include typography.typography('headline1');
+}
+
+h2 {
+  @include typography.typography('headline2');
+}
+
+h3 {
+  @include typography.typography('headline3');
+}
+
+h4 {
+  @include typography.typography('headline4');
+}
+
+h5 {
+  @include typography.typography('headline5');
+}
+
+h6 {
+  @include typography.typography('headline6');
+}
+
+caption {
+  @include typography.typography('caption');
+}
+
+code,
+pre {
+  font-family: 'Roboto Mono', monospace;
+}
+
+small {
+  font-size: 0.9em;
+}
+
+big {
+  font-size: 1.1em;
+}
+
+b,
+strong {
+  font-weight: bold;
+}

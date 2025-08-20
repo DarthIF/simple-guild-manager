@@ -8,6 +8,12 @@
     import Button, { Label } from "@smui/button";
     import Textfield from "@smui/textfield";
     import type { OnDialogClosedListener } from "./common";
+    import { getAppropriatedString, type LocalizedString } from "$lib/strings";
+
+    type ExportTypes = {
+        title?: string | LocalizedString;
+        label?: string | LocalizedString;
+    };
 
     export function open() {
         visible = true;
@@ -29,17 +35,24 @@
     let visible: boolean = $state(false);
     let onDialogClosed: OnDialogClosedListener | undefined = $state(undefined);
 
-    let { title = "", label = "" } = $props();
+    let dialog_title: string = $derived.by(() => getAppropriatedString(title));
+    let dialog_label: string = $derived.by(() => getAppropriatedString(label));
+
+    let { title = "", label = "" }: ExportTypes = $props();
 </script>
 
-<Dialog bind:open={visible} onSMUIDialogClosed={onDialogClosed}>
-    <Title>{title}</Title>
+<Dialog
+    bind:open={visible}
+    onSMUIDialogClosed={onDialogClosed}
+    style="user-select: none;"
+>
+    <Title>{dialog_title}</Title>
     <Content>
         <div class="dialog-content">
             {/* @ts-ignore */ null}
             <Textfield
                 bind:value={promptValue}
-                {label}
+                {dialog_label}
                 required
                 variant="outlined"
             />

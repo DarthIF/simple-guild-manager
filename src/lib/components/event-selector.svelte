@@ -1,8 +1,8 @@
 <script lang="ts">
     import type { HTMLStyleAttributes } from "svelte/elements";
     import { GameEvents } from "$lib/utils/reactive-database.svelte";
-    import { ButtonTypes } from "./buttons/button-types";
-    import MaterialButton from "./buttons/material-button.svelte";
+    import { ButtonTypes } from "./remover/buttons/button-types";
+    import MaterialButton from "./remover/buttons/material-button.svelte";
     type EventSelectorType = {
         style?: string;
         currentEvent: GameEvents;
