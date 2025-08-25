@@ -1,31 +1,7 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-    import { ButtonTypes } from "../remover/buttons/button-types";
-    import CardSettings from "../cards/card-settings.svelte";
-    import MaterialButton from "../remover/buttons/material-button.svelte";
-    import MemberItem from "../list/member-item.svelte";
-    import {
-        Database,
-        ReactiveData,
-        type MemberType,
-    } from "$lib/utils/reactive-database.svelte";
-    import {
-        formatNumberCompact,
-        parseCompactNumber,
-    } from "$lib/utils/number-util";
-    import { getAppropriatedString, type LocalizedString } from "$lib/strings";
-    import { action, fragment_manage } from "$lib/strings/strings";
-    import SmuiTextField from "../smui/smui-text-field.svelte";
-    import Card, {
-        Content,
-        PrimaryAction,
-        Actions,
-        ActionButtons,
-        ActionIcons,
-    } from "@smui/card";
+    import { Content, Actions } from "@smui/card";
     import Button, { Label } from "@smui/button";
     import IconButton from "@smui/icon-button";
-    import SmuiSettingsCard from "../smui/smui-settings-card.svelte";
     import List, {
         Item,
         Graphic,
@@ -37,10 +13,24 @@
     } from "@smui/list";
     import SmuiDialogMember from "../smui/dialogs/smui-dialog-member.svelte";
     import SmuiFab from "../smui/smui-fab.svelte";
-    import { getPlaceholderImageUrl } from "./fragments";
+    import SmuiSettingsCard from "../smui/smui-settings-card.svelte";
+    import SmuiTextField from "../smui/smui-text-field.svelte";
+    import {
+        Database,
+        ReactiveData,
+        type MemberType,
+    } from "$lib/utils/reactive-database.svelte";
+    import {
+        formatNumberCompact,
+        parseCompactNumber,
+    } from "$lib/utils/number-util";
+    import { getAppropriatedString, type LocalizedString } from "$lib/strings";
+    import { action, fragment_manage } from "$lib/strings/strings";
+    import { getPlaceHolderStyle } from "./fragments";
+    import { onMount } from "svelte";
 
     function saveNewOrgName() {
-        const value = tempNewName.trim();
+        const value = editorOrgName.trim();
         if (value.length < 1) {
             alert("ERROR");
             return;
@@ -107,7 +97,10 @@
     });
 
     const bodyStyle = getComputedStyle(document.body);
-    let tempNewName = $state(ReactiveData.organization);
+    let editorOrgName = $state(ReactiveData.organization);
+    let sortedMembers = $derived.by(() => {
+        return [...ReactiveData.members].sort((a, b) => b.power - a.power);
+    });
 
     let el_dialogMember: SmuiDialogMember;
 </script>
@@ -117,7 +110,7 @@
         <Content>
             <SmuiTextField
                 style="width: 100%;"
-                bind:value={tempNewName}
+                bind:value={editorOrgName}
                 variant="outlined"
                 label={getAppropriatedString(fragment_manage.new_name)}
             />
@@ -137,14 +130,11 @@
 
     <SmuiSettingsCard title={getTitleOfCard(ReactiveData.members)}>
         <List class="" twoLine avatarList nonInteractive>
-            {#each ReactiveData.members as member, index}
+            {#each sortedMembers as member, index}
                 <Item>
                     <Graphic
-                        class="fragment-organization-list-item-image"
-                        style="--bg: {getPlaceholderImageUrl(
-                            bodyStyle,
-                            member,
-                        )}"
+                        class="fragment-organization--list-item-image"
+                        style={getPlaceHolderStyle(bodyStyle, member)}
                     />
                     <Text>
                         <PrimaryText>
@@ -182,12 +172,7 @@
 <SmuiDialogMember bind:this={el_dialogMember} />
 
 <style>
-    .fragment {
-        padding: 16px;
-        padding-bottom: 96px;
-    }
-
-    :global(.fragment-organization-list-item-image) {
+    :global(.fragment-organization--list-item-image) {
         --bg: "";
 
         background-image: var(--bg);
@@ -197,5 +182,27 @@
 
     .space-item {
         margin-top: 16px;
+    }
+
+    /* Default styles for larger screens (e.g., desktops) */
+    .fragment {
+        width: 600px;
+        margin: auto;
+        padding: 16px;
+        padding-bottom: 96px;
+    }
+
+    /* Styles for tablets */
+    @media screen and (max-width: 1023px) {
+        .fragment {
+            width: 520px;
+        }
+    }
+
+    /* Styles for smartphones */
+    @media screen and (max-width: 767px) {
+        .fragment {
+            width: auto;
+        }
     }
 </style>

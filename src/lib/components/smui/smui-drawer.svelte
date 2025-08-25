@@ -83,7 +83,7 @@
     https://sveltematerialui.com/demo/drawer/
 -->
 
-<Drawer style="user-select: none;" variant='modal' fixed={false} {open}>
+<Drawer style="user-select: none;" variant="modal" fixed={false} {open}>
     <Header>
         <Title>{ReactiveData.organization}</Title>
         <Subtitle>{getAppropriatedString(basic.subtitle)}</Subtitle>
@@ -140,7 +140,7 @@
 
             <Item onclick={onClickListenerExportData}>
                 <Graphic class="material-symbols-rounded" aria-hidden="true">
-                    file_download
+                    save
                 </Graphic>
                 <Text>
                     {getAppropriatedString(basic.export_data)}
@@ -148,11 +148,26 @@
             </Item>
             <Item onclick={onClickListenerImportData}>
                 <Graphic class="material-symbols-rounded" aria-hidden="true">
-                    file_upload
+                    upload_file
                 </Graphic>
                 <Text>
                     {getAppropriatedString(basic.import_data)}
                 </Text>
+            </Item>
+
+            <Separator />
+            <Subheader tag="h6">Project</Subheader>
+            <Item
+                onclick={() => {
+                    window.open(
+                        "https://github.com/DarthIF/simple-team-builder",
+                    );
+                }}
+            >
+                <Graphic class="material-symbols-rounded" aria-hidden="true">
+                    folder_data
+                </Graphic>
+                <Text>Github</Text>
             </Item>
         </List>
     </Content>

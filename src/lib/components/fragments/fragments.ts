@@ -29,3 +29,8 @@ export function getPlaceholderImageUrl(computedStyles: CSSStyleDeclaration, memb
 
     return `url(https://placehold.co/72x72/${colorBG}/${colorText}?font=roboto&text=${firstChar})`
 }
+
+export function getPlaceHolderStyle(computedStyles: CSSStyleDeclaration, member: MemberType, cssVariable: string = '--bg') {
+    const cssUrl = getPlaceholderImageUrl(computedStyles, member)
+    return `${cssVariable}: ${cssUrl}`
+}

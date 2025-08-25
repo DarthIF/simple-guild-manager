@@ -1,19 +1,5 @@
 <script lang="ts">
-    import { getAppropriatedString } from "$lib/strings";
-    import { component_card_team } from "$lib/strings/strings";
-    import {
-        applyColorVariables,
-        getColorListItemForIndex,
-    } from "$lib/utils/color-list";
-    import { formatNumberCompact } from "$lib/utils/number-util";
-    import {
-        calculateTeamPowerToDisplay,
-        Database,
-        type GameEvents,
-        type MemberType,
-        type TeamType,
-    } from "$lib/utils/reactive-database.svelte";
-    import { ReactiveSettings } from "$lib/utils/reactive-settings.svelte";
+    import { onMount } from "svelte";
     import Card, { Content } from "@smui/card";
     import IconButton from "@smui/icon-button";
     import List, {
@@ -23,7 +9,21 @@
         SecondaryText,
         Text,
     } from "@smui/list";
-    import { onMount } from "svelte";
+    import {
+        calculateTeamPowerToDisplay,
+        Database,
+        type GameEvents,
+        type MemberType,
+        type TeamType,
+    } from "$lib/utils/reactive-database.svelte";
+    import { ReactiveSettings } from "$lib/utils/reactive-settings.svelte";
+    import { getAppropriatedString } from "$lib/strings";
+    import { component_card_team } from "$lib/strings/strings";
+    import {
+        applyColorVariables,
+        getColorListItemForIndex,
+    } from "$lib/utils/color-list";
+    import { formatNumberCompact } from "$lib/utils/number-util";
 
     type ExportType = {
         index: number;

@@ -7,20 +7,43 @@
     } from "@smui/dialog";
     import Button, { Label } from "@smui/button";
     import { getAppropriatedString, type LocalizedString } from "$lib/strings";
-    import type { OnDialogClosedListener } from "./common";
+    import {
+        DialogActions,
+        type DialogCloseEvent,
+        type OnDialogClosedListener,
+    } from "./common";
+    import { action } from "$lib/strings/strings";
 
-    type ExportTypes = {
+    type ConfirmDialogSettings = {
         title?: string | LocalizedString;
         label?: string | LocalizedString;
+        cancelText?: string | LocalizedString;
+        acceptText?: string | LocalizedString;
     };
 
+    export function open(
+        settings: ConfirmDialogSettings,
+        event: OnDialogClosedListener | undefined = undefined,
+    ) {
+        title = settings.title || "";
+        label = settings.label || "";
+        onDialogClosed = event;
+        visible = true;
+    }
+
+    export function close() {
+        visible = false;
+        title = "";
+        label = "";
+        onDialogClosed = undefined;
+    }
+
     let visible: boolean = $state(false);
+    let title: string | LocalizedString = $state("");
+    let label: string | LocalizedString = $state("");
+    let cancelText: string | LocalizedString = $state(action.cancel);
+    let acceptText: string | LocalizedString = $state(action.ok);
     let onDialogClosed: OnDialogClosedListener | undefined = $state(undefined);
-
-    let dialog_title: string = $derived.by(() => getAppropriatedString(title));
-    let dialog_label: string = $derived.by(() => getAppropriatedString(label));
-
-    let { title = "", label = "" }: ExportTypes = $props();
 </script>
 
 {/* @ts-ignore */ null}
@@ -29,16 +52,18 @@
     onSMUIDialogClosed={onDialogClosed}
     style="user-select: none;"
 >
-    <Title>{dialog_title}</Title>
+    {#if title !== ""}
+        <Title>{getAppropriatedString(title)}</Title>
+    {/if}
     <Content>
-        {dialog_label}
+        {getAppropriatedString(label)}
     </Content>
     <Actions>
-        <Button action="cancel">
-            <Label>Cancel</Label>
+        <Button action={DialogActions.CANCEL}>
+            <Label>{getAppropriatedString(cancelText)}</Label>
         </Button>
-        <Button action="accept">
-            <Label>OK</Label>
+        <Button action={DialogActions.ACCEPT}>
+            <Label>{getAppropriatedString(acceptText)}</Label>
         </Button>
     </Actions>
 </Dialog>

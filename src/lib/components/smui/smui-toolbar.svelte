@@ -13,8 +13,6 @@
 
         onClickDrawer?: () => void;
         onClickGenerateImage?: () => void;
-        onClickImport?: () => void;
-        onClickExport?: () => void;
     };
 
     let {
@@ -28,8 +26,6 @@
 
         onClickDrawer = undefined,
         onClickGenerateImage = undefined,
-        onClickImport = undefined,
-        onClickExport = undefined,
     }: ToolbarType = $props();
 </script>
 
@@ -57,20 +53,6 @@
                     image
                 </IconButton>
             {/if}
-            <IconButton
-                class="material-symbols-rounded"
-                aria-label=""
-                onclick={onClickImport}
-            >
-                file_upload
-            </IconButton>
-            <IconButton
-                class="material-symbols-rounded"
-                aria-label=""
-                onclick={onClickExport}
-            >
-                file_download
-            </IconButton>
         </Section>
     </Row>
 </TopAppBar>

@@ -1,3 +1,5 @@
+import type { LocalizedString } from "$lib/strings"
+import { basic, database_strings } from "$lib/strings/strings"
 import { formatNumberCompact, parseCompactNumber } from "./number-util"
 
 
@@ -5,7 +7,6 @@ export type DatabaseType = {
     organization: string
     members: MemberType[]
     events: EventsType
-    commissions: CommissionsType
     auditLog: AuditLogType[]
 }
 
@@ -13,6 +14,11 @@ export type MemberType = {
     id: string
     name: string
     power: number
+    commissions: {
+        state: CommissionState
+        time: number
+        missed: number
+    }
 }
 
 export type TeamType = {
@@ -30,7 +36,7 @@ export type EventsType = {
 
 export type CommissionsType = {
     closed: string[]
-    excluded: string[]
+    inactive: string[]
 }
 
 export type AuditLogType = {
@@ -49,6 +55,8 @@ export type AuditLogDetails = {
 
     oldName?: string
     newName?: string
+
+    state?: number
 }
 
 export enum Actions {
@@ -59,10 +67,7 @@ export enum Actions {
     ADD_MEMBER_TO_TEAM = 'add_member_to_team',
     REMOVE_MEMBER_FROM_TEAM = 'remove_member_from_team',
     CHANGE_ORGANIZATION_NAME = 'change_org_name',
-    COMMISSION_ADD_CLOSED = 'commission_add_closed',
-    COMMISSION_REMOVE_CLOSED = 'commission_remove_closed',
-    COMMISSION_ADD_EXCLUDED = 'commission_add_excluded',
-    COMMISSION_REMOVE_EXCLUDED = 'commission_remove_excluded',
+    COMMISSION_SET_STATE = 'commission_set_state',
     COMMISSION_RESET_CYCLE = 'commission_reset_cycle',
     EDIT_MEMBER = 'edit_member',
 }
@@ -72,6 +77,12 @@ export enum GameEvents {
     MINES_IN_DUNGEON = 'mines_in_dungeon',
     CLOUD_KINGDOM = 'cloud_kingdom',
     CASSINO_ON_YACHT = 'cassino_on_yacht'
+}
+
+export enum CommissionState {
+    AVAILABLE = 0,
+    CLOSED = 1,
+    INACTIVE = 2,
 }
 
 
@@ -97,6 +108,11 @@ function forEachEvent(callback: (eventTeams: TeamType[]) => void) {
 }
 
 
+function currentUnixTime(): number {
+    return Date.now()
+}
+
+
 export function calculateTeamPower(team: TeamType): number {
     let total = 0
     team.members.forEach(memberId => {
@@ -113,6 +129,19 @@ export function calculateTeamPowerToDisplay(team: TeamType): string {
     return formatNumberCompact(power)
 }
 
+export function getCommissionStateString(state: CommissionState | undefined): LocalizedString {
+    switch (state) {
+        case CommissionState.AVAILABLE:
+            return database_strings.commission_state_available
+        case CommissionState.CLOSED:
+            return database_strings.commission_state_closed
+        case CommissionState.INACTIVE:
+            return database_strings.commission_state_inactive
+    }
+
+    return basic.undefined
+}
+
 
 const LOCAL_STORAGE_KEY = 'team-creator'
 const DEFAULT_DATA: DatabaseType = {
@@ -124,11 +153,7 @@ const DEFAULT_DATA: DatabaseType = {
         cloudKingdom: [],
         cassinoOnYacht: []
     },
-    commissions: {
-        excluded: [],
-        closed: []
-    },
-    auditLog: [],
+    auditLog: []
 }
 
 
@@ -154,7 +179,6 @@ export class Database {
         ReactiveData.organization = data.organization || DEFAULT.organization
         ReactiveData.members = data.members || DEFAULT.members
         ReactiveData.events = data.events || DEFAULT.events
-        ReactiveData.commissions = data.commissions || DEFAULT.commissions
         ReactiveData.auditLog = data.auditLog || DEFAULT.auditLog
     }
 
@@ -183,9 +207,14 @@ export class Database {
 
         // Adicionar o membro
         ReactiveData.members = [...ReactiveData.members, {
-            id: Date.now().toString(),
+            id: currentUnixTime().toString(),
             name,
-            power
+            power,
+            commissions: {
+                state: CommissionState.AVAILABLE,
+                time: 0,
+                missed: 0,
+            }
         }]
 
         // Adicionar ao registro de auditoria, salvamento automático
@@ -359,10 +388,6 @@ export class Database {
                     || !Array.isArray(importedData.events.cloudKingdom)
                     || !Array.isArray(importedData.events.cassinoOnYacht)
 
-                    || !importedData.commissions
-                    || !Array.isArray(importedData.commissions.excluded)
-                    || !Array.isArray(importedData.commissions.closed)
-
                     || !Array.isArray(importedData.auditLog)) {
                     throw new Error('Formato de arquivo inválido')
                 }
@@ -373,13 +398,18 @@ export class Database {
                     ReactiveData.organization = importedData.organization
                     ReactiveData.members = importedData.members
                     ReactiveData.events = importedData.events
-                    ReactiveData.commissions = importedData.commissions
                     ReactiveData.auditLog = importedData.auditLog
+
+                    // Salvar os dados importados
+                    Database.saveData()
 
                     print('Dados importados com sucesso!')
                 }
             } catch (error: any) {
-                console.error('Erro ao importar dados: ' + error.message)
+                const msg = 'Erro ao importar dados: ' + error.message
+
+                console.error(msg)
+                alert(msg)
             }
         }
         reader.readAsText(file)
@@ -449,75 +479,44 @@ export class Database {
 
     public static listCommissionAvailableMembers(): MemberType[] {
         return [...ReactiveData.members].filter(member => {
-            const closed = ReactiveData.commissions.closed.includes(member.id)
-            const excluded = ReactiveData.commissions.excluded.includes(member.id)
-
-            return !closed && !excluded
+            const state = member.commissions.state
+            return state !== CommissionState.CLOSED && state !== CommissionState.INACTIVE
         })
     }
 
     public static listCommissionClosedMembers(): MemberType[] {
         return [...ReactiveData.members].filter(member => {
-            return ReactiveData.commissions.closed.includes(member.id)
+            const state = member.commissions.state
+            return state === CommissionState.CLOSED
         })
     }
 
-    public static listCommissionExcludedMembers(): MemberType[] {
+    public static listCommissionInactiveMembers(): MemberType[] {
         return [...ReactiveData.members].filter(member => {
-            return ReactiveData.commissions.excluded.includes(member.id)
+            const state = member.commissions.state
+            return state === CommissionState.INACTIVE
         })
     }
 
 
-    public static addMemberToCommissionClosed(member: MemberType) {
-        ReactiveData.commissions.closed.push(member.id)
+    public static setCommissionState(member: MemberType, state: CommissionState, time: boolean = true) {
+        // Atualizar as informações
+        member.commissions.state = state
+        member.commissions.time = time ? currentUnixTime() : 0
 
         // Adicionar ao registro de auditoria, salvamento automático
-        Database.addAuditLog(Actions.COMMISSION_ADD_CLOSED, { memberId: member.id })
+        Database.addAuditLog(Actions.COMMISSION_SET_STATE, { memberId: member.id, state })
     }
-
-    public static removeMemberToCommissionClosed(member: MemberType): boolean {
-        // Procurar o índice
-        const memberIndex = ReactiveData.commissions.closed.indexOf(member.id)
-        if (memberIndex < 0)
-            return false
-
-        // Remover o membro da lista
-        ReactiveData.commissions.closed.splice(memberIndex, 1)
-
-        // Adicionar ao registro de auditoria, salvamento automático
-        Database.addAuditLog(Actions.COMMISSION_REMOVE_CLOSED, { memberId: member.id })
-
-        return true
-    }
-
-
-    public static addMemberToCommissionExcluded(member: MemberType) {
-        ReactiveData.commissions.excluded.push(member.id)
-
-        // Adicionar ao registro de auditoria, salvamento automático
-        Database.addAuditLog(Actions.COMMISSION_ADD_EXCLUDED, { memberId: member.id })
-    }
-
-    public static removeMemberToCommissionExcluded(member: MemberType): boolean {
-        // Procurar o índice
-        const memberIndex = ReactiveData.commissions.excluded.indexOf(member.id)
-        if (memberIndex < 0)
-            return false
-
-        // Remover o membro da lista
-        ReactiveData.commissions.excluded.splice(memberIndex, 1)
-
-        // Adicionar ao registro de auditoria, salvamento automático
-        Database.addAuditLog(Actions.COMMISSION_REMOVE_EXCLUDED, { memberId: member.id })
-
-        return true
-    }
-
 
     public static resetCommissionCycle() {
-        const size = ReactiveData.commissions.closed.length
-        ReactiveData.commissions.closed.splice(0, size)
+        for (const member of ReactiveData.members) {
+            // Ignorar
+            if (member.commissions.state === CommissionState.INACTIVE)
+                continue
+
+            member.commissions.state = CommissionState.AVAILABLE
+            member.commissions.time = currentUnixTime()
+        }
 
         // Adicionar ao registro de auditoria, salvamento automático
         Database.addAuditLog(Actions.COMMISSION_RESET_CYCLE, {})

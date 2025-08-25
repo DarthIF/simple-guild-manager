@@ -4,8 +4,8 @@
         ReactiveData,
     } from "$lib/utils/reactive-database.svelte";
     import { onMount } from "svelte";
-    import MaterialSymbols from "../remover/material-symbols.svelte";
-    import DialogImport from "../dialogs/dialog-import.svelte";
+    import MaterialSymbols from "../material-symbols.svelte";
+    import DialogImport from "../../dialogs/dialog-import.svelte";
     import DrawerItem from "./drawer-item.svelte";
 
     export function getDrawer(): HTMLDivElement {
@@ -35,7 +35,7 @@
     }
 
     function onClickListenerImportData() {
-        ref_dialogImport.setOnConfirm((files) => {
+        ref_dialogImport.setOnConfirm((files:any) => {
             const file = files?.[0];
             if (!file) {
                 alert("Por favor, selecione um arquivo JSON.");

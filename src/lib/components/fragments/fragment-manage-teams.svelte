@@ -10,14 +10,12 @@
     import SmuiFab from "../smui/smui-fab.svelte";
     import SmuiCardTeam from "../smui/cards/smui-card-team.svelte";
     import EventSelectorV2 from "../event-selectorV2.svelte";
-    import { fragment_teams } from "$lib/strings/strings";
+    import { action, basic, fragment_teams } from "$lib/strings/strings";
     import Card, { Content } from "@smui/card";
     import { getAppropriatedString } from "$lib/strings";
-
-    type ExportType = {
-        onAddMemberClick: (gameEvent: GameEvents, team: TeamType) => void;
-        onDeleteTeamClick: (gameEvent: GameEvents, team: TeamType) => void;
-    };
+    import SmuiDialogConfirm from "../smui/dialogs/smui-dialog-confirm.svelte";
+    import SmuiDialogAddMember from "../smui/dialogs/smui-dialog-add-member.svelte";
+    import { DialogActions } from "../smui/dialogs/common";
 
     export function getElementToRender(): HTMLElement {
         return el_cardsGrid;
@@ -25,6 +23,25 @@
 
     export function getGameEvent(): GameEvents {
         return GAME_EVENT;
+    }
+
+    function handleAddMember(gameEvent: GameEvents, team: TeamType) {
+        el_dialogAddMember.open(gameEvent, team);
+    }
+
+    function handleDeleteTeam(gameEvent: GameEvents, team: TeamType) {
+        el_dialogConfirm.open(
+            {
+                label: fragment_teams.dialog_delete_team,
+                acceptText: action.delete,
+            },
+            (e) => {
+                // Deletar o time
+                if (e.detail.action === DialogActions.ACCEPT) {
+                    Database.deleteTeam(gameEvent, team);
+                }
+            },
+        );
     }
 
     function onDialogClosed(e: CustomEvent<{ action: string }>) {
@@ -37,7 +54,10 @@
         // Texto digitado no dialogo
         const value = el_dialogCreateTeam.getValue();
         if (value.length < 0) {
-            alert("INVALID NAME");
+            el_dialogConfirm.open({
+                title: basic.error,
+                label: fragment_teams.error_invalid_name,
+            });
             return;
         }
 
@@ -52,8 +72,8 @@
 
     let el_cardsGrid: HTMLDivElement;
     let el_dialogCreateTeam: SmuiDialogPrompt;
-
-    let { onAddMemberClick, onDeleteTeamClick }: ExportType = $props();
+    let el_dialogConfirm: SmuiDialogConfirm;
+    let el_dialogAddMember: SmuiDialogAddMember;
 </script>
 
 <EventSelectorV2 class="event-selector" bind:selected={GAME_EVENT} />
@@ -74,8 +94,8 @@
                 <SmuiCardTeam
                     {index}
                     {team}
-                    {onAddMemberClick}
-                    {onDeleteTeamClick}
+                    onAddMemberClick={handleAddMember}
+                    onDeleteTeamClick={handleDeleteTeam}
                     gameEvent={GAME_EVENT}
                 />
             {/each}
@@ -94,6 +114,8 @@
     label={fragment_teams.dialog_team_name}
     bind:this={el_dialogCreateTeam}
 />
+<SmuiDialogConfirm bind:this={el_dialogConfirm} />
+<SmuiDialogAddMember bind:this={el_dialogAddMember} />
 
 <style>
     :global(.event-selector) {
@@ -111,6 +133,10 @@
         user-select: none;
     }
 
+    .empty-div h1 {
+        padding: 32px;
+    }
+
     .cards-responsive-grid {
         padding: 16px;
         padding-top: 8px;
@@ -125,6 +151,12 @@
         .empty-div {
             padding: 16px;
             padding-top: 8px;
+        }
+
+        .empty-div h1 {
+            padding: 16px;
+            font-size: xx-large;
+            line-height: normal;
         }
     }
 </style>

@@ -17,7 +17,6 @@
     import FragmentCommissions from "$lib/components/fragments/fragment-commissions.svelte";
     import SmuiToolbar from "$lib/components/smui/smui-toolbar.svelte";
     import SmuiDrawer from "$lib/components/smui/smui-drawer.svelte";
-    // import "svelte-material-ui/bare.css"; // SMUI
 
     function ev_OnConfirmCreateTeam(value: string) {
         if (!el_fragmentManageTeams) return;
@@ -30,29 +29,6 @@
         // Criar o time
         const gameEvent = el_fragmentManageTeams.getGameEvent();
         Database.addTeam(gameEvent, value);
-    }
-
-    function ev_FabClick() {
-        el_dialogCreateTeam.show();
-    }
-
-    function ev_OnClickListener_AddMember(
-        gameEvent: GameEvents,
-        team: TeamType,
-    ) {
-        // Mostra o dialogo para adicionar membros
-        el_dialogAddMember.showFor(gameEvent, team);
-    }
-
-    function ev_OnClickListener_DeleteTeam(
-        gameEvent: GameEvents,
-        team: TeamType,
-    ) {
-        if (!el_fragmentManageTeams) return;
-        if (!confirm("DELETE?")) return;
-
-        // Deletar o time
-        Database.deleteTeam(gameEvent, team);
     }
 
     function ev_OnClickListener_ToolbarDrawerMenu() {
@@ -123,22 +99,15 @@
     let enableGenerateImageButton: boolean = $state(false);
 
     $effect(() => {
-        if (currentFragment === Fragments.MANAGE_TEAMS) {
-            //el_smuiFab.show();
-            enableGenerateImageButton = true;
-        } else {
-            //el_smuiFab.hide();
-            enableGenerateImageButton = false;
-        }
+        // Ativar o botão de gerar a imagem
+        enableGenerateImageButton = currentFragment === Fragments.MANAGE_TEAMS;
     });
 
-    //let el_smuiFab: SmuiFab;
     let el_smuiDrawer: SmuiDrawer;
     let el_fragmentOrganization: FragmentOrganization | null = $state(null);
     let el_fragmentManageTeams: FragmentManageTeams | null = $state(null);
     let el_fragmentAuditLog: FragmentAuditLog | null = $state(null);
-    let el_dialogCreateTeam: DialogCreateTeam;
-    let el_dialogAddMember: DialogAddMember;
+
     let el_dialogImport: DialogImport;
 </script>
 
@@ -148,8 +117,6 @@
         showGenerateImageButton={enableGenerateImageButton}
         onClickDrawer={ev_OnClickListener_ToolbarDrawerMenu}
         onClickGenerateImage={ev_OnClickListener_ToolbarGenerateImage}
-        onClickImport={() => {}}
-        onClickExport={() => {}}
     />
     <SmuiDrawer bind:this={el_smuiDrawer} />
 
@@ -160,11 +127,7 @@
             <FragmentOrganization bind:this={el_fragmentOrganization} />
         {:else if currentFragment === Fragments.MANAGE_TEAMS}
             <!-- Manage Teams Page -->
-            <FragmentManageTeams
-                bind:this={el_fragmentManageTeams}
-                onAddMemberClick={ev_OnClickListener_AddMember}
-                onDeleteTeamClick={ev_OnClickListener_DeleteTeam}
-            />
+            <FragmentManageTeams bind:this={el_fragmentManageTeams} />
         {:else if currentFragment === Fragments.COMMISSIONS}
             <!-- Commissions fragment -->
             <FragmentCommissions />
@@ -176,14 +139,7 @@
         {/if}
     </div>
 
-    <!-- <SmuiFab bind:this={el_smuiFab} icon="add" onClick={ev_FabClick} /> -->
-
     <!-- Diálogos -->
-    <DialogCreateTeam
-        bind:this={el_dialogCreateTeam}
-        onConfirm={ev_OnConfirmCreateTeam}
-    />
-    <DialogAddMember bind:this={el_dialogAddMember} />
     <DialogImport bind:this={el_dialogImport} />
 </main>
 

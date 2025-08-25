@@ -1,22 +1,26 @@
+import { getCurrentSupportedLang } from "$lib/utils/reactive-settings.svelte"
+
 export type LocalizedString = {
     en: string
     pt: string
 }
 
-export function getAppropriatedString(obj: string | LocalizedString): string {
+export function getAppropriatedString(obj: string | LocalizedString, ...format: any[]): string {
+    let result: string
     if (typeof obj === 'string')
-        return obj
+        result = obj
+    else
+        result = getLocalizedString(obj)
 
-    return getLocalizedString(obj)
+    // Formatar a string
+    for (const item of format) {
+        result = result.replace(/%s/, item)
+    }
+
+    return result
 }
 
 export function getLocalizedString(localizedString: LocalizedString): string {
-    const lang = navigator.language.split('-')[0]
-
-    if (Object.prototype.hasOwnProperty.call(localizedString, lang)) {
-        // @ts-ignore
-        return localizedString[lang]
-    }
-
-    return localizedString.en
+    const lang = getCurrentSupportedLang()
+    return localizedString[lang]
 }

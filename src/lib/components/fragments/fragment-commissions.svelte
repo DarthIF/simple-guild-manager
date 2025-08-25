@@ -1,156 +1,149 @@
 <script lang="ts">
+    import { onMount } from "svelte";
+    import HorizontalScrollWarper from "../misc/horizontal-scroll-warper.svelte";
+    import Button, { Label } from "@smui/button";
+    import LayoutGrid, { Cell } from "@smui/layout-grid";
     import {
+        CommissionState,
         Database,
         ReactiveData,
         type MemberType,
     } from "$lib/utils/reactive-database.svelte";
-    import { onMount } from "svelte";
-    import MaterialButton from "../remover/buttons/material-button.svelte";
-    import { ButtonTypes } from "../remover/buttons/button-types";
-    import MaterialIconButton from "../remover/buttons/material-icon-button.svelte";
-    import MaterialSymbols from "../remover/material-symbols.svelte";
+    import SmuiCardCommission from "../smui/cards/smui-card-commission.svelte";
+    import SmuiDialogCommission from "../smui/dialogs/smui-dialog-commission.svelte";
+    import {
+        DialogActions,
+        type DialogCloseEvent,
+    } from "../smui/dialogs/common";
+    import SmuiDialogPrompt from "../smui/dialogs/smui-dialog-prompt.svelte";
+    import { fragment_commissions } from "$lib/strings/strings";
 
-    function ev_OnClickListener_ResetCycle() {
+    function handleCommissionReset() {
         if (
             confirm(
                 "Deseja reiniciar o ciclo de comissões? Essa ação irá limpar a lista de quem fechou as comissões, e não pode ser desfeita.",
             )
         ) {
-            console.error("NAO IMPLEMENTADO");
+            Database.resetCommissionCycle();
+        }
+    }
+
+    function handleItemClick(member: MemberType) {
+        el_dialogCommission.open(member, handleDialogListener);
+    }
+
+    function handleDialogListener(action: DialogActions, member: MemberType) {
+        switch (action) {
+            case DialogActions.COMMISSION_CLOSE_TODAY:
+                Database.setCommissionState(member, CommissionState.CLOSED);
+                break;
+            case DialogActions.COMMISSION_ALREADY_CLOSED:
+                Database.setCommissionState(member, CommissionState.CLOSED, false);
+                break;
+            case DialogActions.COMMISSION_AVAILABLE:
+                Database.setCommissionState(member, CommissionState.AVAILABLE);
+                break;
+            case DialogActions.COMMISSION_INACTIVE:
+                Database.setCommissionState(member, CommissionState.INACTIVE);
+                break;
+            case DialogActions.COMMISSION_MISSED:
+                el_dialogPrompt.setValue(member.commissions.missed);
+                el_dialogPrompt.open((e: DialogCloseEvent) => {
+                    console.log(e.detail.action);
+
+                    if (e.detail.action === DialogActions.ACCEPT) {
+                        const value = el_dialogPrompt.getValue();
+                        member.commissions.missed = Number.parseInt(value) || 0;
+                    }
+
+                    // Abrir novamente o dialogo
+                    el_dialogCommission.open(member, handleDialogListener);
+                });
+                break;
         }
     }
 
     onMount(() => {});
 
+    const GRID_SPAN_DEVICES = { desktop: 6, tablet: 4, phone: 4 };
+
     let availableMembers = $derived.by(Database.listCommissionAvailableMembers);
     let closedMembers = $derived.by(Database.listCommissionClosedMembers);
-    let excludedMembers = $derived.by(Database.listCommissionExcludedMembers);
+    let excludedMembers = $derived.by(Database.listCommissionInactiveMembers);
+
+    let el_dialogCommission: SmuiDialogCommission;
+    let el_dialogPrompt: SmuiDialogPrompt;
 </script>
 
 <div class="fragment">
-    <div class="actions">
-        <MaterialButton
-            type={ButtonTypes.SECONDARY}
-            onClick={ev_OnClickListener_ResetCycle}
-        >
-            Reiniciar Ciclo
-        </MaterialButton>
-    </div>
-    <div class="commission-grid">
-        <div class="card">
-            <div class="card-title commission-card-title">
-                <MaterialSymbols icon="quick_reference_all" />
-                <span>Disponível</span>
-            </div>
+    <HorizontalScrollWarper class="fragment-commissions-scroll-warper">
+        <Button variant="outlined" onclick={handleCommissionReset}>
+            <Label>Reiniciar Ciclo</Label>
+        </Button>
+    </HorizontalScrollWarper>
 
-            <div class="members-list">
-                {#each availableMembers as member}
-                    <div class="members-list-item">
-                        <span>{member.name}</span>
-                        <MaterialIconButton
-                            icon="approval_delegation"
-                            onClick={() => {
-                                Database.addMemberToCommissionClosed(member);
-                            }}
-                        />
-                        <MaterialIconButton
-                            icon="group_remove"
-                            onClick={() => {
-                                Database.addMemberToCommissionExcluded(member);
-                            }}
-                        />
-                    </div>
-                {/each}
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-title commission-card-title">
-                <MaterialSymbols icon="approval_delegation" />
-                <span>Fechado</span>
-            </div>
-
-            <div class="members-list">
-                {#each closedMembers as member}
-                    <div class="members-list-item">
-                        <span>{member.name}</span>
-                        <MaterialIconButton
-                            icon="close"
-                            onClick={() => {
-                                Database.removeMemberToCommissionClosed(member);
-                            }}
-                        />
-                    </div>
-                {/each}
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-title commission-card-title">
-                <MaterialSymbols icon="group_remove" />
-                <span>Excluído</span>
-            </div>
-
-            <div class="members-list">
-                {#each excludedMembers as member}
-                    <div class="members-list-item">
-                        <span>{member.name}</span>
-                        <MaterialIconButton
-                            icon="close"
-                            onClick={() => {
-                                Database.removeMemberToCommissionExcluded(member);
-                            }}
-                        />
-                    </div>
-                {/each}
-            </div>
-        </div>
-    </div>
+    <LayoutGrid>
+        <Cell spanDevices={GRID_SPAN_DEVICES}>
+            <SmuiCardCommission
+                bind:members={availableMembers}
+                title="Disponível"
+                icon="approval_delegation"
+                onClickListener={handleItemClick}
+            />
+        </Cell>
+        {#if closedMembers.length > 0}
+            <Cell spanDevices={GRID_SPAN_DEVICES}>
+                <SmuiCardCommission
+                    bind:members={closedMembers}
+                    title="Fechado"
+                    icon="event_note"
+                    onClickListener={handleItemClick}
+                />
+            </Cell>
+        {/if}
+        {#if excludedMembers.length > 0}
+            <Cell spanDevices={GRID_SPAN_DEVICES}>
+                <SmuiCardCommission
+                    bind:members={excludedMembers}
+                    title="Inativos"
+                    icon="person_off"
+                    onClickListener={handleItemClick}
+                />
+            </Cell>
+        {/if}
+    </LayoutGrid>
 </div>
 
+<SmuiDialogCommission bind:this={el_dialogCommission} />
+<SmuiDialogPrompt
+    bind:this={el_dialogPrompt}
+    type="number"
+    title={fragment_commissions.dialog_prompt_missed}
+/>
+
 <style>
-    @import "../cards/card.css";
-
-    .actions {
-        margin-bottom: 16px;
-    }
-
     .fragment {
-        padding: 16px;
         user-select: none;
     }
 
-    .commission-card-title {
-        display: flex;
-        align-items: center;
-
-        user-select: none;
+    @media (max-width: 599px) {
+        :global(.fragment-commissions-scroll-warper) {
+            padding-top: var(--mdc-layout-grid-margin-phone, 16px);
+            padding-left: var(--mdc-layout-grid-margin-phone, 16px);
+        }
     }
 
-    :global(.commission-card-title > * ~ *) {
-        margin-left: 8px;
+    @media (min-width: 600px) and (max-width: 839px) {
+        :global(.fragment-commissions-scroll-warper) {
+            padding-top: var(--mdc-layout-grid-margin-tablet, 16px);
+            padding-left: var(--mdc-layout-grid-margin-tablet, 16px);
+        }
     }
 
-    .commission-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 16px;
-    }
-
-    .members-list {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .members-list-item {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-
-        user-select: none;
-    }
-
-    .members-list-item span {
-        flex-grow: 1;
+    @media (min-width: 840px) {
+        :global(.fragment-commissions-scroll-warper) {
+            padding-top: var(--mdc-layout-grid-margin-desktop, 24px);
+            padding-left: var(--mdc-layout-grid-margin-desktop, 24px);
+        }
     }
 </style>

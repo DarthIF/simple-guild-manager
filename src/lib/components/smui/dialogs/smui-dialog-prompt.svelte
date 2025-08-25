@@ -13,6 +13,7 @@
     type ExportTypes = {
         title?: string | LocalizedString;
         label?: string | LocalizedString;
+        type?: string;
     };
 
     export function open(event: OnDialogClosedListener) {
@@ -26,17 +27,21 @@
     }
 
     export function getValue() {
-        return promptValue.trim();
+        return promptValue.toString().trim();
     }
 
-    let promptValue: string = $state("");
+    export function setValue(value: string | number) {
+        promptValue = value;
+    }
+
+    let promptValue: string | number = $state("");
     let visible: boolean = $state(false);
     let onDialogClosed: OnDialogClosedListener | undefined = $state(undefined);
 
     let dialog_title: string = $derived.by(() => getAppropriatedString(title));
     let dialog_label: string = $derived.by(() => getAppropriatedString(label));
 
-    let { title = "", label = "" }: ExportTypes = $props();
+    let { title = "", label = "", type = "text" }: ExportTypes = $props();
 </script>
 
 {/* @ts-ignore */ null}
@@ -45,8 +50,11 @@
     onSMUIDialogClosed={onDialogClosed}
     style="user-select: none;"
 >
-    <Title>{dialog_title}</Title>
+    {#if dialog_title}
+        <Title>{dialog_title}</Title>
+    {/if}
     <Content>
+        {getAppropriatedString(label)}
         <div class="dialog-content">
             {/* @ts-ignore */ null}
             <Textfield
@@ -54,6 +62,7 @@
                 {dialog_label}
                 required
                 variant="outlined"
+                {type}
             />
         </div>
     </Content>
