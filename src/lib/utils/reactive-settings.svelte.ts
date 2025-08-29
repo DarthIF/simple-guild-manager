@@ -1,10 +1,4 @@
-export function getCurrentSupportedLang() {
-    const lang = navigator.language.split('-')[0]
-    if (lang === 'pt')
-        return 'pt'
-
-    return 'en'
-}
+import { getCurrentSupportedLang, SUPPORTED_LANGS } from "./lang-util"
 
 
 export const ReactiveSettings = $state({

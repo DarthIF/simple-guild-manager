@@ -56,9 +56,9 @@
                 return;
             }
 
+            // Verificar o arquivo
             const files = ref_dialogImport.getFiles();
             const file = files?.[0];
-
             if (!file) {
                 const text = getAppropriatedString(
                     basic.import_data_invalid_type,

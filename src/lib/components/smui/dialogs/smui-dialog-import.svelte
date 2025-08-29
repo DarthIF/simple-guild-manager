@@ -17,13 +17,12 @@
     }
 
     export function getFiles(): FileList | null {
-        return el_input.files;
+        return files;
     }
 
     let visible: boolean = $state(false);
+    let files: FileList | null = $state(null);
     let onDialogClosed: OnDialogClosedListener | undefined = $state(undefined);
-
-    let el_input: HTMLInputElement;
 </script>
 
 {/* @ts-ignore */ null}
@@ -35,10 +34,8 @@
     <Title>{getAppropriatedString(basic.import_data)}</Title>
     <Content>
         <div class="dialog-content">
-            {/* @ts-ignore */ null}
             <Textfield
-                bind:this={el_input}
-                required
+                bind:files
                 variant="outlined"
                 type="file"
                 accept=".json"
@@ -55,4 +52,23 @@
     </Actions>
 </Dialog>
 
-<style></style>
+<style>
+    .dialog-content {
+        min-width: 300px;
+        margin: 0 -8px 0 -8px;
+        padding-top: 8px;
+
+        display: flex;
+        flex-direction: column;
+    }
+
+    :global(.dialog-content > * ~ *) {
+        margin-top: 8px;
+    }
+
+    @media (min-width: 600px) {
+        .dialog-content {
+            margin: 0;
+        }
+    }
+</style>

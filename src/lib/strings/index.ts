@@ -1,18 +1,11 @@
-import { getCurrentSupportedLang } from "$lib/utils/reactive-settings.svelte"
+import { getCurrentSupportedLang, SUPPORTED_LANGS } from "$lib/utils/lang-util"
+import { } from "$lib/utils/reactive-settings.svelte"
 
 export type LocalizedString = {
     en: string
     pt: string
 }
 
-export const SUPPORTED_LANGS = [
-    {
-        code: 'en'
-    },
-    {
-        code: 'pt'
-    }
-]
 
 function isLocalizedString(obj: any) {
     for (const lang of SUPPORTED_LANGS) {
@@ -37,10 +30,12 @@ export function getAppropriatedString(obj: string | LocalizedString, ...format: 
     // Formatar a string
     for (const item of format) {
         let str: string
-        if (isLocalizedString(item))
+        if (item && isLocalizedString(item))
             str = getLocalizedString(item)
-        else
+        else if (item)
             str = item
+        else
+            str = ''
 
         result = result.replace(/%s/, str)
     }
@@ -50,5 +45,7 @@ export function getAppropriatedString(obj: string | LocalizedString, ...format: 
 
 export function getLocalizedString(localizedString: LocalizedString): string {
     const lang = getCurrentSupportedLang()
-    return localizedString[lang]
+
+    // @ts-ignore
+    return localizedString[lang.code]
 }
