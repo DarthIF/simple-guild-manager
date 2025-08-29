@@ -11,6 +11,8 @@ export const basic = {
     export_data: { en: 'Export Data', pt: 'Exportar Dados' },
     import_data: { en: 'Import Data', pt: 'Importar Dados' },
 
+    import_data_invalid_type: { en: 'Please select a JSON file.', pt: 'Por favor, selecione um arquivo JSON.' },
+
     undefined: { en: 'Undefined', pt: 'Indefinido' },
     error: { en: 'Error warning', pt: 'Aviso de erro' },
 
@@ -24,6 +26,8 @@ export const action = {
     save: { en: 'Save', pt: 'Salvar' },
     delete: { en: 'Delete', pt: 'Excluir' }
 }
+
+
 
 export const fragment_manage = {
     title_changeOrgName: { en: 'Change Organization Name', pt: 'Mudar Nome da Organização' },
@@ -60,6 +64,63 @@ export const fragment_commissions = {
 
 
 
+export const audit_logs = {
+    change_organization_name: {
+        en: 'Organization name changed from "%s" to "%s"',
+        pt: 'Nome da organização alterado de "%s" para "%s"'
+    },
+
+    add_member: {
+        en: 'Member added: %s (Power: %s)',
+        pt: 'Membro adicionado: %s (Poder: %s)'
+    },
+
+    removed_member: {
+        en: 'Member removed: %s (Power: %s)',
+        pt: 'Membro removido: %s'
+    },
+
+    edited_member: {
+        en: 'Edited member: %s (Power: %s)',
+        pt: 'Membro editado: %s (Poder: %s)'
+    },
+
+    create_team: {
+        en: 'Team %s was created',
+        pt: 'Foi criada a equipe %s'
+    },
+
+    delete_team: {
+        en: 'Team %s has been deleted.',
+        pt: 'A equipe %s foi apagada.'
+    },
+
+    add_member_to_team: {
+        en: 'Member %s added to team %s',
+        pt: 'Membro %s adicionado à equipe %s'
+    },
+
+    remove_member_from_team: {
+        en: 'Member %s removed from team %s',
+        pt: 'Membro %s removido da equipe %s'
+    },
+
+    commission_reset_cycle: {
+        en: 'The commission cycle has been restarted.',
+        pt: 'O ciclo das comissões foi reiniciado.'
+    },
+
+    commission_set_state: {
+        en: '%s has been added to the %s commissions list',
+        pt: '%s foi incluído(a) na lista de comissões %s'
+    }
+}
+
+
+
+/**
+ * @deprecated
+ */
 export const component_card_team = {
     add: { en: 'Add member', pt: 'Adicionar membro' },
     delete: { en: 'Delete team', pt: 'Apagar o time' },
@@ -67,6 +128,9 @@ export const component_card_team = {
     total_power: { en: 'Total power:', pt: 'Poder total:' },
 }
 
+/**
+ * @deprecated
+ */
 export const dialog_add_member = {
     title: { en: 'Add member to team (%s)', pt: 'Adicionar membro à equipe (%s)' },
     no_free_members: { en: 'No members available', pt: 'Nenhum membro disponível' },

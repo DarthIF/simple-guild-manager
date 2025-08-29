@@ -77,7 +77,9 @@
         padding-top: 16px;
         padding-left: 16px;
         padding-bottom: 8px;
+
         display: flex;
+        align-items: center;
     }
 
     .card-title > h6 {

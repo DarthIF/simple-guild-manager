@@ -2,6 +2,7 @@ export type DialogCloseEvent = CustomEvent<{ action: string }>
 
 export type OnDialogClosedListener = (e: DialogCloseEvent) => void
 
+
 export enum DialogActions {
     ACCEPT = 'accept',
     CANCEL = 'cancel',

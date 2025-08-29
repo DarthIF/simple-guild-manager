@@ -1,10 +1,5 @@
 <script lang="ts">
-    import { getAppropriatedString } from "$lib/strings";
-    import { basic } from "$lib/strings/strings";
-    import {
-        Database,
-        ReactiveData,
-    } from "$lib/utils/reactive-database.svelte";
+    import { onMount } from "svelte";
     import Drawer, {
         AppContent,
         Content,
@@ -20,8 +15,14 @@
         Separator,
         Subheader,
     } from "@smui/list";
-    import { onMount } from "svelte";
-    import DialogImport from "../dialogs/dialog-import.svelte";
+    import SmuiDialogImport from "./dialogs/smui-dialog-import.svelte";
+    import { getAppropriatedString } from "$lib/strings";
+    import { basic } from "$lib/strings/strings";
+    import {
+        Database,
+        ReactiveData,
+    } from "$lib/utils/reactive-database.svelte";
+    import { DialogActions } from "./dialogs/common";
 
     export function setActive(value: string) {
         active = value;
@@ -40,7 +41,7 @@
         updateOverlay();
     }
 
-    export function setDialogImportInstance(dialog: DialogImport) {
+    export function setDialogImportInstance(dialog: SmuiDialogImport) {
         ref_dialogImport = dialog;
     }
 
@@ -49,16 +50,25 @@
     }
 
     function onClickListenerImportData() {
-        ref_dialogImport.setOnConfirm((files) => {
+        ref_dialogImport.open((e) => {
+            // Cancelou
+            if (e.detail.action !== DialogActions.ACCEPT) {
+                return;
+            }
+
+            const files = ref_dialogImport.getFiles();
             const file = files?.[0];
+
             if (!file) {
-                alert("Por favor, selecione um arquivo JSON.");
+                const text = getAppropriatedString(
+                    basic.import_data_invalid_type,
+                );
+                alert(text);
                 return;
             }
 
             Database.importData(file);
         });
-        ref_dialogImport.show();
     }
 
     function updateOverlay() {
@@ -73,9 +83,9 @@
         updateOverlay();
     });
 
-    let ref_dialogImport: DialogImport;
+    let ref_dialogImport: SmuiDialogImport;
     let el_drawerOverlay: HTMLDivElement;
-    let { open = false, active = "Inbox" } = $props();
+    let { open = false, active = "" } = $props();
 </script>
 
 <!--
@@ -156,7 +166,7 @@
             </Item>
 
             <Separator />
-            <Subheader tag="h6">Project</Subheader>
+            <Subheader tag="h6">Simple team builder</Subheader>
             <Item
                 onclick={() => {
                     window.open(
@@ -167,7 +177,7 @@
                 <Graphic class="material-symbols-rounded" aria-hidden="true">
                     folder_data
                 </Graphic>
-                <Text>Github</Text>
+                <Text>Source code</Text>
             </Item>
         </List>
     </Content>

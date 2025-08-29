@@ -13,7 +13,7 @@
     } from "@smui/list";
     import SmuiDialogMember from "../smui/dialogs/smui-dialog-member.svelte";
     import SmuiFab from "../smui/smui-fab.svelte";
-    import SmuiSettingsCard from "../smui/smui-settings-card.svelte";
+    import SmuiSettingsCard from "../smui/cards/smui-settings-card.svelte";
     import SmuiTextField from "../smui/smui-text-field.svelte";
     import {
         Database,

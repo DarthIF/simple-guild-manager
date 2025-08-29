@@ -60,16 +60,19 @@ export type AuditLogDetails = {
 }
 
 export enum Actions {
+    CHANGE_ORGANIZATION_NAME = 'change_org_name',
+
     ADD_MEMBER = 'add_member',
-    REMOVE_MEMBER = 'remove_member',
+    REMOVED_MEMBER = 'removed_member',
+    EDITED_MEMBER = 'edited_member',
+
     CREATE_TEAM = 'create_team',
     DELETE_TEAM = 'delete_team',
     ADD_MEMBER_TO_TEAM = 'add_member_to_team',
     REMOVE_MEMBER_FROM_TEAM = 'remove_member_from_team',
-    CHANGE_ORGANIZATION_NAME = 'change_org_name',
+
     COMMISSION_SET_STATE = 'commission_set_state',
     COMMISSION_RESET_CYCLE = 'commission_reset_cycle',
-    EDIT_MEMBER = 'edit_member',
 }
 
 export enum GameEvents {
@@ -129,7 +132,7 @@ export function calculateTeamPowerToDisplay(team: TeamType): string {
     return formatNumberCompact(power)
 }
 
-export function getCommissionStateString(state: CommissionState | undefined): LocalizedString {
+export function getCommissionStateString(state: CommissionState | number | undefined): LocalizedString {
     switch (state) {
         case CommissionState.AVAILABLE:
             return database_strings.commission_state_available
@@ -249,7 +252,7 @@ export class Database {
             ReactiveData.members.splice(index, 1)
 
         // Adicionar ao registro de auditoria, salvamento automático
-        Database.addAuditLog(Actions.REMOVE_MEMBER, { name: member.name })
+        Database.addAuditLog(Actions.REMOVED_MEMBER, { name: member.name })
 
         print('Membro removido com sucesso!', member)
     }
@@ -370,7 +373,7 @@ export class Database {
         linkElement.click()
     }
 
-    public static importData(file: any) {
+    public static importData(file: File) {
         const reader = new FileReader()
         reader.onload = function (e) {
             try {
@@ -505,7 +508,7 @@ export class Database {
         member.commissions.time = time ? currentUnixTime() : 0
 
         // Adicionar ao registro de auditoria, salvamento automático
-        Database.addAuditLog(Actions.COMMISSION_SET_STATE, { memberId: member.id, state })
+        Database.addAuditLog(Actions.COMMISSION_SET_STATE, { memberId: member.id, name: member.name, state })
     }
 
     public static resetCommissionCycle() {
@@ -536,7 +539,7 @@ export class Database {
         member.power = newPower
 
         // Adicionar ao registro de auditoria, salvamento automático
-        Database.addAuditLog(Actions.EDIT_MEMBER, { memberId: member.id })
+        Database.addAuditLog(Actions.EDITED_MEMBER, { memberId: member.id, name: member.name, power: member.power })
 
         return true
     }

@@ -9,6 +9,7 @@
     import Textfield from "@smui/textfield";
     import type { OnDialogClosedListener } from "./common";
     import { getAppropriatedString, type LocalizedString } from "$lib/strings";
+    import { action } from "$lib/strings/strings";
 
     type ExportTypes = {
         title?: string | LocalizedString;
@@ -34,8 +35,8 @@
         promptValue = value;
     }
 
-    let promptValue: string | number = $state("");
     let visible: boolean = $state(false);
+    let promptValue: string | number = $state("");
     let onDialogClosed: OnDialogClosedListener | undefined = $state(undefined);
 
     let dialog_title: string = $derived.by(() => getAppropriatedString(title));
@@ -54,12 +55,10 @@
         <Title>{dialog_title}</Title>
     {/if}
     <Content>
-        {getAppropriatedString(label)}
+        {dialog_label}
         <div class="dialog-content">
-            {/* @ts-ignore */ null}
             <Textfield
                 bind:value={promptValue}
-                {dialog_label}
                 required
                 variant="outlined"
                 {type}
@@ -68,10 +67,10 @@
     </Content>
     <Actions>
         <Button action="cancel">
-            <Label>Cancel</Label>
+            <Label>{getAppropriatedString(action.cancel)}</Label>
         </Button>
         <Button action="accept">
-            <Label>OK</Label>
+            <Label>{getAppropriatedString(action.ok)}</Label>
         </Button>
     </Actions>
 </Dialog>

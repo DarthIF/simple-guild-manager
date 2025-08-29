@@ -1,22 +1,18 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import {
-        Database,
-        GameEvents,
-        ReactiveData,
-        type TeamType,
-    } from "$lib/utils/reactive-database.svelte";
     import { Fragments } from "$lib/components/fragments/fragments";
     import FragmentAuditLog from "$lib/components/fragments/fragment-audit-log.svelte";
     import FragmentManageTeams from "$lib/components/fragments/fragment-manage-teams.svelte";
     import FragmentOrganization from "$lib/components/fragments/fragment-organization.svelte";
-    import DialogAddMember from "$lib/components/dialogs/dialog-add-member.svelte";
-    import DialogCreateTeam from "$lib/components/dialogs/dialog-create-team.svelte";
-    import DialogImport from "$lib/components/dialogs/dialog-import.svelte";
-    import { saveElementAsImage } from "$lib/utils/image-util";
     import FragmentCommissions from "$lib/components/fragments/fragment-commissions.svelte";
     import SmuiToolbar from "$lib/components/smui/smui-toolbar.svelte";
     import SmuiDrawer from "$lib/components/smui/smui-drawer.svelte";
+    import SmuiDialogImport from "$lib/components/smui/dialogs/smui-dialog-import.svelte";
+    import { saveElementAsImage } from "$lib/utils/image-util";
+    import {
+        Database,
+        ReactiveData,
+    } from "$lib/utils/reactive-database.svelte";
 
     function ev_OnConfirmCreateTeam(value: string) {
         if (!el_fragmentManageTeams) return;
@@ -96,19 +92,16 @@
 
     let lockExport = false;
     let currentFragment: Fragments = $state(Fragments.UNDEFINED);
-    let enableGenerateImageButton: boolean = $state(false);
-
-    $effect(() => {
-        // Ativar o botão de gerar a imagem
-        enableGenerateImageButton = currentFragment === Fragments.MANAGE_TEAMS;
+    let enableGenerateImageButton: boolean = $derived.by(() => {
+        // Deixar visível o botão de gerar a imagem dos times
+        return currentFragment === Fragments.MANAGE_TEAMS;
     });
 
     let el_smuiDrawer: SmuiDrawer;
     let el_fragmentOrganization: FragmentOrganization | null = $state(null);
     let el_fragmentManageTeams: FragmentManageTeams | null = $state(null);
     let el_fragmentAuditLog: FragmentAuditLog | null = $state(null);
-
-    let el_dialogImport: DialogImport;
+    let el_dialogImport: SmuiDialogImport;
 </script>
 
 <main class="app-container">
@@ -120,7 +113,7 @@
     />
     <SmuiDrawer bind:this={el_smuiDrawer} />
 
-    <!-- Main content -->
+    <!-- Conteúdo principal da pagina -->
     <div class="page-content">
         {#if currentFragment === Fragments.MANAGE_ORGANIZATION}
             <!-- Manage Organization Page -->
@@ -140,7 +133,7 @@
     </div>
 
     <!-- Diálogos -->
-    <DialogImport bind:this={el_dialogImport} />
+    <SmuiDialogImport bind:this={el_dialogImport} />
 </main>
 
 <style>
