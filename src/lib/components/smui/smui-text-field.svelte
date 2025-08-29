@@ -5,7 +5,7 @@
         return value;
     }
 
-    let { style = "", value = $bindable(), variant, label } = $props();
+    let { style = "", value = $bindable(""), variant, label } = $props();
 </script>
 
 {/* @ts-ignore */ null}
