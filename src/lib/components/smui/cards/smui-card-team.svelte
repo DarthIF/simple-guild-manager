@@ -45,6 +45,14 @@
         applyColorVariables(element, color);
     });
 
+    let listTitleStyles = $derived.by(() => {
+        if (ReactiveSettings.screenShotMode) {
+            return "margin-top: 0; padding: 0;";
+        }
+
+        return "margin-top: -12px; padding: 0;";
+    });
+
     let el_card: Card;
 
     let {
@@ -63,8 +71,8 @@
     style="user-select: none; justify-content: space-between;"
 >
     <Content style="padding: 16px 0;">
-        <List nonInteractive style="margin-top: -12px; padding: 0;">
-            <Item style="padding: 0;">
+        <List nonInteractive style={listTitleStyles}>
+            <Item style="padding: 0; flex-grow: 1;">
                 <Text style="margin-left: 16px;">
                     <PrimaryText>
                         {team.name}
@@ -106,24 +114,35 @@
         <List nonInteractive style="padding-bottom: 0;">
             {#each team.members.map( (id) => Database.findMember(id), ) as member, index}
                 <Item class="team-member" style="">
-                    <Text style="margin-top: -16px; margin-left: 16px;">
-                        <PrimaryText>
-                            {member?.name}
-                        </PrimaryText>
-                        <SecondaryText>
-                            {formatNumberCompact(member?.power || 0)}
-                        </SecondaryText>
-                    </Text>
-                    <Meta style="padding-right: 5px;">
-                        {#if !ReactiveSettings.screenShotMode}
+                    {#if !ReactiveSettings.screenShotMode}
+                        <!-- Modo editor -->
+                        <Text style="margin-top: -16px; margin-left: 16px;">
+                            <PrimaryText>
+                                {member?.name}
+                            </PrimaryText>
+                            <SecondaryText>
+                                {formatNumberCompact(member?.power || 0)}
+                            </SecondaryText>
+                        </Text>
+                        <Meta style="padding-right: 5px;">
                             <IconButton
                                 class="material-symbols-rounded"
                                 onclick={() => onClick_RemoveMember(member)}
                             >
                                 person_remove
                             </IconButton>
-                        {/if}
-                    </Meta>
+                        </Meta>
+                    {:else}
+                        <!-- Modo de Captura de Tela -->
+                        <Text style="margin-left: 16px;">
+                            <PrimaryText>
+                                {member?.name}
+                            </PrimaryText>
+                            <SecondaryText>
+                                {formatNumberCompact(member?.power || 0)}
+                            </SecondaryText>
+                        </Text>
+                    {/if}
                 </Item>
             {/each}
         </List>
