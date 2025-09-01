@@ -1,7 +1,7 @@
 export const basic = {
-    subtitle: { en: 'Simple organization manager', pt: 'Gerenciador de organização simples' },
+    subtitle: { en: 'Simple Guild Manager', pt: 'Simple Guild Manager' },
 
-    manage_org: { en: 'Manage Organization', pt: 'Gerenciar Organização' },
+    manage_org: { en: 'Manage Guild', pt: 'Gerenciar Guilda' },
     teams: { en: 'Teams', pt: 'Equipes' },
     commissions: { en: 'Commissions', pt: 'Comissões' },
     audit_log: { en: 'Audit Log', pt: 'Registro de Auditoria' },
@@ -30,7 +30,7 @@ export const action = {
 
 
 export const fragment_manage = {
-    title_changeOrgName: { en: 'Change Organization Name', pt: 'Mudar Nome da Organização' },
+    title_changeOrgName: { en: 'Change Guild Name', pt: 'Mudar Nome da Guilda' },
     new_name: { en: 'New name', pt: 'Novo nome' },
 
     title_manageMembers: { en: 'Manage Members', pt: 'Gerenciar Membros' },

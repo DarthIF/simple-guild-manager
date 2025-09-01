@@ -75,7 +75,7 @@
     let el_dialogPrompt: SmuiDialogPrompt;
 </script>
 
-<div class="fragment">
+<div class="fragment" id="manageCommissions">
     <HorizontalScrollWarper class="fragment-commissions-scroll-warper">
         <Button variant="outlined" onclick={handleCommissionReset}>
             <Label>Reiniciar Ciclo</Label>

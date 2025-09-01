@@ -16,6 +16,7 @@
     import SmuiDialogConfirm from "../smui/dialogs/smui-dialog-confirm.svelte";
     import SmuiDialogAddMember from "../smui/dialogs/smui-dialog-add-member.svelte";
     import { DialogActions } from "../smui/dialogs/common";
+    import CardTeamV2 from "../card-teamV2.svelte";
 
     export function getElementToRender(): HTMLElement {
         return el_cardsGrid;
@@ -77,8 +78,7 @@
 </script>
 
 <EventSelectorV2 class="event-selector" bind:selected={GAME_EVENT} />
-
-<div bind:this={el_cardsGrid}>
+<div bind:this={el_cardsGrid} id="manageTeams">
     <!-- Nenhuma equipe -->
     {#if EVENT_TEAMS.length < 1}
         <div class="empty-div">
@@ -91,12 +91,12 @@
     {:else}
         <div class="cards-responsive-grid">
             {#each EVENT_TEAMS as team, index}
-                <SmuiCardTeam
+                <CardTeamV2
                     {index}
                     {team}
+                    gameEvent={GAME_EVENT}
                     onAddMemberClick={handleAddMember}
                     onDeleteTeamClick={handleDeleteTeam}
-                    gameEvent={GAME_EVENT}
                 />
             {/each}
         </div>

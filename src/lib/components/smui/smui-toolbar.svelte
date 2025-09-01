@@ -1,6 +1,8 @@
 <script lang="ts">
     import TopAppBar, { Row, Section, Title } from "@smui/top-app-bar";
     import IconButton from "@smui/icon-button";
+    import { onMount } from "svelte";
+    import { ReactiveSettings } from "$lib/utils/reactive-settings.svelte";
 
     type ToolbarType = {
         title?: string;
@@ -51,6 +53,18 @@
                     onclick={onClickGenerateImage}
                 >
                     image
+                </IconButton>
+            {/if}
+
+            {#if !ReactiveSettings.isGithubPages}
+                <IconButton
+                    class="material-symbols-rounded"
+                    aria-label=""
+                    onclick={() => {
+                        location.assign("/auth");
+                    }}
+                >
+                    account_circle
                 </IconButton>
             {/if}
         </Section>

@@ -1,6 +1,10 @@
 import adapter from '@sveltejs/adapter-static';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
+// Importar as Variáveis de Ambiente
+import 'dotenv/config'
+
+
 /** @type {import('@sveltejs/kit').Config} */
 export default {
 	// Consult https://svelte.dev/docs/kit/integrations
@@ -17,7 +21,8 @@ export default {
 			assets: 'docs',
 			fallback: undefined,
 			precompress: false,
-			strict: true
+			strict: true,
+			fallback: '200.html'
 		}),
 		prerender: { handleMissingId: 'warn' }
 	},

@@ -17,9 +17,9 @@
 
 <Card padded={padded}>
     <Content>
-        <h2 class="mdc-typography--headline6 card-item-title">
+        <span class="mdc-typography--headline6 card-item-title">
             {getAppropriatedString(title)}
-        </h2>
+        </span>
     </Content>
 
     <!-- Renderizar o elemento filho, equivalente ao <slot/> do Svelte v4 -->

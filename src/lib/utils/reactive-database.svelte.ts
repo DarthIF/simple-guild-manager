@@ -59,22 +59,28 @@ export type AuditLogDetails = {
     state?: number
 }
 
+/**
+ * @deprecated
+ */
 export enum Actions {
-    CHANGE_ORGANIZATION_NAME = 'change_org_name',
+    CHANGE_ORGANIZATION_NAME = 'con',
 
-    ADD_MEMBER = 'add_member',
-    REMOVED_MEMBER = 'removed_member',
-    EDITED_MEMBER = 'edited_member',
+    ADD_MEMBER = 'am',
+    REMOVED_MEMBER = 'rm',
+    EDITED_MEMBER = 'em',
 
-    CREATE_TEAM = 'create_team',
-    DELETE_TEAM = 'delete_team',
-    ADD_MEMBER_TO_TEAM = 'add_member_to_team',
-    REMOVE_MEMBER_FROM_TEAM = 'remove_member_from_team',
+    CREATE_TEAM = 'ct',
+    DELETE_TEAM = 'dt',
+    ADD_MEMBER_TO_TEAM = 'amt',
+    REMOVE_MEMBER_FROM_TEAM = 'rmt',
 
-    COMMISSION_SET_STATE = 'commission_set_state',
-    COMMISSION_RESET_CYCLE = 'commission_reset_cycle',
+    COMMISSION_SET_STATE = 'css',
+    COMMISSION_RESET_CYCLE = 'crc',
 }
 
+/**
+ * @deprecated
+ */
 export enum GameEvents {
     WORLD_TREE = 'world_tree',
     MINES_IN_DUNGEON = 'mines_in_dungeon',
@@ -82,6 +88,9 @@ export enum GameEvents {
     CASSINO_ON_YACHT = 'cassino_on_yacht'
 }
 
+/**
+ * @deprecated
+ */
 export enum CommissionState {
     AVAILABLE = 0,
     CLOSED = 1,
@@ -127,7 +136,10 @@ export function calculateTeamPower(team: TeamType): number {
     return total
 }
 
-export function calculateTeamPowerToDisplay(team: TeamType): string {
+export function calculateTeamPowerToDisplay(team: TeamType | null | undefined): string {
+    if (!team)
+        return ''
+
     const power = calculateTeamPower(team)
     return formatNumberCompact(power)
 }

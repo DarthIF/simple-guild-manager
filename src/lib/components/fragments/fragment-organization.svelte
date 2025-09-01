@@ -105,7 +105,7 @@
     let el_dialogMember: SmuiDialogMember;
 </script>
 
-<div class="fragment">
+<div class="fragment" id="manageOrg">
     <SmuiSettingsCard title={fragment_manage.title_changeOrgName}>
         <Content>
             <SmuiTextField

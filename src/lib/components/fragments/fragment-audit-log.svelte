@@ -7,7 +7,7 @@
     import { basic } from "$lib/strings/strings";
 </script>
 
-<div class="fragment">
+<div class="fragment" id="auditLog">
     <Card>
         <Content>
             <div class="card-title">

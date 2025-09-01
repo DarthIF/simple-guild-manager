@@ -64,6 +64,10 @@
     }: ExportType = $props();
 </script>
 
+<!-- @component
+@deprecated
+ -->
+
 <Card
     bind:this={el_card}
     padded={false}

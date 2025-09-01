@@ -166,11 +166,11 @@
             </Item>
 
             <Separator />
-            <Subheader tag="h6">Simple team builder</Subheader>
+            <Subheader tag="h6">Simple Guild Manager</Subheader>
             <Item
                 onclick={() => {
                     window.open(
-                        "https://github.com/DarthIF/simple-team-builder",
+                        "https://github.com/DarthIF/simple-guild-manager",
                     );
                 }}
             >
