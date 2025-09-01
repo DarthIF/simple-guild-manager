@@ -25,5 +25,5 @@ export default {
 			fallback: '200.html'
 		}),
 		prerender: { handleMissingId: 'warn' }
-	},
+	}
 };
