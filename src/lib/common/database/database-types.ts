@@ -1,12 +1,22 @@
-import type { CommissionState } from './guild-database'
+import type { CommissionState } from "./enums"
 
-
+/**
+ * @deprecated
+ */
 export type DatabaseType = {
     organization: string
     members: MemberType[]
     events: EventsType
     auditLog: AuditLogType[]
 }
+
+export type DatabaseTypeV2 = {
+    organization: string
+    members: MemberType[]
+    events: EventsType 
+    auditLog: AuditLogType[]
+}
+
 
 export type MemberType = {
     id: string
@@ -39,11 +49,11 @@ export type CommissionsType = {
 
 export type AuditLogType = {
     /**
-     * Nome do usuário que fez que gerou o AuditLog. Usado apenas no Vercel
+     * Nome do usuário que fez que gerou o AuditLog. Usado apenas na implementação para Vercel
      */
     user?: string
 
-    timestamp: string
+    unixTime: number
     action: string
     details: AuditLogDetails
 }

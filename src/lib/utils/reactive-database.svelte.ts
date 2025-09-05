@@ -3,6 +3,9 @@ import { basic, database_strings } from "$lib/strings/strings"
 import { formatNumberCompact, parseCompactNumber } from "./number-util"
 
 
+/**
+ * @deprecated
+ */
 export type DatabaseType = {
     organization: string
     members: MemberType[]
@@ -10,6 +13,9 @@ export type DatabaseType = {
     auditLog: AuditLogType[]
 }
 
+/**
+ * @deprecated
+ */
 export type MemberType = {
     id: string
     name: string
@@ -21,12 +27,18 @@ export type MemberType = {
     }
 }
 
+/**
+ * @deprecated
+ */
 export type TeamType = {
     id: string
     name: string
     members: string[]
 }
 
+/**
+ * @deprecated
+ */
 export type EventsType = {
     worldTree: TeamType[]
     minesInDungeon: TeamType[]
@@ -34,17 +46,26 @@ export type EventsType = {
     cassinoOnYacht: TeamType[]
 }
 
+/**
+ * @deprecated
+ */
 export type CommissionsType = {
     closed: string[]
     inactive: string[]
 }
 
+/**
+ * @deprecated
+ */
 export type AuditLogType = {
     timestamp: string
     action: string
     details: AuditLogDetails
 }
 
+/**
+ * @deprecated
+ */
 export type AuditLogDetails = {
     name?: string
     power?: number
@@ -175,11 +196,13 @@ const DEFAULT_DATA: DatabaseType = {
 /**
  * Banco de dados reativo, utilize apenas para acessar os valores.
  * Faça a manipulação de dados usando a classe Database
+ * @deprecated
  */
 export const ReactiveData: DatabaseType = $state(createDefaultData())
 
 /**
  * Classe usada para manipular os dados do ReactiveData
+ * @deprecated
  */
 export class Database {
 

@@ -7,4 +7,7 @@
 
 <div>
     Pagina com do app logado
+    <div>
+        User: {data.name}
+    </div>
 </div>
