@@ -16,7 +16,7 @@
         type MemberType,
         type TeamType,
     } from "$lib/utils/reactive-database.svelte";
-    import { ReactiveSettings } from "$lib/utils/reactive-settings.svelte";
+    import { ReactiveSettings } from "$lib/client/settings.svelte";
     import { getAppropriatedString } from "$lib/strings";
     import { component_card_team } from "$lib/strings/strings";
     import {

@@ -1,53 +1,60 @@
 import type { CommissionState } from "./enums"
 
-/**
- * @deprecated
- */
-export type DatabaseType = {
-    organization: string
-    members: MemberType[]
-    events: EventsType
-    auditLog: AuditLogType[]
-}
 
 export type DatabaseTypeV2 = {
-    organization: string
-    members: MemberType[]
-    events: EventsType 
-    auditLog: AuditLogType[]
+    definitions: DefinitionsType
+    members: MemberTypeV3[]
+    events: EventsTypeV2
+    auditLog: AuditLogTypeV2[]
 }
 
 
-export type MemberType = {
+
+export const DEFINITIONS_DEFAULT_ID = 'default'
+
+export type DefinitionsType = {
+    id: 'default'
+    guild: string
+}
+
+
+
+export type MemberTypeV3 = {
     id: string
     name: string
     power: number
-    commissions: {
-        state: CommissionState
-        time: number
-        missed: number
-    }
+} & MemberCommissionType & MemberEventType
+
+export type MemberCommissionType = {
+    state: CommissionState
+    time: number
+    missed: number
 }
 
-export type TeamType = {
+export type MemberEventType = {
+    worldTree: string
+    minesInDungeon: string
+    cloudKingdom: string
+    cassinoOnYacht: string
+}
+
+
+
+export type TeamTypeV2 = {
     id: string
     name: string
-    members: string[]
+    count: number
+    size: number
 }
 
-export type EventsType = {
-    worldTree: TeamType[]
-    minesInDungeon: TeamType[]
-    cloudKingdom: TeamType[]
-    cassinoOnYacht: TeamType[]
+export type EventsTypeV2 = {
+    worldTree: TeamTypeV2[]
+    minesInDungeon: TeamTypeV2[]
+    cloudKingdom: TeamTypeV2[]
+    cassinoOnYacht: TeamTypeV2[]
 }
 
-export type CommissionsType = {
-    closed: string[]
-    inactive: string[]
-}
-
-export type AuditLogType = {
+export type AuditLogTypeV2 = {
     /**
      * Nome do usuário que fez que gerou o AuditLog. Usado apenas na implementação para Vercel
      */
@@ -55,10 +62,10 @@ export type AuditLogType = {
 
     unixTime: number
     action: string
-    details: AuditLogDetails
+    details: AuditLogDetailsV2
 }
 
-export type AuditLogDetails = {
+export type AuditLogDetailsV2 = {
     name?: string
     power?: number
 
@@ -70,4 +77,21 @@ export type AuditLogDetails = {
     newName?: string
 
     state?: number
+}
+
+
+
+export const DATA_STRUCTURE_TEMPLATE: DatabaseTypeV2 = {
+    definitions: {
+        id: DEFINITIONS_DEFAULT_ID,
+        guild: 'Guild Name 🎈'
+    },
+    members: [],
+    events: {
+        worldTree: [],
+        minesInDungeon: [],
+        cloudKingdom: [],
+        cassinoOnYacht: []
+    },
+    auditLog: []
 }

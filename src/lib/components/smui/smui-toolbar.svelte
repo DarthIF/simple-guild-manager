@@ -2,7 +2,7 @@
     import TopAppBar, { Row, Section, Title } from "@smui/top-app-bar";
     import IconButton from "@smui/icon-button";
     import { onMount } from "svelte";
-    import { ReactiveSettings } from "$lib/utils/reactive-settings.svelte";
+    import { ReactiveSettings } from "$lib/client/settings.svelte";
 
     type ToolbarType = {
         title?: string;

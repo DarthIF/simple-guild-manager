@@ -1,5 +1,4 @@
 import { getCurrentSupportedLang, SUPPORTED_LANGS } from "$lib/utils/lang-util"
-import { } from "$lib/utils/reactive-settings.svelte"
 
 export type LocalizedString = {
     en: string

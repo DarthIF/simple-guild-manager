@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { onMount } from "svelte";
     import { getAppropriatedString } from "$lib/strings";
     import { component_card_team } from "$lib/strings/strings";
     import { getColorListItemForIndex } from "$lib/utils/color-list";
@@ -9,10 +10,9 @@
         type GameEvents,
         type MemberType,
         type TeamType,
-    } from "$lib/utils/reactive-database.svelte";
-    import { ReactiveSettings } from "$lib/utils/reactive-settings.svelte";
+    } from "$lib/utils/reactive-database.svelte"; 
     import IconButton from "@smui/icon-button";
-    import { onMount } from "svelte";
+    import { ReactiveSettings } from "$lib/client/settings.svelte";
 
     type ExportType = {
         index?: number;
