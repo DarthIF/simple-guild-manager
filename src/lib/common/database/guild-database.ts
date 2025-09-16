@@ -1,4 +1,4 @@
-import type { AuditLogDetailsV2, MemberTypeV3 } from './database-types'
+import type { AuditLogDetailsV2, MemberTypeV3, TeamTypeV2 } from './database-types'
 import type { Actions, CommissionState, GameEvents } from './enums'
 
 
@@ -28,6 +28,21 @@ export interface GuildDatabase {
      * @param userName 
      */
     deleteMember(memberId: string, userName?: string): Promise<boolean>
+    /**
+     * Edita o nome e o poder de um membro
+     * 
+     * @param memberId 
+     * @param newName 
+     * @param newPower 
+     * @param userName 
+     */
+    editMember(memberId: string, newName: string, newPower: number, userName?: string): Promise<boolean>
+    /**
+     * Procura por um membro que tenha o id fornecido
+     * 
+     * @param id 
+     */
+    findMember(memberId: string): Promise<MemberTypeV3 | null>
 
 
     /**
@@ -46,6 +61,12 @@ export interface GuildDatabase {
      * @param userName 
      */
     deleteTeam(gameEvent: GameEvents, teamId: string, userName?: string): Promise<boolean>
+    /**
+     * Lista todos os times do evento
+     * 
+     * @param gameEvent 
+     */
+    listTeams(gameEvent: GameEvents): Promise<TeamTypeV2[]>
     /**
      * Adiciona um membro a uma equipe de um evento
      * 
@@ -72,6 +93,7 @@ export interface GuildDatabase {
     listFreeMembersForEvent(gameEvent: GameEvents): Promise<MemberTypeV3[]>
 
 
+
     /**
      * Define em qual grupo de comissão o membro está
      * 
@@ -87,14 +109,12 @@ export interface GuildDatabase {
      * @param userName 
      */
     resetCommissionCycle(userName?: string): Promise<boolean>
-
-    listCommissionAvailableMembers(): Promise<MemberTypeV3[]>
-    listCommissionClosedMembers(): Promise<MemberTypeV3[]>
-    listCommissionInactiveMembers(): Promise<MemberTypeV3[]>
-
-
-    findMember(id: string | undefined): Promise<MemberTypeV3 | undefined>
-    editMember(id: string, newName: string, newPower: number | string, userName?: string): Promise<boolean>
+    /**
+     * Retorna uma lista com os membros que estão com o {@link CommissionState} fornecido
+     * 
+     * @param state 
+     */
+    listCommissionMembers(state: CommissionState): Promise<MemberTypeV3[]>
 
 }
 

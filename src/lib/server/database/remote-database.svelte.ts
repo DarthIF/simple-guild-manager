@@ -1,9 +1,10 @@
 import { Collection, Db, FindCursor, MongoClient, type WithId } from 'mongodb'
-import { DEFINITIONS_DEFAULT_ID, type AuditLogDetailsV2, type AuditLogTypeV2, type MemberTypeV3, type TeamTypeV2, type DefinitionsType } from '$lib/common/database/database-types'
+import bcrypt from 'bcryptjs'
+import { DEFINITIONS_DEFAULT_ID, type AuditLogDetailsV2, type AuditLogTypeV2, type MemberTypeV3, type TeamTypeV2, type DefinitionsType, UNDEFINED_TEAM } from '$lib/common/database/database-types'
 import { type GuildDatabase } from '$lib/common/database/guild-database'
 import { CommissionState, GameEvents } from '$lib/common/database/enums'
 import { currentUnixTime } from '$lib/utils/time-util'
-import bcrypt from 'bcryptjs'
+import { setTeamForMember } from '$lib/common/database/utils'
 
 
 export interface User {
@@ -39,8 +40,6 @@ const COLLECTION_EVENT_CLOUD_KINGDOM = 'guild-event-cloud'
 const COLLECTION_EVENT_CASSINO_ON_YACHT = 'guild-event-yacht'
 const COLLECTION_AUDIT_LOG = 'guild-audit-log'
 
-const VALUE_UNDEFINED_TEAM = 'undefined'
-
 
 function getCollectionOf(db: Db, gameEvent: GameEvents): Collection<TeamTypeV2> {
     switch (gameEvent) {
@@ -61,7 +60,7 @@ function getCollectionOf(db: Db, gameEvent: GameEvents): Collection<TeamTypeV2> 
     }
 }
 
-function findCursorMembersOfTeam(db: Db, gameEvent: GameEvents, teamId: string): FindCursor<WithId<MemberTypeV3>> {
+function findMembersOfTeam(db: Db, gameEvent: GameEvents, teamId: string): FindCursor<WithId<MemberTypeV3>> {
     const collection = db.collection<MemberTypeV3>(COLLECTION_MEMBERS)
     switch (gameEvent) {
         case GameEvents.WORLD_TREE:
@@ -81,31 +80,10 @@ function findCursorMembersOfTeam(db: Db, gameEvent: GameEvents, teamId: string):
     }
 }
 
-function setMemberTeam(member: MemberTypeV3, gameEvent: GameEvents, teamId: string): void {
-    switch (gameEvent) {
-        case GameEvents.WORLD_TREE:
-            member.worldTree = teamId
-            return
-
-        case GameEvents.MINES_IN_DUNGEON:
-            member.minesInDungeon = teamId
-            return
-
-        case GameEvents.CLOUD_KINGDOM:
-            member.cloudKingdom = teamId
-            return
-
-        case GameEvents.CASSINO_ON_YACHT:
-            member.cassinoOnYacht = teamId
-            return
-
-        default:
-            throw new Error('Evento invalido: ' + gameEvent)
-    }
-}
 
 
-class RemoteDatabaseImpl implements UserDatabase {
+
+class RemoteDatabaseImpl implements UserDatabase, GuildDatabase {
     private mongoURI: string | null = null
     private client: MongoClient | null = null
     private db: Db | null = null
@@ -171,7 +149,6 @@ class RemoteDatabaseImpl implements UserDatabase {
             })
 
             return true
-
         } catch (e) {
             console.error(e)
         }
@@ -234,6 +211,7 @@ class RemoteDatabaseImpl implements UserDatabase {
     // ------------------------------------------
 
 
+
     public async setGuildName(newName: string, userName?: string): Promise<boolean> {
         try {
             const db = await this.initialize()
@@ -279,10 +257,10 @@ class RemoteDatabaseImpl implements UserDatabase {
                 missed: 0,
 
                 // Eventos
-                worldTree: VALUE_UNDEFINED_TEAM,
-                minesInDungeon: VALUE_UNDEFINED_TEAM,
-                cloudKingdom: VALUE_UNDEFINED_TEAM,
-                cassinoOnYacht: VALUE_UNDEFINED_TEAM
+                worldTree: UNDEFINED_TEAM,
+                minesInDungeon: UNDEFINED_TEAM,
+                cloudKingdom: UNDEFINED_TEAM,
+                cassinoOnYacht: UNDEFINED_TEAM
             })
 
             return result.acknowledged
@@ -305,12 +283,39 @@ class RemoteDatabaseImpl implements UserDatabase {
         }
     }
 
+    public async editMember(memberId: string, newName: string, newPower: number, userName?: string): Promise<boolean> {
+        try {
+            const db = await this.initialize()
+            const collection = db.collection<MemberTypeV3>(COLLECTION_MEMBERS)
+
+            // Alterar o nome e o poder
+            const result = await collection.updateOne({ id: memberId }, { $set: { name: newName, power: newPower } })
+
+            return result.acknowledged
+        } catch (error) {
+            return false
+        }
+    }
+
+    public async findMember(memberId: string): Promise<MemberTypeV3 | null> {
+        try {
+            const db = await this.initialize()
+            const collection = db.collection<MemberTypeV3>(COLLECTION_MEMBERS)
+
+            const result = await collection.findOne({ id: memberId })
+
+            return result
+        } catch (error) {
+            return null
+        }
+    }
+
 
 
     public async createTeam(gameEvent: GameEvents, name: string): Promise<boolean> {
         try {
             const db = await this.initialize()
-            const collection = await getCollectionOf(db, gameEvent)
+            const collection = getCollectionOf(db, gameEvent)
 
             // Cria um novo time
             const result = await collection.insertOne({
@@ -329,7 +334,7 @@ class RemoteDatabaseImpl implements UserDatabase {
     public async deleteTeam(gameEvent: GameEvents, teamId: string, userName?: string): Promise<boolean> {
         try {
             const db = await this.initialize()
-            const collection = await getCollectionOf(db, gameEvent)
+            const collection = getCollectionOf(db, gameEvent)
 
             // Deletar o time
             const result = await collection.deleteOne({ id: teamId })
@@ -337,6 +342,27 @@ class RemoteDatabaseImpl implements UserDatabase {
             return result.acknowledged
         } catch (error) {
             return false
+        }
+    }
+
+    public async listTeams(gameEvent: GameEvents): Promise<TeamTypeV2[]> {
+        try {
+            const db = await this.initialize()
+            const collection = getCollectionOf(db, gameEvent)
+
+            // Listar todos os times do evento
+            const result = new Array<TeamTypeV2>()
+            const cursor = collection.find()
+            while (cursor.hasNext()) {
+                const team = await cursor.next()
+
+                if (team)
+                    result.push(team)
+            }
+
+            return result
+        } catch (error) {
+            return []
         }
     }
 
@@ -357,7 +383,7 @@ class RemoteDatabaseImpl implements UserDatabase {
                 return false
 
             // Definir o novo time em que o membro está para esse evento
-            setMemberTeam(member, gameEvent, teamId)
+            setTeamForMember(member, gameEvent, teamId)
 
             // Atualizar as informações do membro e do time
             const resultA = await collectionMembers.updateOne({ id: memberId }, { $set: member })
@@ -386,11 +412,11 @@ class RemoteDatabaseImpl implements UserDatabase {
                 return false
 
             // Definir o novo time em que o membro está para esse evento
-            setMemberTeam(member, gameEvent, VALUE_UNDEFINED_TEAM)
+            setTeamForMember(member, gameEvent, UNDEFINED_TEAM)
 
             // Atualizar as informações do membro e do time 
             const resultA = await collectionMembers.updateOne({ id: memberId }, { $set: member })
-            const resultB = await collectionTeams.updateOne({ id: team.id }, { $inc: { count: 1 } })
+            const resultB = await collectionTeams.updateOne({ id: team.id }, { $inc: { count: -1 } })
 
             return (resultA.acknowledged && resultB.acknowledged)
         } catch (error) {
@@ -402,8 +428,9 @@ class RemoteDatabaseImpl implements UserDatabase {
         try {
             const db = await this.initialize()
 
+            // Listar os membros iterando o cursor
             const result = new Array<MemberTypeV3>()
-            const cursor = findCursorMembersOfTeam(db, gameEvent, VALUE_UNDEFINED_TEAM)
+            const cursor = findMembersOfTeam(db, gameEvent, UNDEFINED_TEAM)
             while (cursor.hasNext()) {
                 const member = await cursor.next()
 
@@ -449,7 +476,27 @@ class RemoteDatabaseImpl implements UserDatabase {
             return false
         }
     }
-    
+
+    public async listCommissionMembers(state: CommissionState): Promise<MemberTypeV3[]> {
+        try {
+            const db = await this.initialize()
+            const collection = db.collection<MemberTypeV3>(COLLECTION_MEMBERS)
+
+            // Listar os membros iterando o cursor
+            const result = new Array<MemberTypeV3>()
+            const cursor = collection.find({ state })
+            while (cursor.hasNext()) {
+                const member = await cursor.next()
+
+                if (member)
+                    result.push(member)
+            }
+
+            return result
+        } catch (error) {
+            return []
+        }
+    }
 
 }
 

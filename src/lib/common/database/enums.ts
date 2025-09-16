@@ -12,6 +12,9 @@ export enum Actions {
 
     COMMISSION_SET_STATE = 'css',
     COMMISSION_RESET_CYCLE = 'crc',
+
+
+    SYNC_ONLY_LIST_FREE_MEMBERS_FOR_EVENT = 'lfm',
 }
 
 export enum GameEvents {
