@@ -1,5 +1,6 @@
 import type { DatabaseTypeV2, MemberTypeV3, TeamTypeV2 } from './database-types'
 import { GameEvents } from './enums'
+import { ReactiveDB } from '$lib/client/reactive-database.svelte'
 
 
 export function forEachEvent(database: DatabaseTypeV2, callback: (event: GameEvents, teams: TeamTypeV2[]) => void) {
@@ -76,4 +77,16 @@ export function findMemberIndex(database: DatabaseTypeV2, memberId: string) {
 
 export function findMember(database: DatabaseTypeV2, memberId: string) {
     return database.members.find(member => member.id === memberId)
+}
+
+export function getMembers(...ids: string[]) {
+    const result: MemberTypeV3[] = []
+    for (const member of ReactiveDB.members) {
+        for (const id of ids) {
+            if (member.id === id)
+                result.push(member)
+        }
+    }
+
+    return result
 }

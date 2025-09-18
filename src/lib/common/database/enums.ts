@@ -1,5 +1,5 @@
 export enum Actions {
-    CHANGE_ORGANIZATION_NAME = 'con',
+    SET_GUILD_NAME = 'con',
 
     ADD_MEMBER = 'am',
     REMOVED_MEMBER = 'rm',
@@ -15,6 +15,7 @@ export enum Actions {
 
 
     SYNC_ONLY_LIST_FREE_MEMBERS_FOR_EVENT = 'lfm',
+    SYNC_ONLY_LIST_COMMISSION_MEMBERS = 'lcm',
 }
 
 export enum GameEvents {

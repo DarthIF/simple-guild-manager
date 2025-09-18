@@ -2,6 +2,9 @@ import type { AuditLogDetailsV2, MemberTypeV3, TeamTypeV2 } from './database-typ
 import type { Actions, CommissionState, GameEvents } from './enums'
 
 
+/**
+ * Interface com as funções básicas envolvendo membros da guilda
+ */
 export interface GuildDatabase {
 
     /**
@@ -118,18 +121,34 @@ export interface GuildDatabase {
 
 }
 
+/**
+ * Funções de importar e exportar o banco de dados
+ */
 export interface DatabaseEditor {
 
     importData(file: File): Promise<boolean>
-    exportData(): Promise<boolean>
 
-    loadData(): Promise<boolean>
-    saveData(): Promise<boolean>
+    exportData(): Promise<boolean>
 
 }
 
+/**
+ * Usado por um banco de dados que registra as alterações
+ */
 export interface DatabaseAuditLog {
 
     addAuditLog(action: Actions, details: AuditLogDetailsV2, autoSave: boolean, userName?: string): Promise<boolean>
 
 }
+
+
+/**
+ * Interface para a execução do banco de dados dentro do navegador
+ */
+export interface LocalDatabase extends GuildDatabase, DatabaseEditor, DatabaseAuditLog {
+
+    loadData(): Promise<boolean>
+
+    saveData(): Promise<boolean>
+
+}  

@@ -1,13 +1,11 @@
 import type { GuildDatabase } from '$lib/common/database/guild-database'
-import { DATA_STRUCTURE_TEMPLATE, UNDEFINED_TEAM, type DatabaseTypeV2, type MemberTypeV3, type TeamTypeV2 } from '$lib/common/database/database-types'
+import { UNDEFINED_TEAM, type MemberTypeV3, type TeamTypeV2 } from '$lib/common/database/database-types'
 import { Actions, CommissionState, GameEvents } from '$lib/common/database/enums'
 import { isSuccessfulResponse } from '$lib/utils/http-util'
-import { findMember, findMemberIndex, getEventTeam, getEventTeamsArray, setTeamForMember } from '$lib/common/database/utils'
+import { findMember, findMemberIndex, getEventTeam, getEventTeamsArray, getMembers, setTeamForMember } from '$lib/common/database/utils'
+import { ReactiveDB } from './reactive-database.svelte'
 
 
-function createDefaultData(): DatabaseTypeV2 {
-    return JSON.parse(JSON.stringify(DATA_STRUCTURE_TEMPLATE))
-}
 
 function api(action: Actions, postContent: any): Promise<Response> {
     return fetch(`/app/mu/${action}`, {
@@ -17,7 +15,20 @@ function api(action: Actions, postContent: any): Promise<Response> {
 }
 
 
+
 class ClientDatabaseImpl implements GuildDatabase {
+
+    public async setGuildName(newName: string): Promise<boolean> {
+        const response = await api(Actions.SET_GUILD_NAME, { newName })
+        if (!isSuccessfulResponse(response))
+            return false
+
+        // Sincronizar a informação localmente
+        ReactiveDB.definitions.guild = newName
+        return true
+    }
+
+
 
     public async addMember(name: string, power: number): Promise<boolean> {
         const response = await api(Actions.ADD_MEMBER, { name, power })
@@ -145,17 +156,56 @@ class ClientDatabaseImpl implements GuildDatabase {
         if (!isSuccessfulResponse(response))
             return []
 
-        // Não deixar a informação salva em cache, retornar a array se for valida
-        const result = await response.json()
-        if (result instanceof Array)
-            return result
-
-        return []
+        // Não deixar a informação salva em cache, o servidor irá 
+        // retornar uma array com os ids dos membros
+        const membersIDS: string[] = await response.json()
+        return getMembers(...membersIDS)
     }
 
+
+
+    public async setCommissionState(memberId: string, state: CommissionState, updateTime: boolean): Promise<boolean> {
+        const response = await api(Actions.COMMISSION_SET_STATE, { state, updateTime })
+        if (!isSuccessfulResponse(response))
+            return false
+
+        // Sincronizar a informação localmente
+        const result: MemberTypeV3 = await response.json()
+        const member = findMember(ReactiveDB, memberId)
+        if (member) {
+            member.state = result.state
+            member.time = result.time
+        }
+
+        return true
+    }
+
+    public async resetCommissionCycle(): Promise<boolean> {
+        const response = await api(Actions.COMMISSION_RESET_CYCLE, {})
+        if (!isSuccessfulResponse(response))
+            return false
+
+        // Sincronizar a informação localmente
+        for (const member of ReactiveDB.members) {
+            member.state = CommissionState.AVAILABLE
+            member.time = 0
+        }
+
+        return true
+    }
+
+    public async listCommissionMembers(state: CommissionState): Promise<MemberTypeV3[]> {
+        const response = await api(Actions.SYNC_ONLY_LIST_COMMISSION_MEMBERS, { state })
+        if (!isSuccessfulResponse(response))
+            return []
+
+        // Não deixar a informação salva em cache, o servidor irá 
+        // retornar uma array com os ids dos membros
+        const membersIDS: string[] = await response.json()
+        return getMembers(...membersIDS)
+    }
+
+
 }
-
-
-export const ReactiveDB: DatabaseTypeV2 = $state(createDefaultData())
 
 export const ClientDatabase = new ClientDatabaseImpl()
