@@ -1,6 +1,5 @@
-import type { DatabaseTypeV2, MemberTypeV3, TeamTypeV2 } from './database-types'
+import { UNDEFINED_TEAM, type DatabaseTypeV2, type MemberTypeV3, type TeamTypeV2 } from './database-types'
 import { GameEvents } from './enums'
-import { ReactiveDB } from '$lib/client/reactive-database.svelte'
 
 
 export function forEachEvent(database: DatabaseTypeV2, callback: (event: GameEvents, teams: TeamTypeV2[]) => void) {
@@ -47,6 +46,46 @@ export function getEventTeam(database: DatabaseTypeV2, gameEvent: GameEvents, te
     return team ? team : null
 }
 
+
+
+
+export function isUndefinedTeamID(teamId: string | null | undefined): boolean {
+    return teamId === null
+        && teamId === undefined
+        && teamId === ''
+        && teamId === UNDEFINED_TEAM
+}
+
+export function hasTeamForEvent(member: MemberTypeV3, gameEvent: GameEvents): boolean {
+    const teamId = getTeamIdForEvent(member, gameEvent)
+    return !isUndefinedTeamID(teamId)
+}
+
+export function getTeamIdForEvent(member: MemberTypeV3, gameEvent: GameEvents): string | null {
+    switch (gameEvent) {
+        case GameEvents.WORLD_TREE:
+            return member.worldTree
+        case GameEvents.MINES_IN_DUNGEON:
+            return member.minesInDungeon
+        case GameEvents.CLOUD_KINGDOM:
+            return member.cloudKingdom
+        case GameEvents.CASSINO_ON_YACHT:
+            return member.cassinoOnYacht
+        default:
+            return null
+    }
+}
+
+export function getTeamForEvent(database: DatabaseTypeV2, member: MemberTypeV3, gameEvent: GameEvents): TeamTypeV2 | null {
+    const teamId = getTeamIdForEvent(member, gameEvent)
+    if (isUndefinedTeamID(teamId))
+        return null
+
+    // @ts-ignore
+    // O null já é verificado em isUndefinedTeamID()
+    return getEventTeam(database, gameEvent, teamId)
+}
+
 export function setTeamForMember(member: MemberTypeV3, gameEvent: GameEvents, teamId: string): void {
     switch (gameEvent) {
         case GameEvents.WORLD_TREE:
@@ -71,17 +110,30 @@ export function setTeamForMember(member: MemberTypeV3, gameEvent: GameEvents, te
 }
 
 
+
+
 export function findMemberIndex(database: DatabaseTypeV2, memberId: string) {
     return database.members.findIndex(member => member.id === memberId)
 }
 
-export function findMember(database: DatabaseTypeV2, memberId: string) {
+export function findMemberOf(database: DatabaseTypeV2, memberId: string) {
     return database.members.find(member => member.id === memberId)
 }
 
-export function getMembers(...ids: string[]) {
+export function findMemberWithIndex(database: DatabaseTypeV2, memberId: string) {
+    const index = findMemberIndex(database, memberId)
+    if (index < 0)
+        return null
+
+    return {
+        index,
+        member: database.members[index]
+    }
+}
+
+export function getMembers(database: DatabaseTypeV2, ...ids: string[]) {
     const result: MemberTypeV3[] = []
-    for (const member of ReactiveDB.members) {
+    for (const member of database.members) {
         for (const id of ids) {
             if (member.id === id)
                 result.push(member)
@@ -89,4 +141,15 @@ export function getMembers(...ids: string[]) {
     }
 
     return result
+}
+
+
+
+
+export function changeMemberCount(team: TeamTypeV2 | null, change: number): boolean {
+    if (!team)
+        return false
+
+    team.count += change
+    return true
 }
