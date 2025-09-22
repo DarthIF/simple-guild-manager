@@ -2,6 +2,13 @@ import { UNDEFINED_TEAM, type DatabaseTypeV2, type MemberTypeV3, type TeamTypeV2
 import { GameEvents } from './enums'
 
 
+type FindMemberAndIndexType = {
+    index: number
+    member: MemberTypeV3
+}
+
+
+
 export function forEachEvent(database: DatabaseTypeV2, callback: (event: GameEvents, teams: TeamTypeV2[]) => void) {
     callback(
         GameEvents.WORLD_TREE,
@@ -57,11 +64,11 @@ export function isUndefinedTeamID(teamId: string | null | undefined): boolean {
 }
 
 export function hasTeamForEvent(member: MemberTypeV3, gameEvent: GameEvents): boolean {
-    const teamId = getTeamIdForEvent(member, gameEvent)
+    const teamId = getTeamIdOfMember(member, gameEvent)
     return !isUndefinedTeamID(teamId)
 }
 
-export function getTeamIdForEvent(member: MemberTypeV3, gameEvent: GameEvents): string | null {
+export function getTeamIdOfMember(member: MemberTypeV3, gameEvent: GameEvents): string | null {
     switch (gameEvent) {
         case GameEvents.WORLD_TREE:
             return member.worldTree
@@ -76,8 +83,8 @@ export function getTeamIdForEvent(member: MemberTypeV3, gameEvent: GameEvents): 
     }
 }
 
-export function getTeamForEvent(database: DatabaseTypeV2, member: MemberTypeV3, gameEvent: GameEvents): TeamTypeV2 | null {
-    const teamId = getTeamIdForEvent(member, gameEvent)
+export function getTeamOfMember(database: DatabaseTypeV2, member: MemberTypeV3, gameEvent: GameEvents): TeamTypeV2 | null {
+    const teamId = getTeamIdOfMember(member, gameEvent)
     if (isUndefinedTeamID(teamId))
         return null
 
@@ -112,16 +119,16 @@ export function setTeamForMember(member: MemberTypeV3, gameEvent: GameEvents, te
 
 
 
-export function findMemberIndex(database: DatabaseTypeV2, memberId: string) {
-    return database.members.findIndex(member => member.id === memberId)
-}
-
-export function findMemberOf(database: DatabaseTypeV2, memberId: string) {
+export function findMemberByID(database: DatabaseTypeV2, memberId: string) {
     return database.members.find(member => member.id === memberId)
 }
 
-export function findMemberWithIndex(database: DatabaseTypeV2, memberId: string) {
-    const index = findMemberIndex(database, memberId)
+export function findMemberIndexByID(database: DatabaseTypeV2, memberId: string) {
+    return database.members.findIndex(member => member.id === memberId)
+}
+
+export function findMemberAndIndex(database: DatabaseTypeV2, memberId: string): FindMemberAndIndexType | null {
+    const index = findMemberIndexByID(database, memberId)
     if (index < 0)
         return null
 

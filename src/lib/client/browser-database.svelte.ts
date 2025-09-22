@@ -1,7 +1,7 @@
+import type { LocalDatabase } from '$lib/common/database/guild-database'
 import { type MemberTypeV3, type TeamTypeV2, type AuditLogDetailsV2, type DatabaseJsonType, UNDEFINED_TEAM } from '$lib/common/database/database-types'
 import { Actions, CommissionState, GameEvents } from '$lib/common/database/enums'
-import type { LocalDatabase } from '$lib/common/database/guild-database'
-import { findMemberOf, findMemberIndex, findMemberWithIndex, forEachEvent, getEventTeam, hasTeamForEvent, getTeamForEvent, changeMemberCount } from '$lib/common/database/utils'
+import { findMemberByID, findMemberAndIndex, getTeamOfMember, changeMemberCount, getEventTeamsArray, setTeamForMember, getTeamIdOfMember, isUndefinedTeamID } from '$lib/common/database/utils'
 import { currentUnixTime } from '$lib/utils/time-util'
 import { createDefaultData, ReactiveDB } from './reactive-database.svelte'
 
@@ -41,6 +41,7 @@ class BrowserDatabaseImpl implements LocalDatabase {
     }
 
 
+
     public async setGuildName(newName: string): Promise<boolean> {
         if (ReactiveDB.definitions.guild === newName)
             return false
@@ -54,6 +55,7 @@ class BrowserDatabaseImpl implements LocalDatabase {
 
         return true
     }
+
 
 
     public async addMember(name: string, power: number): Promise<boolean> {
@@ -83,17 +85,17 @@ class BrowserDatabaseImpl implements LocalDatabase {
     }
 
     public async deleteMember(memberId: string): Promise<boolean> {
-        const find = findMemberWithIndex(ReactiveDB, memberId)
+        const find = findMemberAndIndex(ReactiveDB, memberId)
         if (!find)
             return false
 
         const { index, member } = find
 
         // Primeiro atualizar os times que o membro estava
-        changeMemberCount(getTeamForEvent(ReactiveDB, member, GameEvents.WORLD_TREE), -1)
-        changeMemberCount(getTeamForEvent(ReactiveDB, member, GameEvents.MINES_IN_DUNGEON), -1)
-        changeMemberCount(getTeamForEvent(ReactiveDB, member, GameEvents.CLOUD_KINGDOM), -1)
-        changeMemberCount(getTeamForEvent(ReactiveDB, member, GameEvents.CASSINO_ON_YACHT), -1)
+        changeMemberCount(getTeamOfMember(ReactiveDB, member, GameEvents.WORLD_TREE), -1)
+        changeMemberCount(getTeamOfMember(ReactiveDB, member, GameEvents.MINES_IN_DUNGEON), -1)
+        changeMemberCount(getTeamOfMember(ReactiveDB, member, GameEvents.CLOUD_KINGDOM), -1)
+        changeMemberCount(getTeamOfMember(ReactiveDB, member, GameEvents.CASSINO_ON_YACHT), -1)
 
         // Remover o membro do banco de dados
         ReactiveDB.members.splice(index, 1)
@@ -104,30 +106,126 @@ class BrowserDatabaseImpl implements LocalDatabase {
         return true
     }
 
-    editMember(memberId: string, newName: string, newPower: number, userName?: string): Promise<boolean> {
-        throw new Error('Method not implemented.')
+    public async editMember(memberId: string, newName: string, newPower: number): Promise<boolean> {
+        const member = findMemberByID(ReactiveDB, memberId)
+        if (!member)
+            return false
+
+        // Salvar os valores anteriores
+        const oldName = member.name
+        const oldPower = member.power
+
+        // Atualizar a informação
+        member.name = newName
+        member.power = newPower
+
+        // Adicionar ao registro de auditoria, salvamento automático
+        await this.addAuditLog(Actions.EDITED_MEMBER, { memberId, oldName, oldPower, newName, newPower }, true)
+
+        return true
     }
-    findMember(memberId: string): Promise<MemberTypeV3 | null> {
-        throw new Error('Method not implemented.')
+
+    public async findMember(memberId: string): Promise<MemberTypeV3 | null> {
+        const member = findMemberByID(ReactiveDB, memberId)
+        return member ? member : null
     }
-    createTeam(gameEvent: GameEvents, name: string, userName?: string): Promise<boolean> {
-        throw new Error('Method not implemented.')
+
+
+
+    public async createTeam(gameEvent: GameEvents, name: string): Promise<boolean> {
+        if (!name || name.length < 0)
+            return false
+
+        // Adicionar o novo time
+        const id = currentUnixTime().toString()
+        getEventTeamsArray(ReactiveDB, gameEvent).push({
+            id,
+            name,
+            count: 0,
+            size: 4
+        })
+
+        // Adicionar ao registro de auditoria, salvamento automático
+        await this.addAuditLog(Actions.CREATE_TEAM, { gameEvent, teamId: id, teamName: name }, true)
+
+        return true
     }
-    deleteTeam(gameEvent: GameEvents, teamId: string, userName?: string): Promise<boolean> {
-        throw new Error('Method not implemented.')
+
+    public async deleteTeam(gameEvent: GameEvents, teamId: string): Promise<boolean> {
+        const teams = getEventTeamsArray(ReactiveDB, gameEvent)
+        const index = teams.findIndex(team => team.id === teamId)
+
+        if (index < 0)
+            return false
+
+        // Salvar a referencia
+        const team = teams[index]
+
+        // Deletar o time 
+        teams.splice(index, 1)
+
+        // Adicionar ao registro de auditoria, salvamento automático
+        await this.addAuditLog(Actions.DELETE_TEAM, { teamName: team.name }, true)
+
+        return true
     }
-    listTeams(gameEvent: GameEvents): Promise<TeamTypeV2[]> {
-        throw new Error('Method not implemented.')
+
+    public async listTeams(gameEvent: GameEvents): Promise<TeamTypeV2[]> {
+        return getEventTeamsArray(ReactiveDB, gameEvent)
     }
-    addMemberToTeam(gameEvent: GameEvents, teamId: string, memberId: string, userName?: string): Promise<boolean> {
-        throw new Error('Method not implemented.')
+
+    public async addMemberToTeam(gameEvent: GameEvents, teamId: string, memberId: string): Promise<boolean> {
+        const teams = getEventTeamsArray(ReactiveDB, gameEvent)
+        const team = teams.find(t => t.id === teamId)
+        const member = findMemberByID(ReactiveDB, memberId)
+
+        if (!team || !member)
+            return false
+
+        if (team.count >= team.size)
+            return false
+
+        team.count++
+        setTeamForMember(member, gameEvent, teamId)
+
+        return true
     }
-    removeMemberFromTeam(gameEvent: GameEvents, teamId: string, memberId: string, userName?: string): Promise<boolean> {
-        throw new Error('Method not implemented.')
+
+    public async removeMemberFromTeam(gameEvent: GameEvents, teamId: string, memberId: string, userName?: string): Promise<boolean> {
+        const teams = getEventTeamsArray(ReactiveDB, gameEvent)
+        const team = teams.find(t => t.id === teamId)
+        const member = findMemberByID(ReactiveDB, memberId)
+
+        if (member) {
+            // Remover o membro do time
+            setTeamForMember(member, gameEvent, UNDEFINED_TEAM)
+
+            // Reduzir a quantia de membros do time
+            if (team)
+                team.count--
+
+            return true
+        }
+
+        // O membro não foi encontrado???
+        return false
     }
-    listFreeMembersForEvent(gameEvent: GameEvents): Promise<MemberTypeV3[]> {
-        throw new Error('Method not implemented.')
+
+    public async listFreeMembersForEvent(gameEvent: GameEvents): Promise<MemberTypeV3[]> {
+        const freeMembers = new Array<MemberTypeV3>()
+
+        for (const member of ReactiveDB.members) {
+            const teamId = getTeamIdOfMember(member, gameEvent)
+
+            if (isUndefinedTeamID(teamId))
+                freeMembers.push(member)
+        }
+
+        return freeMembers
     }
+
+
+
     setCommissionState(memberId: string, state: CommissionState, updateTime: boolean, userName?: string): Promise<boolean> {
         throw new Error('Method not implemented.')
     }

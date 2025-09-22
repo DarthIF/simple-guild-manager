@@ -119,12 +119,12 @@ export type TeamTypeV2 = {
      * Nome da equipe
      */
     name: string
-    
+
     /**
      * Quantidade de membros nessa equipe
      */
     count: number
-    
+
     /**
      * Tamanho limite da equipe
      */
@@ -135,7 +135,8 @@ export type TeamTypeV2 = {
 
 export type AuditLogTypeV2 = {
     /**
-     * Nome do usuário que fez que gerou o AuditLog. Usado apenas na implementação para o Vercel
+     * Nome do usuário que fez que gerou o AuditLog.
+     * Usado apenas na implementação para o Vercel.
      */
     user?: string
 
@@ -149,11 +150,14 @@ export type AuditLogDetailsV2 = {
     power?: number
 
     gameEvent?: string
+    teamId?: string
     teamName?: string
     memberId?: string
 
     oldName?: string
+    oldPower?: number
     newName?: string
+    newPower?: number
 
     state?: number
 }

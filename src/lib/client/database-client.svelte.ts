@@ -2,7 +2,7 @@ import type { GuildDatabase } from '$lib/common/database/guild-database'
 import { UNDEFINED_TEAM, type MemberTypeV3, type TeamTypeV2 } from '$lib/common/database/database-types'
 import { Actions, CommissionState, GameEvents } from '$lib/common/database/enums'
 import { isSuccessfulResponse } from '$lib/utils/http-util'
-import { findMemberOf, findMemberIndex, getEventTeam, getEventTeamsArray, getMembers, setTeamForMember } from '$lib/common/database/utils'
+import { findMemberByID, findMemberIndexByID, getEventTeam, getEventTeamsArray, getMembers, setTeamForMember } from '$lib/common/database/utils'
 import { ReactiveDB } from './reactive-database.svelte'
 
 
@@ -47,7 +47,7 @@ class ClientDatabaseImpl implements GuildDatabase {
             return false
 
         // Sincronizar a informação localmente
-        const memberIndex = findMemberIndex(ReactiveDB, memberId)
+        const memberIndex = findMemberIndexByID(ReactiveDB, memberId)
         if (memberIndex > -1)
             ReactiveDB.members.splice(memberIndex, 1) // Remover o membro
 
@@ -60,7 +60,7 @@ class ClientDatabaseImpl implements GuildDatabase {
             return false
 
         // Sincronizar a informação localmente
-        const member = findMemberOf(ReactiveDB, memberId)
+        const member = findMemberByID(ReactiveDB, memberId)
         if (!member)
             return false
 
@@ -72,7 +72,7 @@ class ClientDatabaseImpl implements GuildDatabase {
 
     public async findMember(memberId: string): Promise<MemberTypeV3 | null> {
         // Executado localmente
-        const member = findMemberOf(ReactiveDB, memberId)
+        const member = findMemberByID(ReactiveDB, memberId)
         return member ? member : null
     }
 
@@ -123,7 +123,7 @@ class ClientDatabaseImpl implements GuildDatabase {
             return false
 
         // Sincronizar a informação localmente
-        const member = findMemberOf(ReactiveDB, memberId)
+        const member = findMemberByID(ReactiveDB, memberId)
         if (member)
             setTeamForMember(member, gameEvent, teamId)
 
@@ -140,7 +140,7 @@ class ClientDatabaseImpl implements GuildDatabase {
             return false
 
         // Sincronizar a informação localmente
-        const member = findMemberOf(ReactiveDB, memberId)
+        const member = findMemberByID(ReactiveDB, memberId)
         if (member)
             setTeamForMember(member, gameEvent, UNDEFINED_TEAM)
 
@@ -171,7 +171,7 @@ class ClientDatabaseImpl implements GuildDatabase {
 
         // Sincronizar a informação localmente
         const result: MemberTypeV3 = await response.json()
-        const member = findMemberOf(ReactiveDB, memberId)
+        const member = findMemberByID(ReactiveDB, memberId)
         if (member) {
             member.state = result.state
             member.time = result.time
