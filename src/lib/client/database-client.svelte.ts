@@ -1,5 +1,5 @@
 import type { GuildDatabase } from '$lib/common/database/guild-database'
-import { UNDEFINED_TEAM, type MemberTypeV3, type TeamTypeV2 } from '$lib/common/database/database-types'
+import { UNDEFINED_TEAM, type MemberTypeV3, type TeamTypeV2 } from '$lib/common/database/constants-and-types'
 import { Actions, CommissionState, GameEvents } from '$lib/common/database/enums'
 import { isSuccessfulResponse } from '$lib/utils/http-util'
 import { findMemberByID, findMemberIndexByID, getEventTeam, getEventTeamsArray, getMembers, setTeamForMember } from '$lib/common/database/utils'

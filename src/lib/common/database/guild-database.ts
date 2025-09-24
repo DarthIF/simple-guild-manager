@@ -1,4 +1,4 @@
-import type { AuditLogDetailsV2, MemberTypeV3, TeamTypeV2 } from './database-types'
+import type { AuditLogDetailsV2, MemberTypeV3, TeamTypeV2 } from './constants-and-types'
 import type { Actions, CommissionState, GameEvents } from './enums'
 
 
@@ -128,7 +128,7 @@ export interface DatabaseEditor {
 
     importData(file: File): Promise<boolean>
 
-    exportData(): Promise<boolean>
+    exportData(): boolean
 
 }
 

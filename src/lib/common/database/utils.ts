@@ -1,4 +1,4 @@
-import { UNDEFINED_TEAM, type DatabaseTypeV2, type MemberTypeV3, type TeamTypeV2 } from './database-types'
+import { UNDEFINED_TEAM, type DatabaseTypeV2, type MemberTypeV3, type TeamTypeV2 } from './constants-and-types'
 import { GameEvents } from './enums'
 
 
@@ -8,6 +8,20 @@ type FindMemberAndIndexType = {
 }
 
 
+
+export async function forEachGameEvent(callback: (event: GameEvents) => Promise<void>) {
+    await callback(GameEvents.WORLD_TREE)
+    await callback(GameEvents.MINES_IN_DUNGEON)
+    await callback(GameEvents.CLOUD_KINGDOM)
+    await callback(GameEvents.CASSINO_ON_YACHT)
+}
+
+export function forEachGameEventSync(callback: (event: GameEvents) => void) {
+    callback(GameEvents.WORLD_TREE)
+    callback(GameEvents.MINES_IN_DUNGEON)
+    callback(GameEvents.CLOUD_KINGDOM)
+    callback(GameEvents.CASSINO_ON_YACHT)
+}
 
 export function forEachEvent(database: DatabaseTypeV2, callback: (event: GameEvents, teams: TeamTypeV2[]) => void) {
     callback(

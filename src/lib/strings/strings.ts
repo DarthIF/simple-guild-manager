@@ -141,4 +141,6 @@ export const database_strings = {
     commission_state_available: { en: 'Available', pt: 'Disponível' },
     commission_state_closed: { en: 'Closed', pt: 'Fechado' },
     commission_state_inactive: { en: 'Inactive', pt: 'Inativo' },
+
+    import_message: { en: 'This will replace all current data. Do you wish to continue?', pt: 'Isso substituirá todos os dados atuais. Deseja continuar?' }
 }

@@ -1,10 +1,10 @@
 import { Collection, Db, FindCursor, MongoClient, type WithId } from 'mongodb'
 import bcrypt from 'bcryptjs'
-import { DEFINITIONS_DEFAULT_ID, type AuditLogDetailsV2, type AuditLogTypeV2, type MemberTypeV3, type TeamTypeV2, type DefinitionsType, UNDEFINED_TEAM } from '$lib/common/database/database-types'
+import { DEFINITIONS_DEFAULT_ID, type AuditLogDetailsV2, type AuditLogTypeV2, type MemberTypeV3, type TeamTypeV2, type DefinitionsType, UNDEFINED_TEAM } from '$lib/common/database/constants-and-types'
 import { type GuildDatabase } from '$lib/common/database/guild-database'
 import { CommissionState, GameEvents } from '$lib/common/database/enums'
 import { currentUnixTime } from '$lib/utils/time-util'
-import { setTeamForMember } from '$lib/common/database/utils'
+import { forEachGameEvent, getTeamIdOfMember, isUndefinedTeamID, setTeamForMember } from '$lib/common/database/utils'
 
 
 export interface User {
@@ -237,7 +237,7 @@ class RemoteDatabaseImpl implements UserDatabase, GuildDatabase {
 
 
 
-    public async addMember(name: string, power: number): Promise<boolean> {
+    public async addMember(name: string, power: number, userName?: string): Promise<boolean> {
         try {
             const db = await this.initialize()
             const collection = db.collection<MemberTypeV3>(COLLECTION_MEMBERS)
@@ -269,15 +269,31 @@ class RemoteDatabaseImpl implements UserDatabase, GuildDatabase {
         }
     }
 
-    public async deleteMember(memberId: string): Promise<boolean> {
+    public async deleteMember(memberId: string, userName?: string): Promise<boolean> {
         try {
             const db = await this.initialize()
             const collection = db.collection<MemberTypeV3>(COLLECTION_MEMBERS)
 
-            // Apagar o membro da guilda
-            const result = await collection.deleteOne({ id: memberId })
+            // Apagar o membro
+            const member = await collection.findOneAndDelete({ id: memberId })
+            if (!member)
+                return false
 
-            return result.acknowledged
+            // Remover o membro dos times
+            await forEachGameEvent(async (gameEvent) => {
+                // @ts-expect-error
+                const teamId: string = getTeamIdOfMember(member, gameEvent)
+
+                // Verificar se é uma equipe indefinida
+                if (isUndefinedTeamID(teamId))
+                    return
+
+                // Atualizar os times
+                const collectionTeams = getCollectionOf(db, gameEvent)
+                await collectionTeams.updateOne({ id: teamId }, { $inc: { count: 1 } })
+            })
+
+            return true
         } catch (error) {
             return false
         }

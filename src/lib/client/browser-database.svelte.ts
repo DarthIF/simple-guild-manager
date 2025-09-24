@@ -1,9 +1,12 @@
 import type { LocalDatabase } from '$lib/common/database/guild-database'
-import { type MemberTypeV3, type TeamTypeV2, type AuditLogDetailsV2, type DatabaseJsonType, UNDEFINED_TEAM } from '$lib/common/database/database-types'
+import { type MemberTypeV3, type TeamTypeV2, type AuditLogDetailsV2, type DatabaseJsonType, UNDEFINED_TEAM, validadeDatabaseJson } from '$lib/common/database/constants-and-types'
 import { Actions, CommissionState, GameEvents } from '$lib/common/database/enums'
 import { findMemberByID, findMemberAndIndex, getTeamOfMember, changeMemberCount, getEventTeamsArray, setTeamForMember, getTeamIdOfMember, isUndefinedTeamID } from '$lib/common/database/utils'
 import { currentUnixTime } from '$lib/utils/time-util'
 import { createDefaultData, ReactiveDB } from './reactive-database.svelte'
+import { downloadJsonFile, readFileAsString } from '$lib/utils/file-utils'
+import { getAppropriatedString } from '$lib/strings'
+import { database_strings } from '$lib/strings/strings'
 
 
 const LOCAL_STORAGE_KEY_V0 = 'team-creator'
@@ -226,24 +229,98 @@ class BrowserDatabaseImpl implements LocalDatabase {
 
 
 
-    setCommissionState(memberId: string, state: CommissionState, updateTime: boolean, userName?: string): Promise<boolean> {
-        throw new Error('Method not implemented.')
+    public async setCommissionState(memberId: string, state: CommissionState, updateTime: boolean): Promise<boolean> {
+        const member = findMemberByID(ReactiveDB, memberId)
+
+        if (!member)
+            return false
+
+        member.state = state
+
+        if (updateTime)
+            member.time = currentUnixTime()
+
+        return true
     }
-    resetCommissionCycle(userName?: string): Promise<boolean> {
-        throw new Error('Method not implemented.')
+
+    public async resetCommissionCycle(): Promise<boolean> {
+        for (const member of ReactiveDB.members) {
+            if (member.state !== CommissionState.AVAILABLE && member.state !== CommissionState.CLOSED)
+                continue
+
+            member.state = CommissionState.AVAILABLE
+            member.time = 0
+        }
+
+        return true
     }
-    listCommissionMembers(state: CommissionState): Promise<MemberTypeV3[]> {
-        throw new Error('Method not implemented.')
+
+    public async listCommissionMembers(state: CommissionState): Promise<MemberTypeV3[]> {
+        const result = new Array<MemberTypeV3>()
+        for (const member of ReactiveDB.members) {
+            if (member.state === state)
+                result.push(member)
+        }
+
+        return result
     }
-    importData(file: File): Promise<boolean> {
-        throw new Error('Method not implemented.')
+
+
+
+    public async importData(file: File): Promise<boolean> {
+        try {
+            const content = await readFileAsString(file)
+            if (!content)
+                return false
+
+            const data: DatabaseJsonType = JSON.parse(content)
+
+            // Validação básica
+            if (!validadeDatabaseJson(data)) {
+                console.error('Formato de arquivo invalido')
+                return false
+            }
+
+            // Atualizar os dados
+            if (confirm(getAppropriatedString(database_strings.import_message))) {
+                ReactiveDB.version = data.version
+                ReactiveDB.definitions = data.definitions
+                ReactiveDB.members = data.members
+                ReactiveDB.events = data.events
+                ReactiveDB.auditLog = data.auditLog
+
+                // Salvar os dados importados
+                return await this.saveData()
+            }
+        } catch (e) {
+            console.error(e)
+        }
+
+        return false
     }
-    exportData(): Promise<boolean> {
-        throw new Error('Method not implemented.')
+
+    public exportData(): boolean {
+        const fileName = '.json'
+        const jsonFile = JSON.stringify(ReactiveDB, null, 4)
+
+        downloadJsonFile(fileName, jsonFile)
+
+        return true
     }
-    addAuditLog(action: Actions, details: AuditLogDetailsV2, autoSave: boolean, userName?: string): Promise<boolean> {
-        throw new Error('Method not implemented.')
+
+
+
+    public async addAuditLog(action: Actions, details: AuditLogDetailsV2, autoSave: boolean): Promise<boolean> {
+        const unixTime = currentUnixTime()
+
+        ReactiveDB.auditLog.push({ unixTime, action, details })
+
+        if (autoSave)
+            this.saveData()
+
+        return true
     }
+
 }
 
 

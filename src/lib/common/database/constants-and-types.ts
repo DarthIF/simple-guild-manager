@@ -1,6 +1,48 @@
 import type { CommissionState, GameEvents } from "./enums"
 
 
+
+export const DEFINITIONS_DEFAULT_ID = 'default'
+
+export const UNDEFINED_TEAM = '@undefined_team'
+
+export const DATA_STRUCTURE_TEMPLATE: DatabaseJsonType = {
+    version: 1,
+    definitions: {
+        id: DEFINITIONS_DEFAULT_ID,
+        guild: 'Guild Name 🎈'
+    },
+    members: [],
+    events: {
+        worldTree: [],
+        minesInDungeon: [],
+        cloudKingdom: [],
+        cassinoOnYacht: []
+    },
+    auditLog: []
+}
+
+
+
+export function validateDatabase(data: any): boolean {
+    return data
+        && typeof data.definitions === 'object'
+        && typeof data.definitions.id === 'string'
+        && typeof data.definitions.guild === 'string'
+        && typeof data.members === 'object'
+        && typeof data.events === 'object'
+        && typeof data.auditLog === 'object'
+        && Array.isArray(data.members)
+        && Array.isArray(data.members)
+        && Array.isArray(data.auditLog)
+}
+
+export function validadeDatabaseJson(data: any): boolean {
+    return validateDatabase(data) && typeof data.version === 'number'
+}
+
+
+
 export type DatabaseTypeV2 = {
     definitions: DefinitionsType
     members: MemberTypeV3[]
@@ -162,24 +204,3 @@ export type AuditLogDetailsV2 = {
     state?: number
 }
 
-
-
-export const DEFINITIONS_DEFAULT_ID = 'default'
-
-export const UNDEFINED_TEAM = '@undefined_team'
-
-export const DATA_STRUCTURE_TEMPLATE: DatabaseJsonType = {
-    version: 1,
-    definitions: {
-        id: DEFINITIONS_DEFAULT_ID,
-        guild: 'Guild Name 🎈'
-    },
-    members: [],
-    events: {
-        worldTree: [],
-        minesInDungeon: [],
-        cloudKingdom: [],
-        cassinoOnYacht: []
-    },
-    auditLog: []
-}
