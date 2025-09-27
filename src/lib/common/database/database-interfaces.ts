@@ -1,11 +1,11 @@
-import type { AuditLogDetailsV2, MemberTypeV3, TeamTypeV2 } from './constants-and-types'
+import type { AuditLogDetailsV3, EventTeamType, MemberTypeV3 } from './constants-and-types'
 import type { Actions, CommissionState, GameEvents } from './enums'
 
 
 /**
  * Interface com as funções básicas envolvendo membros da guilda
  */
-export interface GuildDatabase {
+export interface DatabaseOperations {
 
     /**
      * Muda o nome da Guilda
@@ -65,11 +65,11 @@ export interface GuildDatabase {
      */
     deleteTeam(gameEvent: GameEvents, teamId: string, userName?: string): Promise<boolean>
     /**
-     * Lista todos os times do evento
+     * Lista todos os times do evento em uma **NOVA** lista
      * 
      * @param gameEvent 
      */
-    listTeams(gameEvent: GameEvents): Promise<TeamTypeV2[]>
+    listTeams(gameEvent: GameEvents): Promise<EventTeamType[]>
     /**
      * Adiciona um membro a uma equipe de um evento
      * 
@@ -137,7 +137,7 @@ export interface DatabaseEditor {
  */
 export interface DatabaseAuditLog {
 
-    addAuditLog(action: Actions, details: AuditLogDetailsV2, autoSave: boolean, userName?: string): Promise<boolean>
+    addAuditLog(action: Actions, details: AuditLogDetailsV3, userName?: string): Promise<boolean>
 
 }
 
@@ -145,7 +145,7 @@ export interface DatabaseAuditLog {
 /**
  * Interface para a execução do banco de dados dentro do navegador
  */
-export interface LocalDatabase extends GuildDatabase, DatabaseEditor, DatabaseAuditLog {
+export interface LocalDatabase extends DatabaseOperations, DatabaseEditor, DatabaseAuditLog {
 
     loadData(): Promise<boolean>
 

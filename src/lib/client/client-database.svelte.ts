@@ -1,8 +1,8 @@
-import type { GuildDatabase } from '$lib/common/database/guild-database'
-import { UNDEFINED_TEAM, type MemberTypeV3, type TeamTypeV2 } from '$lib/common/database/constants-and-types'
+import type { DatabaseOperations } from '$lib/common/database/database-interfaces'
+import { UNDEFINED_TEAM, type EventTeamType, type MemberTypeV3 } from '$lib/common/database/constants-and-types'
 import { Actions, CommissionState, GameEvents } from '$lib/common/database/enums'
 import { isSuccessfulResponse } from '$lib/utils/http-util'
-import { findMemberByID, findMemberIndexByID, getEventTeam, getEventTeamsArray, getMembers, setTeamForMember } from '$lib/common/database/utils'
+import { findEventTeamIndex, findMemberByID, findMemberIndexByID, getEventTeam, getEventTeams, getMembers, setMemberTeamId } from '$lib/common/database/utils'
 import { ReactiveDB } from './reactive-database.svelte'
 
 
@@ -16,7 +16,7 @@ function api(action: Actions, postContent: any): Promise<Response> {
 
 
 
-class ClientDatabaseImpl implements GuildDatabase {
+class ClientDatabaseImpl implements DatabaseOperations {
 
     public async setGuildName(newName: string): Promise<boolean> {
         const response = await api(Actions.SET_GUILD_NAME, { newName })
@@ -55,7 +55,7 @@ class ClientDatabaseImpl implements GuildDatabase {
     }
 
     public async editMember(memberId: string, newName: string, newPower: number): Promise<boolean> {
-        const response = await api(Actions.EDITED_MEMBER, { memberId, newName, newPower })
+        const response = await api(Actions.EDIT_MEMBER, { memberId, newName, newPower })
         if (!isSuccessfulResponse(response))
             return false
 
@@ -84,11 +84,8 @@ class ClientDatabaseImpl implements GuildDatabase {
             return false
 
         // Sincronizar a informação localmente
-        const team: TeamTypeV2 = await response.json()
-        const teams = getEventTeamsArray(ReactiveDB, gameEvent)
-
-        // Adicionar o time
-        teams.push(team)
+        const team: EventTeamType = await response.json()
+        ReactiveDB.events.push(team)
 
         return true
     }
@@ -98,23 +95,22 @@ class ClientDatabaseImpl implements GuildDatabase {
         if (!isSuccessfulResponse(response))
             return false
 
-        // Sincronizar a informação localmente
-        const teams = getEventTeamsArray(ReactiveDB, gameEvent)
-        const index = teams.findIndex(team => team.id === teamId)
+        // Sincronizar a informação localmente 
+        const index = findEventTeamIndex(ReactiveDB, gameEvent, teamId)
 
         if (index < 0)
             // Retornar true porque nesse contexto o time foi removido no servidor
-            // porem no cliente não existia, isso realmente pode acontecer?
+            // porem no cliente não existia, isso realmente pode acontecer????
             return true
 
         // Deletar o time
-        teams.splice(index, 1)
+        ReactiveDB.events.splice(index, 1)
 
         return true
     }
 
-    public async listTeams(gameEvent: GameEvents): Promise<TeamTypeV2[]> {
-        return [...getEventTeamsArray(ReactiveDB, gameEvent)]
+    public async listTeams(gameEvent: GameEvents): Promise<EventTeamType[]> {
+        return getEventTeams(ReactiveDB, gameEvent)
     }
 
     public async addMemberToTeam(gameEvent: GameEvents, teamId: string, memberId: string): Promise<boolean> {
@@ -125,7 +121,7 @@ class ClientDatabaseImpl implements GuildDatabase {
         // Sincronizar a informação localmente
         const member = findMemberByID(ReactiveDB, memberId)
         if (member)
-            setTeamForMember(member, gameEvent, teamId)
+            setMemberTeamId(member, gameEvent, teamId)
 
         const team = getEventTeam(ReactiveDB, gameEvent, teamId)
         if (team)
@@ -142,7 +138,7 @@ class ClientDatabaseImpl implements GuildDatabase {
         // Sincronizar a informação localmente
         const member = findMemberByID(ReactiveDB, memberId)
         if (member)
-            setTeamForMember(member, gameEvent, UNDEFINED_TEAM)
+            setMemberTeamId(member, gameEvent, UNDEFINED_TEAM)
 
         const team = getEventTeam(ReactiveDB, gameEvent, teamId)
         if (team)

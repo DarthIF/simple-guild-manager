@@ -2,8 +2,8 @@ export enum Actions {
     SET_GUILD_NAME = 'con',
 
     ADD_MEMBER = 'am',
-    REMOVED_MEMBER = 'rm',
-    EDITED_MEMBER = 'em',
+    DELETE_MEMBER = 'dm',
+    EDIT_MEMBER = 'em',
 
     CREATE_TEAM = 'ct',
     DELETE_TEAM = 'dt',

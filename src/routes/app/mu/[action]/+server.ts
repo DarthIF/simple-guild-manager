@@ -1,6 +1,5 @@
 import type { RequestHandler } from './$types'
 import { findUser } from '$lib/server/database/simple-guild-database'
-import { RemoteDatabase } from '$lib/server/database/remote-database.svelte'
 
 
 

@@ -1,10 +1,27 @@
-import { UNDEFINED_TEAM, type DatabaseTypeV2, type MemberTypeV3, type TeamTypeV2 } from './constants-and-types'
+import { UNDEFINED_TEAM, type DatabaseTypeV3, type EventTeamType, type MemberTypeV3 } from './constants-and-types'
 import { GameEvents } from './enums'
 
 
-type FindMemberAndIndexType = {
-    index: number
-    member: MemberTypeV3
+
+export function getEventTeam(database: DatabaseTypeV3, gameEvent: GameEvents, teamId: string): EventTeamType | null {
+    const team = database.events.find(t => t.event === gameEvent && t.id === teamId)
+
+    return team ? team : null
+}
+
+/**
+ * Retorna uma **NOVA** array com os times que existem para determinado evento
+ * 
+ * @param database Banco de dados reativo
+ * @param gameEvent Evento do jogo
+ * @returns **Nova** array com os times do evento
+ */
+export function getEventTeams(database: DatabaseTypeV3, gameEvent: GameEvents): EventTeamType[] {
+    return database.events.filter(t => t.event === gameEvent)
+}
+
+export function findEventTeamIndex(database: DatabaseTypeV3, gameEvent: GameEvents, teamId: string) {
+    return database.events.findIndex(t => t.event === gameEvent && t.id === teamId)
 }
 
 
@@ -23,51 +40,6 @@ export function forEachGameEventSync(callback: (event: GameEvents) => void) {
     callback(GameEvents.CASSINO_ON_YACHT)
 }
 
-export function forEachEvent(database: DatabaseTypeV2, callback: (event: GameEvents, teams: TeamTypeV2[]) => void) {
-    callback(
-        GameEvents.WORLD_TREE,
-        database.events.worldTree)
-
-    callback(
-        GameEvents.MINES_IN_DUNGEON,
-        database.events.minesInDungeon)
-
-    callback(
-        GameEvents.CLOUD_KINGDOM,
-        database.events.cloudKingdom)
-
-    callback(
-        GameEvents.CASSINO_ON_YACHT,
-        database.events.cassinoOnYacht)
-}
-
-export function getEventTeamsArray(database: DatabaseTypeV2, gameEvent: GameEvents): TeamTypeV2[] {
-    switch (gameEvent) {
-        case GameEvents.WORLD_TREE:
-            return database.events.worldTree
-
-        case GameEvents.MINES_IN_DUNGEON:
-            return database.events.minesInDungeon
-
-        case GameEvents.CLOUD_KINGDOM:
-            return database.events.cloudKingdom
-
-        case GameEvents.CASSINO_ON_YACHT:
-            return database.events.cassinoOnYacht
-
-        default:
-            throw new Error('Invalid game event: ' + gameEvent)
-    }
-}
-
-export function getEventTeam(database: DatabaseTypeV2, gameEvent: GameEvents, teamId: string): TeamTypeV2 | null {
-    const teams = getEventTeamsArray(database, gameEvent)
-    const team = teams.find(t => t.id = teamId)
-
-    return team ? team : null
-}
-
-
 
 
 export function isUndefinedTeamID(teamId: string | null | undefined): boolean {
@@ -77,12 +49,10 @@ export function isUndefinedTeamID(teamId: string | null | undefined): boolean {
         && teamId === UNDEFINED_TEAM
 }
 
-export function hasTeamForEvent(member: MemberTypeV3, gameEvent: GameEvents): boolean {
-    const teamId = getTeamIdOfMember(member, gameEvent)
-    return !isUndefinedTeamID(teamId)
-}
+export function getMemberTeamId(member: MemberTypeV3 | null | undefined, gameEvent: GameEvents): string {
+    if (!member)
+        return UNDEFINED_TEAM
 
-export function getTeamIdOfMember(member: MemberTypeV3, gameEvent: GameEvents): string | null {
     switch (gameEvent) {
         case GameEvents.WORLD_TREE:
             return member.worldTree
@@ -93,21 +63,19 @@ export function getTeamIdOfMember(member: MemberTypeV3, gameEvent: GameEvents): 
         case GameEvents.CASSINO_ON_YACHT:
             return member.cassinoOnYacht
         default:
-            return null
+            return UNDEFINED_TEAM
     }
 }
 
-export function getTeamOfMember(database: DatabaseTypeV2, member: MemberTypeV3, gameEvent: GameEvents): TeamTypeV2 | null {
-    const teamId = getTeamIdOfMember(member, gameEvent)
+export function getMemberTeam(database: DatabaseTypeV3, member: MemberTypeV3, gameEvent: GameEvents): EventTeamType | null {
+    const teamId = getMemberTeamId(member, gameEvent)
     if (isUndefinedTeamID(teamId))
         return null
 
-    // @ts-ignore
-    // O null já é verificado em isUndefinedTeamID()
     return getEventTeam(database, gameEvent, teamId)
 }
 
-export function setTeamForMember(member: MemberTypeV3, gameEvent: GameEvents, teamId: string): void {
+export function setMemberTeamId(member: MemberTypeV3, gameEvent: GameEvents, teamId: string): void {
     switch (gameEvent) {
         case GameEvents.WORLD_TREE:
             member.worldTree = teamId
@@ -132,27 +100,18 @@ export function setTeamForMember(member: MemberTypeV3, gameEvent: GameEvents, te
 
 
 
-
-export function findMemberByID(database: DatabaseTypeV2, memberId: string) {
-    return database.members.find(member => member.id === memberId)
+export function findMemberByID(database: DatabaseTypeV3, memberId: string): MemberTypeV3 | null {
+    const member = database.members.find(member => member.id === memberId)
+    return member ? member : null
 }
 
-export function findMemberIndexByID(database: DatabaseTypeV2, memberId: string) {
+export function findMemberIndexByID(database: DatabaseTypeV3, memberId: string): number {
     return database.members.findIndex(member => member.id === memberId)
 }
 
-export function findMemberAndIndex(database: DatabaseTypeV2, memberId: string): FindMemberAndIndexType | null {
-    const index = findMemberIndexByID(database, memberId)
-    if (index < 0)
-        return null
 
-    return {
-        index,
-        member: database.members[index]
-    }
-}
 
-export function getMembers(database: DatabaseTypeV2, ...ids: string[]) {
+export function getMembers(database: DatabaseTypeV3, ...ids: string[]): MemberTypeV3[] {
     const result: MemberTypeV3[] = []
     for (const member of database.members) {
         for (const id of ids) {
@@ -166,11 +125,11 @@ export function getMembers(database: DatabaseTypeV2, ...ids: string[]) {
 
 
 
-
-export function changeMemberCount(team: TeamTypeV2 | null, change: number): boolean {
+export function modifyTeamCount(team: EventTeamType | null, change: number): boolean {
     if (!team)
         return false
 
     team.count += change
+
     return true
 }

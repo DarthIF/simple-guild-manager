@@ -1,10 +1,10 @@
 import { Collection, Db, FindCursor, MongoClient, type WithId } from 'mongodb'
 import bcrypt from 'bcryptjs'
-import { DEFINITIONS_DEFAULT_ID, type AuditLogDetailsV2, type AuditLogTypeV2, type MemberTypeV3, type TeamTypeV2, type DefinitionsType, UNDEFINED_TEAM } from '$lib/common/database/constants-and-types'
-import { type GuildDatabase } from '$lib/common/database/guild-database'
-import { CommissionState, GameEvents } from '$lib/common/database/enums'
+import type { DatabaseAuditLog, DatabaseOperations } from '$lib/common/database/database-interfaces'
+import { DEFINITIONS_DEFAULT_ID, UNDEFINED_TEAM, type DefinitionsType, type MemberTypeV3, type EventTeamType, type AuditLogTypeV3, type AuditLogDetailsV3 } from '$lib/common/database/constants-and-types'
+import { Actions, CommissionState, GameEvents } from '$lib/common/database/enums'
 import { currentUnixTime } from '$lib/utils/time-util'
-import { forEachGameEvent, getTeamIdOfMember, isUndefinedTeamID, setTeamForMember } from '$lib/common/database/utils'
+import { forEachGameEvent, getMemberTeamId, isUndefinedTeamID, setMemberTeamId } from '$lib/common/database/utils'
 
 
 export interface User {
@@ -34,31 +34,9 @@ const DATABASE_NAME = 'simple-guild-manager'
 const COLLECTION_USERS = 'users'
 const COLLECTION_DEFINITIONS = 'guild-definitions'
 const COLLECTION_MEMBERS = 'guild-members'
-const COLLECTION_EVENT_WORLD_TREE = 'guild-event-tree'
-const COLLECTION_EVENT_MINES_IN_DUNGEON = 'guild-event-mines'
-const COLLECTION_EVENT_CLOUD_KINGDOM = 'guild-event-cloud'
-const COLLECTION_EVENT_CASSINO_ON_YACHT = 'guild-event-yacht'
+const COLLECTION_EVENTS = 'guild-events'
 const COLLECTION_AUDIT_LOG = 'guild-audit-log'
 
-
-function getCollectionOf(db: Db, gameEvent: GameEvents): Collection<TeamTypeV2> {
-    switch (gameEvent) {
-        case GameEvents.WORLD_TREE:
-            return db.collection<TeamTypeV2>(COLLECTION_EVENT_WORLD_TREE)
-
-        case GameEvents.MINES_IN_DUNGEON:
-            return db.collection<TeamTypeV2>(COLLECTION_EVENT_MINES_IN_DUNGEON)
-
-        case GameEvents.CLOUD_KINGDOM:
-            return db.collection<TeamTypeV2>(COLLECTION_EVENT_CLOUD_KINGDOM)
-
-        case GameEvents.CASSINO_ON_YACHT:
-            return db.collection<TeamTypeV2>(COLLECTION_EVENT_CASSINO_ON_YACHT)
-
-        default:
-            throw new Error('Erro ao iniciar a coleção para o evento: ' + gameEvent)
-    }
-}
 
 function findMembersOfTeam(db: Db, gameEvent: GameEvents, teamId: string): FindCursor<WithId<MemberTypeV3>> {
     const collection = db.collection<MemberTypeV3>(COLLECTION_MEMBERS)
@@ -81,9 +59,7 @@ function findMembersOfTeam(db: Db, gameEvent: GameEvents, teamId: string): FindC
 }
 
 
-
-
-class RemoteDatabaseImpl implements UserDatabase, GuildDatabase {
+class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAuditLog {
     private mongoURI: string | null = null
     private client: MongoClient | null = null
     private db: Db | null = null
@@ -107,7 +83,7 @@ class RemoteDatabaseImpl implements UserDatabase, GuildDatabase {
             return this.db
 
         if (!this.mongoURI)
-            throw new Error('Erro ao iniciar o banco de dados, mongoUri não foi definido')
+            throw new Error('Erro ao iniciar o banco de dados, mongoUri não foi definido.')
 
         try {
             this.client = new MongoClient(this.mongoURI)
@@ -138,7 +114,7 @@ class RemoteDatabaseImpl implements UserDatabase, GuildDatabase {
             const collection = db.collection<User>(COLLECTION_USERS)
             const passwordHash = await bcrypt.hash(password, 10)
 
-            await collection.insertOne({
+            const result = await collection.insertOne({
                 // Autenticação
                 name: username,
                 hash: passwordHash,
@@ -148,7 +124,7 @@ class RemoteDatabaseImpl implements UserDatabase, GuildDatabase {
                 icon: ''
             })
 
-            return true
+            return result.acknowledged
         } catch (e) {
             console.error(e)
         }
@@ -217,8 +193,12 @@ class RemoteDatabaseImpl implements UserDatabase, GuildDatabase {
             const db = await this.initialize()
             const collection = db.collection<DefinitionsType>(COLLECTION_DEFINITIONS)
 
+            // Verificar o nome atual
+            const definitions = await collection.findOne({ id: DEFINITIONS_DEFAULT_ID })
+            const oldName = definitions?.guild
+
             // Atualizar o nome da guilda
-            const result = await collection.updateOne(
+            const updateResult = await collection.updateOne(
                 { id: DEFINITIONS_DEFAULT_ID },
                 {
                     $set: {
@@ -226,10 +206,16 @@ class RemoteDatabaseImpl implements UserDatabase, GuildDatabase {
                         guild: newName
                     }
                 },
-                { upsert: true }
+                { upsert: true } // Cria o documento com as definições se não existir
             )
 
-            return result.acknowledged
+            if (!updateResult.acknowledged)
+                return false
+
+            // Adicionar ao registro de auditoria de forma assincrônica
+            this.addAuditLog(Actions.SET_GUILD_NAME, { oldName, newName }, userName)
+
+            return true
         } catch (error) {
             return false
         }
@@ -246,10 +232,11 @@ class RemoteDatabaseImpl implements UserDatabase, GuildDatabase {
                 power = 0
 
             // Adicionar o membro
+            const id = currentUnixTime().toString()
             const result = await collection.insertOne({
-                id: currentUnixTime().toString(),
-                name: name,
-                power: power,
+                id,
+                name,
+                power,
 
                 // Comissões
                 state: CommissionState.AVAILABLE,
@@ -263,7 +250,13 @@ class RemoteDatabaseImpl implements UserDatabase, GuildDatabase {
                 cassinoOnYacht: UNDEFINED_TEAM
             })
 
-            return result.acknowledged
+            if (!result.acknowledged)
+                return false
+
+            // Adicionar ao registro de auditoria de forma assincrônica
+            this.addAuditLog(Actions.ADD_MEMBER, { memberId: id, name, power }, userName)
+
+            return true
         } catch (error) {
             return false
         }
@@ -279,19 +272,21 @@ class RemoteDatabaseImpl implements UserDatabase, GuildDatabase {
             if (!member)
                 return false
 
-            // Remover o membro dos times
+            // Remover o membro das equipes
             await forEachGameEvent(async (gameEvent) => {
-                // @ts-expect-error
-                const teamId: string = getTeamIdOfMember(member, gameEvent)
+                const teamId = getMemberTeamId(member, gameEvent)
 
                 // Verificar se é uma equipe indefinida
                 if (isUndefinedTeamID(teamId))
                     return
 
-                // Atualizar os times
-                const collectionTeams = getCollectionOf(db, gameEvent)
-                await collectionTeams.updateOne({ id: teamId }, { $inc: { count: 1 } })
+                // Atualizar as equipes
+                const collectionEvents = db.collection<EventTeamType>(COLLECTION_EVENTS)
+                await collectionEvents.updateOne({ event: gameEvent, id: teamId }, { $inc: { count: -1 } })
             })
+
+            // Adicionar ao registro de auditoria de forma assincrônica
+            this.addAuditLog(Actions.DELETE_MEMBER, { name: member.name }, userName)
 
             return true
         } catch (error) {
@@ -304,10 +299,21 @@ class RemoteDatabaseImpl implements UserDatabase, GuildDatabase {
             const db = await this.initialize()
             const collection = db.collection<MemberTypeV3>(COLLECTION_MEMBERS)
 
-            // Alterar o nome e o poder
-            const result = await collection.updateOne({ id: memberId }, { $set: { name: newName, power: newPower } })
+            // Verificar o membro atual
+            const member = await collection.findOne({ id: memberId })
+            const oldName = member?.name
+            const oldPower = member?.power
 
-            return result.acknowledged
+            // Atualizar o membro
+            const updateResult = await collection.updateOne({ id: memberId }, { $set: { name: newName, power: newPower } })
+
+            if (!updateResult.acknowledged)
+                return false
+
+            // Adicionar ao registro de auditoria de forma assincrônica
+            this.addAuditLog(Actions.EDIT_MEMBER, { memberId, oldName, oldPower, newName, newPower }, userName)
+
+            return true
         } catch (error) {
             return false
         }
@@ -328,20 +334,28 @@ class RemoteDatabaseImpl implements UserDatabase, GuildDatabase {
 
 
 
-    public async createTeam(gameEvent: GameEvents, name: string): Promise<boolean> {
+    public async createTeam(gameEvent: GameEvents, name: string, userName?: string): Promise<boolean> {
         try {
             const db = await this.initialize()
-            const collection = getCollectionOf(db, gameEvent)
+            const collection = db.collection<EventTeamType>(COLLECTION_EVENTS)
 
-            // Cria um novo time
+            // Criar um novo time
+            const id = currentUnixTime().toString()
             const result = await collection.insertOne({
-                id: currentUnixTime().toString(),
+                event: gameEvent,
+                id,
                 name,
                 count: 0,
                 size: 4
             })
 
-            return result.acknowledged
+            if (!result.acknowledged)
+                return false
+
+            // Adicionar ao registro de auditoria de forma assincrônica
+            this.addAuditLog(Actions.CREATE_TEAM, { gameEvent, teamId: id, teamName: name }, userName)
+
+            return true
         } catch (error) {
             return false
         }
@@ -350,26 +364,63 @@ class RemoteDatabaseImpl implements UserDatabase, GuildDatabase {
     public async deleteTeam(gameEvent: GameEvents, teamId: string, userName?: string): Promise<boolean> {
         try {
             const db = await this.initialize()
-            const collection = getCollectionOf(db, gameEvent)
+            const collectionMembers = db.collection<MemberTypeV3>(COLLECTION_MEMBERS)
+            const collectionEvents = db.collection<EventTeamType>(COLLECTION_EVENTS)
+
+
+            // Remover os membros da equipe
+            const toUpdate = new Array<MemberTypeV3>()
+            const cursor = collectionMembers.find()
+            while (await cursor.hasNext()) {
+                const member = await cursor.next()
+                const currentMemberTeam = getMemberTeamId(member, gameEvent)
+
+                if (member && currentMemberTeam && currentMemberTeam === teamId) {
+                    setMemberTeamId(member, gameEvent, UNDEFINED_TEAM)
+
+                    toUpdate.push(member)
+                }
+            }
+
+            // Atualizar os membros no banco de dados
+            for (const member of toUpdate) {
+                await collectionMembers.updateOne(
+                    { id: member.id },
+                    {
+                        $set: {
+                            worldTree: member.worldTree,
+                            minesInDungeon: member.minesInDungeon,
+                            cloudKingdom: member.cloudKingdom,
+                            cassinoOnYacht: member.cassinoOnYacht,
+                        }
+                    }
+                )
+            }
 
             // Deletar o time
-            const result = await collection.deleteOne({ id: teamId })
+            const deleteResult = await collectionEvents.deleteOne({ id: teamId })
 
-            return result.acknowledged
+            if (!deleteResult)
+                return false
+
+            // Adicionar ao registro de auditoria de forma assincrônica
+            this.addAuditLog(Actions.DELETE_TEAM, { gameEvent, teamId }, userName)
+
+            return true
         } catch (error) {
             return false
         }
     }
 
-    public async listTeams(gameEvent: GameEvents): Promise<TeamTypeV2[]> {
+    public async listTeams(gameEvent: GameEvents): Promise<EventTeamType[]> {
         try {
             const db = await this.initialize()
-            const collection = getCollectionOf(db, gameEvent)
+            const collection = db.collection<EventTeamType>(COLLECTION_EVENTS)
 
             // Listar todos os times do evento
-            const result = new Array<TeamTypeV2>()
-            const cursor = collection.find()
-            while (cursor.hasNext()) {
+            const result = new Array<EventTeamType>()
+            const cursor = collection.find({ event: gameEvent })
+            while (await cursor.hasNext()) {
                 const team = await cursor.next()
 
                 if (team)
@@ -386,7 +437,7 @@ class RemoteDatabaseImpl implements UserDatabase, GuildDatabase {
         try {
             const db = await this.initialize()
             const collectionMembers = db.collection<MemberTypeV3>(COLLECTION_MEMBERS)
-            const collectionTeams = getCollectionOf(db, gameEvent)
+            const collectionEvents = db.collection<EventTeamType>(COLLECTION_EVENTS)
 
             // Verificar o membro
             const member = await collectionMembers.findOne({ id: memberId })
@@ -394,18 +445,25 @@ class RemoteDatabaseImpl implements UserDatabase, GuildDatabase {
                 return false
 
             // Verificar a equipe
-            const team = await collectionTeams.findOne({ id: teamId })
+            const team = await collectionEvents.findOne({ id: teamId })
             if (!team || team.count >= team.size)
                 return false
 
             // Definir o novo time em que o membro está para esse evento
-            setTeamForMember(member, gameEvent, teamId)
+            setMemberTeamId(member, gameEvent, teamId)
 
             // Atualizar as informações do membro e do time
             const resultA = await collectionMembers.updateOne({ id: memberId }, { $set: member })
-            const resultB = await collectionTeams.updateOne({ id: team.id }, { $inc: { count: 1 } })
+            const resultB = await collectionEvents.updateOne({ id: team.id }, { $inc: { count: 1 } })
 
-            return (resultA.acknowledged && resultB.acknowledged)
+
+            if (!(resultA.acknowledged && resultB.acknowledged))
+                return false
+
+            // Adicionar ao registro de auditoria de forma assincrônica
+            this.addAuditLog(Actions.ADD_MEMBER_TO_TEAM, { gameEvent, teamId, memberId }, userName)
+
+            return true
         } catch (error) {
             return false
         }
@@ -415,7 +473,7 @@ class RemoteDatabaseImpl implements UserDatabase, GuildDatabase {
         try {
             const db = await this.initialize()
             const collectionMembers = db.collection<MemberTypeV3>(COLLECTION_MEMBERS)
-            const collectionTeams = getCollectionOf(db, gameEvent)
+            const collectionEvents = db.collection<EventTeamType>(COLLECTION_EVENTS)
 
             // Verificar o membro
             const member = await collectionMembers.findOne({ id: memberId })
@@ -423,18 +481,24 @@ class RemoteDatabaseImpl implements UserDatabase, GuildDatabase {
                 return false
 
             // Verificar a equipe
-            const team = await collectionTeams.findOne({ id: teamId })
+            const team = await collectionEvents.findOne({ id: teamId })
             if (!team || team.count >= team.size)
                 return false
 
             // Definir o novo time em que o membro está para esse evento
-            setTeamForMember(member, gameEvent, UNDEFINED_TEAM)
+            setMemberTeamId(member, gameEvent, UNDEFINED_TEAM)
 
             // Atualizar as informações do membro e do time 
             const resultA = await collectionMembers.updateOne({ id: memberId }, { $set: member })
-            const resultB = await collectionTeams.updateOne({ id: team.id }, { $inc: { count: -1 } })
+            const resultB = await collectionEvents.updateOne({ id: team.id }, { $inc: { count: -1 } })
 
-            return (resultA.acknowledged && resultB.acknowledged)
+            if (!(resultA.acknowledged && resultB.acknowledged))
+                return false
+
+            // Adicionar ao registro de auditoria de forma assincrônica
+            this.addAuditLog(Actions.REMOVE_MEMBER_FROM_TEAM, { gameEvent, teamId, memberId }, userName)
+
+            return true
         } catch (error) {
             return false
         }
@@ -471,7 +535,13 @@ class RemoteDatabaseImpl implements UserDatabase, GuildDatabase {
             const time = updateTime ? currentUnixTime() : 0
             const result = await collection.updateOne({ id: memberId }, { $set: { state, time } })
 
-            return result.acknowledged
+            if (!result.acknowledged)
+                return false
+
+            // Adicionar ao registro de auditoria de forma assincrônica
+            this.addAuditLog(Actions.COMMISSION_SET_STATE, { memberId, state }, userName)
+
+            return true
         } catch (error) {
             return false
         }
@@ -487,7 +557,13 @@ class RemoteDatabaseImpl implements UserDatabase, GuildDatabase {
             const resultA = await collection.updateMany({ state: CommissionState.AVAILABLE }, RESET_COMMISSION)
             const resultB = await collection.updateMany({ state: CommissionState.CLOSED }, RESET_COMMISSION)
 
-            return (resultA.acknowledged && resultB.acknowledged)
+            if (!(resultA.acknowledged && resultB.acknowledged))
+                return false
+
+            // Adicionar ao registro de auditoria de forma assincrônica
+            this.addAuditLog(Actions.COMMISSION_RESET_CYCLE, {}, userName)
+
+            return true
         } catch (error) {
             return false
         }
@@ -511,6 +587,27 @@ class RemoteDatabaseImpl implements UserDatabase, GuildDatabase {
             return result
         } catch (error) {
             return []
+        }
+    }
+
+
+
+    public async addAuditLog(action: Actions, details: AuditLogDetailsV3, userName?: string): Promise<boolean> {
+        try {
+            const db = await this.initialize()
+            const collection = db.collection<AuditLogTypeV3>(COLLECTION_AUDIT_LOG)
+
+            const time = currentUnixTime()
+            const result = await collection.insertOne({
+                user: userName,
+                unixTime: time,
+                action,
+                details
+            })
+
+            return result.acknowledged
+        } catch (error) {
+            return false
         }
     }
 

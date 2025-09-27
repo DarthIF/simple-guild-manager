@@ -1,25 +1,21 @@
-import type { LocalDatabase } from '$lib/common/database/guild-database'
-import { type MemberTypeV3, type TeamTypeV2, type AuditLogDetailsV2, type DatabaseJsonType, UNDEFINED_TEAM, validadeDatabaseJson } from '$lib/common/database/constants-and-types'
+import type { LocalDatabase } from '$lib/common/database/database-interfaces'
+import { UNDEFINED_TEAM, validadeDatabaseJson, type MemberTypeV3, type DatabaseJsonType, type AuditLogDetailsV3, type EventTeamType } from '$lib/common/database/constants-and-types'
 import { Actions, CommissionState, GameEvents } from '$lib/common/database/enums'
-import { findMemberByID, findMemberAndIndex, getTeamOfMember, changeMemberCount, getEventTeamsArray, setTeamForMember, getTeamIdOfMember, isUndefinedTeamID } from '$lib/common/database/utils'
+import { findMemberByID, getMemberTeam, modifyTeamCount, setMemberTeamId, getMemberTeamId, isUndefinedTeamID, findMemberIndexByID, getEventTeams, findEventTeamIndex, getEventTeam } from '$lib/common/database/utils'
 import { currentUnixTime } from '$lib/utils/time-util'
 import { createDefaultData, ReactiveDB } from './reactive-database.svelte'
 import { downloadJsonFile, readFileAsString } from '$lib/utils/file-utils'
 import { getAppropriatedString } from '$lib/strings'
 import { database_strings } from '$lib/strings/strings'
-
-
-const LOCAL_STORAGE_KEY_V0 = 'team-creator'
-const LOCAL_STORAGE_KEY_V1 = 'guild-manager-local'
-
-
-// Remover as versões antigas
-localStorage.removeItem(LOCAL_STORAGE_KEY_V0)
+import { LOCAL_STORAGE_KEY_V1, updateOldVersions } from '$lib/common/database/updater'
 
 
 class BrowserDatabaseImpl implements LocalDatabase {
 
     public async loadData(): Promise<boolean> {
+        // Atualizar as versões antigas
+        updateOldVersions()
+
         const DEFAULT = createDefaultData()
         const localData = localStorage.getItem(LOCAL_STORAGE_KEY_V1)
         const data: DatabaseJsonType = localData ? JSON.parse(localData) : DEFAULT
@@ -54,7 +50,7 @@ class BrowserDatabaseImpl implements LocalDatabase {
         ReactiveDB.definitions.guild = newName
 
         // Adicionar ao registro de auditoria, salvamento automático
-        await this.addAuditLog(Actions.SET_GUILD_NAME, { oldName, newName }, true)
+        await this.addAuditLog(Actions.SET_GUILD_NAME, { oldName, newName })
 
         return true
     }
@@ -66,10 +62,11 @@ class BrowserDatabaseImpl implements LocalDatabase {
             return false
 
         // Adicionar o membro
+        const id = currentUnixTime().toString()
         ReactiveDB.members.push({
-            id: currentUnixTime().toString(),
-            name: name,
-            power: power,
+            id,
+            name,
+            power,
 
             state: CommissionState.AVAILABLE,
             time: 0,
@@ -82,29 +79,29 @@ class BrowserDatabaseImpl implements LocalDatabase {
         })
 
         // Adicionar ao registro de auditoria, salvamento automático
-        await this.addAuditLog(Actions.ADD_MEMBER, { name, power }, true)
+        await this.addAuditLog(Actions.ADD_MEMBER, { memberId: id, name, power })
 
         return true
     }
 
     public async deleteMember(memberId: string): Promise<boolean> {
-        const find = findMemberAndIndex(ReactiveDB, memberId)
-        if (!find)
+        const index = findMemberIndexByID(ReactiveDB, memberId)
+        if (index < 0)
             return false
 
-        const { index, member } = find
+        const member = ReactiveDB.members[index]
 
         // Primeiro atualizar os times que o membro estava
-        changeMemberCount(getTeamOfMember(ReactiveDB, member, GameEvents.WORLD_TREE), -1)
-        changeMemberCount(getTeamOfMember(ReactiveDB, member, GameEvents.MINES_IN_DUNGEON), -1)
-        changeMemberCount(getTeamOfMember(ReactiveDB, member, GameEvents.CLOUD_KINGDOM), -1)
-        changeMemberCount(getTeamOfMember(ReactiveDB, member, GameEvents.CASSINO_ON_YACHT), -1)
+        modifyTeamCount(getMemberTeam(ReactiveDB, member, GameEvents.WORLD_TREE), -1)
+        modifyTeamCount(getMemberTeam(ReactiveDB, member, GameEvents.MINES_IN_DUNGEON), -1)
+        modifyTeamCount(getMemberTeam(ReactiveDB, member, GameEvents.CLOUD_KINGDOM), -1)
+        modifyTeamCount(getMemberTeam(ReactiveDB, member, GameEvents.CASSINO_ON_YACHT), -1)
 
         // Remover o membro do banco de dados
         ReactiveDB.members.splice(index, 1)
 
         // Adicionar ao registro de auditoria, salvamento automático
-        await this.addAuditLog(Actions.REMOVED_MEMBER, { name: member.name }, true)
+        await this.addAuditLog(Actions.DELETE_MEMBER, { name: member.name })
 
         return true
     }
@@ -123,7 +120,7 @@ class BrowserDatabaseImpl implements LocalDatabase {
         member.power = newPower
 
         // Adicionar ao registro de auditoria, salvamento automático
-        await this.addAuditLog(Actions.EDITED_MEMBER, { memberId, oldName, oldPower, newName, newPower }, true)
+        await this.addAuditLog(Actions.EDIT_MEMBER, { memberId, oldName, oldPower, newName, newPower })
 
         return true
     }
@@ -141,7 +138,8 @@ class BrowserDatabaseImpl implements LocalDatabase {
 
         // Adicionar o novo time
         const id = currentUnixTime().toString()
-        getEventTeamsArray(ReactiveDB, gameEvent).push({
+        ReactiveDB.events.push({
+            event: gameEvent,
             id,
             name,
             count: 0,
@@ -149,76 +147,78 @@ class BrowserDatabaseImpl implements LocalDatabase {
         })
 
         // Adicionar ao registro de auditoria, salvamento automático
-        await this.addAuditLog(Actions.CREATE_TEAM, { gameEvent, teamId: id, teamName: name }, true)
+        await this.addAuditLog(Actions.CREATE_TEAM, { gameEvent, teamId: id, teamName: name })
 
         return true
     }
 
     public async deleteTeam(gameEvent: GameEvents, teamId: string): Promise<boolean> {
-        const teams = getEventTeamsArray(ReactiveDB, gameEvent)
-        const index = teams.findIndex(team => team.id === teamId)
+        const index = findEventTeamIndex(ReactiveDB, gameEvent, teamId)
 
         if (index < 0)
             return false
 
-        // Salvar a referencia
-        const team = teams[index]
-
-        // Deletar o time 
-        teams.splice(index, 1)
+        // Deletar o time
+        ReactiveDB.events.splice(index, 1)
 
         // Adicionar ao registro de auditoria, salvamento automático
-        await this.addAuditLog(Actions.DELETE_TEAM, { teamName: team.name }, true)
+        await this.addAuditLog(Actions.DELETE_TEAM, { gameEvent, teamId })
 
         return true
     }
 
-    public async listTeams(gameEvent: GameEvents): Promise<TeamTypeV2[]> {
-        return getEventTeamsArray(ReactiveDB, gameEvent)
+    public async listTeams(gameEvent: GameEvents): Promise<EventTeamType[]> {
+        return getEventTeams(ReactiveDB, gameEvent)
     }
 
     public async addMemberToTeam(gameEvent: GameEvents, teamId: string, memberId: string): Promise<boolean> {
-        const teams = getEventTeamsArray(ReactiveDB, gameEvent)
-        const team = teams.find(t => t.id === teamId)
+        const team = getEventTeam(ReactiveDB, gameEvent, teamId)
         const member = findMemberByID(ReactiveDB, memberId)
 
+        // Membro ou equipe inválidos
         if (!team || !member)
             return false
 
+        // A equipe está cheia
         if (team.count >= team.size)
             return false
 
+        // Atualizar a informação
         team.count++
-        setTeamForMember(member, gameEvent, teamId)
+        setMemberTeamId(member, gameEvent, teamId)
+
+        // Adicionar ao registro de auditoria, salvamento automático
+        await this.addAuditLog(Actions.ADD_MEMBER_TO_TEAM, { gameEvent, teamId, memberId })
 
         return true
     }
 
     public async removeMemberFromTeam(gameEvent: GameEvents, teamId: string, memberId: string, userName?: string): Promise<boolean> {
-        const teams = getEventTeamsArray(ReactiveDB, gameEvent)
-        const team = teams.find(t => t.id === teamId)
+        const team = getEventTeam(ReactiveDB, gameEvent, teamId)
         const member = findMemberByID(ReactiveDB, memberId)
 
-        if (member) {
-            // Remover o membro do time
-            setTeamForMember(member, gameEvent, UNDEFINED_TEAM)
-
-            // Reduzir a quantia de membros do time
-            if (team)
-                team.count--
-
-            return true
-        }
-
         // O membro não foi encontrado???
-        return false
+        if (!member)
+            return false
+
+        // Remover o membro do time
+        setMemberTeamId(member, gameEvent, UNDEFINED_TEAM)
+
+        // Reduzir a quantia de membros do time
+        if (team)
+            team.count--
+
+        // Adicionar ao registro de auditoria, salvamento automático
+        await this.addAuditLog(Actions.REMOVE_MEMBER_FROM_TEAM, { gameEvent, teamId, memberId })
+
+        return true
     }
 
     public async listFreeMembersForEvent(gameEvent: GameEvents): Promise<MemberTypeV3[]> {
         const freeMembers = new Array<MemberTypeV3>()
 
         for (const member of ReactiveDB.members) {
-            const teamId = getTeamIdOfMember(member, gameEvent)
+            const teamId = getMemberTeamId(member, gameEvent)
 
             if (isUndefinedTeamID(teamId))
                 freeMembers.push(member)
@@ -240,6 +240,10 @@ class BrowserDatabaseImpl implements LocalDatabase {
         if (updateTime)
             member.time = currentUnixTime()
 
+
+        // Adicionar ao registro de auditoria, salvamento automático
+        await this.addAuditLog(Actions.COMMISSION_SET_STATE, { memberId, state })
+
         return true
     }
 
@@ -251,6 +255,9 @@ class BrowserDatabaseImpl implements LocalDatabase {
             member.state = CommissionState.AVAILABLE
             member.time = 0
         }
+
+        // Adicionar ao registro de auditoria, salvamento automático
+        await this.addAuditLog(Actions.COMMISSION_RESET_CYCLE, {})
 
         return true
     }
@@ -310,13 +317,13 @@ class BrowserDatabaseImpl implements LocalDatabase {
 
 
 
-    public async addAuditLog(action: Actions, details: AuditLogDetailsV2, autoSave: boolean): Promise<boolean> {
+    public async addAuditLog(action: Actions, details: AuditLogDetailsV3): Promise<boolean> {
         const unixTime = currentUnixTime()
 
         ReactiveDB.auditLog.push({ unixTime, action, details })
 
-        if (autoSave)
-            this.saveData()
+        // Salvamento automático
+        this.saveData()
 
         return true
     }
