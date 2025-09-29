@@ -30,15 +30,16 @@ class ClientDatabaseImpl implements DatabaseOperations {
 
 
 
-    public async addMember(name: string, power: number): Promise<boolean> {
+    public async addMember(name: string, power: number): Promise<MemberTypeV3 | null> {
         const response = await api(Actions.ADD_MEMBER, { name, power })
         if (!isSuccessfulResponse(response))
-            return false
+            return null
 
         // Sincronizar a informação localmente
         const member: MemberTypeV3 = await response.json()
         ReactiveDB.members.push(member)
-        return true
+
+        return member
     }
 
     public async deleteMember(memberId: string): Promise<boolean> {
@@ -54,20 +55,20 @@ class ClientDatabaseImpl implements DatabaseOperations {
         return true
     }
 
-    public async editMember(memberId: string, newName: string, newPower: number): Promise<boolean> {
+    public async editMember(memberId: string, newName: string, newPower: number): Promise<MemberTypeV3 | null> {
         const response = await api(Actions.EDIT_MEMBER, { memberId, newName, newPower })
         if (!isSuccessfulResponse(response))
-            return false
+            return null
 
         // Sincronizar a informação localmente
         const member = findMemberByID(ReactiveDB, memberId)
         if (!member)
-            return false
+            return null
 
         member.name = newName
         member.power = newPower
 
-        return true
+        return member
     }
 
     public async findMember(memberId: string): Promise<MemberTypeV3 | null> {

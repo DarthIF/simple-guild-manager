@@ -1,6 +1,6 @@
 import type { LocalDatabase } from '$lib/common/database/database-interfaces'
 import { UNDEFINED_TEAM, validadeDatabaseJson, type MemberTypeV3, type DatabaseJsonType, type AuditLogDetailsV3, type EventTeamType } from '$lib/common/database/constants-and-types'
-import { Actions, CommissionState, GameEvents } from '$lib/common/database/enums'
+import { Actions, CommissionState, GameEvents, Role } from '$lib/common/database/enums'
 import { findMemberByID, getMemberTeam, modifyTeamCount, setMemberTeamId, getMemberTeamId, isUndefinedTeamID, findMemberIndexByID, getEventTeams, findEventTeamIndex, getEventTeam } from '$lib/common/database/utils'
 import { currentUnixTime } from '$lib/utils/time-util'
 import { createDefaultData, ReactiveDB } from './reactive-database.svelte'
@@ -57,16 +57,18 @@ class BrowserDatabaseImpl implements LocalDatabase {
 
 
 
-    public async addMember(name: string, power: number): Promise<boolean> {
+    public async addMember(name: string, power: number): Promise<MemberTypeV3 | null> {
         if (!name || isNaN(power))
-            return false
+            return null
 
         // Adicionar o membro
         const id = currentUnixTime().toString()
-        ReactiveDB.members.push({
+        const member: MemberTypeV3 = {
             id,
             name,
             power,
+            role: Role.MEMBER,
+            offline: 0,
 
             state: CommissionState.AVAILABLE,
             time: 0,
@@ -76,12 +78,13 @@ class BrowserDatabaseImpl implements LocalDatabase {
             minesInDungeon: UNDEFINED_TEAM,
             cloudKingdom: UNDEFINED_TEAM,
             cassinoOnYacht: UNDEFINED_TEAM,
-        })
+        }
+        ReactiveDB.members.push(member)
 
         // Adicionar ao registro de auditoria, salvamento automático
         await this.addAuditLog(Actions.ADD_MEMBER, { memberId: id, name, power })
 
-        return true
+        return member
     }
 
     public async deleteMember(memberId: string): Promise<boolean> {
@@ -106,10 +109,10 @@ class BrowserDatabaseImpl implements LocalDatabase {
         return true
     }
 
-    public async editMember(memberId: string, newName: string, newPower: number): Promise<boolean> {
+    public async editMember(memberId: string, newName: string, newPower: number): Promise<MemberTypeV3 | null> {
         const member = findMemberByID(ReactiveDB, memberId)
         if (!member)
-            return false
+            return null
 
         // Salvar os valores anteriores
         const oldName = member.name
@@ -122,7 +125,7 @@ class BrowserDatabaseImpl implements LocalDatabase {
         // Adicionar ao registro de auditoria, salvamento automático
         await this.addAuditLog(Actions.EDIT_MEMBER, { memberId, oldName, oldPower, newName, newPower })
 
-        return true
+        return member
     }
 
     public async findMember(memberId: string): Promise<MemberTypeV3 | null> {

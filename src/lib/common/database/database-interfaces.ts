@@ -23,7 +23,7 @@ export interface DatabaseOperations {
      * @param power 
      * @param userName 
      */
-    addMember(name: string, power: number, userName?: string): Promise<boolean>
+    addMember(name: string, power: number, userName?: string): Promise<MemberTypeV3 | null>
     /**
      * Remove o membro da guilda
      * 
@@ -39,7 +39,7 @@ export interface DatabaseOperations {
      * @param newPower 
      * @param userName 
      */
-    editMember(memberId: string, newName: string, newPower: number, userName?: string): Promise<boolean>
+    editMember(memberId: string, newName: string, newPower: number, userName?: string): Promise<MemberTypeV3 | null>
     /**
      * Procura por um membro que tenha o id fornecido
      * 

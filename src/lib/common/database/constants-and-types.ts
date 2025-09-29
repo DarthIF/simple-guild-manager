@@ -1,4 +1,4 @@
-import type { Actions, CommissionState, GameEvents } from "./enums"
+import type { Actions, CommissionState, GameEvents, Role } from "./enums"
 
 
 
@@ -89,6 +89,16 @@ export type MemberTypeV3 = {
      * Poder do jogador
      */
     power: number
+
+    /**
+     * Cargo do jogador na guilda
+     */
+    role: Role
+
+    /**
+     * Dias que o jogador ficou offline
+     */
+    offline: number
 } & MemberCommissionType & MemberEventType
 
 export type MemberCommissionType = {

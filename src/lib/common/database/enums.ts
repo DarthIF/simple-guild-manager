@@ -30,3 +30,10 @@ export enum CommissionState {
     CLOSED = 1,
     INACTIVE = 2,
 }
+
+export enum Role {
+    MEMBER = 0,
+    ELITE = 1,
+    VICE_PRESIDENT = 2,
+    PRESIDENT = 3,
+}

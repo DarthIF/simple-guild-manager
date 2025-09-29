@@ -1,32 +1,38 @@
 import type { RequestHandler } from './$types'
-import { findUser } from '$lib/server/database/simple-guild-database'
+import type { PostTypes } from '$lib/common/database/post-types'
+import { RemoteDatabase } from '$lib/server/database/server-database.svelte'
+import { StatusCodes } from 'http-status-codes'
+import { send } from '$lib/utils/http-util'
+import { createActionResolver } from '$lib/common/database/action-resolver'
 
 
-
-// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status
+const ActionResolver = createActionResolver(RemoteDatabase)
 
 
 export const GET = (async ({ request, cookies }) => {
-    return new Response('Unauthorized', { status: 401 })
+    return send(StatusCodes.UNAUTHORIZED)
 }) satisfies RequestHandler
+
 
 export const POST = (async ({ request, cookies, params }) => {
     const token = cookies.get('session')
-    const user = await findUser(token)
+    const user = await RemoteDatabase.findUser(token)
+
+
+    // Verificar o usuário
     if (user === null)
-        return new Response('Unauthorized', { status: 401 })
+        return send(StatusCodes.UNAUTHORIZED)
 
 
-    const data = await request.json()
-    if (!data || typeof data.name !== 'string' || typeof data.power !== 'number')
-        return new Response('Bad Request', { status: 400 })
+    // Ler o conteúdo do post
+    const data: PostTypes = await request.json()
+    const resolver = ActionResolver.get(params.action)
+
+    if (data && resolver)
+        return await resolver(user, data)
 
 
-    const added = await RemoteDatabase.addMember(data.name, data.power)
-    if (added)
-        return new Response('Created', { status: 201 })
-
-
-    return new Response('Bad Gateway', { status: 502 })
+    // Ação invalida
+    return send(StatusCodes.BAD_REQUEST)
 
 }) satisfies RequestHandler

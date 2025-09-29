@@ -2,7 +2,7 @@ import { Collection, Db, FindCursor, MongoClient, type WithId } from 'mongodb'
 import bcrypt from 'bcryptjs'
 import type { DatabaseAuditLog, DatabaseOperations } from '$lib/common/database/database-interfaces'
 import { DEFINITIONS_DEFAULT_ID, UNDEFINED_TEAM, type DefinitionsType, type MemberTypeV3, type EventTeamType, type AuditLogTypeV3, type AuditLogDetailsV3 } from '$lib/common/database/constants-and-types'
-import { Actions, CommissionState, GameEvents } from '$lib/common/database/enums'
+import { Actions, CommissionState, GameEvents, Role } from '$lib/common/database/enums'
 import { currentUnixTime } from '$lib/utils/time-util'
 import { forEachGameEvent, getMemberTeamId, isUndefinedTeamID, setMemberTeamId } from '$lib/common/database/utils'
 
@@ -223,7 +223,7 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
 
 
-    public async addMember(name: string, power: number, userName?: string): Promise<boolean> {
+    public async addMember(name: string, power: number, userName?: string): Promise<MemberTypeV3 | null> {
         try {
             const db = await this.initialize()
             const collection = db.collection<MemberTypeV3>(COLLECTION_MEMBERS)
@@ -233,10 +233,12 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
             // Adicionar o membro
             const id = currentUnixTime().toString()
-            const result = await collection.insertOne({
+            const member: MemberTypeV3 = {
                 id,
                 name,
                 power,
+                role: Role.MEMBER,
+                offline: 0,
 
                 // Comissões
                 state: CommissionState.AVAILABLE,
@@ -248,17 +250,19 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
                 minesInDungeon: UNDEFINED_TEAM,
                 cloudKingdom: UNDEFINED_TEAM,
                 cassinoOnYacht: UNDEFINED_TEAM
-            })
+            }
 
+            const result = await collection.insertOne(member)
             if (!result.acknowledged)
-                return false
+                return null
 
             // Adicionar ao registro de auditoria de forma assincrônica
             this.addAuditLog(Actions.ADD_MEMBER, { memberId: id, name, power }, userName)
 
-            return true
+            // Retornar a instancia do membro
+            return member
         } catch (error) {
-            return false
+            return null
         }
     }
 
@@ -294,28 +298,31 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
         }
     }
 
-    public async editMember(memberId: string, newName: string, newPower: number, userName?: string): Promise<boolean> {
+    public async editMember(memberId: string, newName: string, newPower: number, userName?: string): Promise<MemberTypeV3 | null> {
         try {
             const db = await this.initialize()
             const collection = db.collection<MemberTypeV3>(COLLECTION_MEMBERS)
 
             // Verificar o membro atual
             const member = await collection.findOne({ id: memberId })
-            const oldName = member?.name
-            const oldPower = member?.power
+            if (!member)
+                return null
+
+            // Salva as informações antigas
+            const oldName = member.name
+            const oldPower = member.power
 
             // Atualizar o membro
             const updateResult = await collection.updateOne({ id: memberId }, { $set: { name: newName, power: newPower } })
-
             if (!updateResult.acknowledged)
-                return false
+                return null
 
             // Adicionar ao registro de auditoria de forma assincrônica
             this.addAuditLog(Actions.EDIT_MEMBER, { memberId, oldName, oldPower, newName, newPower }, userName)
 
-            return true
+            return member
         } catch (error) {
-            return false
+            return null
         }
     }
 

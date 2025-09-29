@@ -1,3 +1,4 @@
+import { getReasonPhrase, type StatusCodes } from 'http-status-codes'
 export { StatusCodes, ReasonPhrases } from 'http-status-codes'
 
 
@@ -32,4 +33,20 @@ export function isServerErrorResponse(response: Response | number) {
     const code: number = response instanceof Response ? response.status : response
 
     return code >= 500 && code <= 599
+}
+
+/**
+ * Função para criar um objeto {@link Response} com um código de status especifico
+ * 
+ * @param status 
+ * @param body 
+ * @returns 
+ */
+export function send(status: StatusCodes, body: object | null = null): Response {
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status
+
+    if (body)
+        return new Response(JSON.stringify(body), { status })
+
+    return new Response(getReasonPhrase(status), { status })
 }
