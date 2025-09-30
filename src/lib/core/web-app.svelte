@@ -9,10 +9,8 @@
     import FragmentCommissions from "$lib/components/fragments/fragment-commissions.svelte";
     import { Fragments } from "$lib/components/fragments/fragments";
     import { saveElementAsImage } from "$lib/utils/image-util";
-    import {
-        Database,
-        ReactiveData,
-    } from "$lib/utils/reactive-database.svelte";
+    import type { DatabaseOperations } from "$lib/common/database/database-interfaces";
+    import { ReactiveDB } from "$lib/client/reactive-database.svelte";
 
     function ev_OnClickListener_ToolbarDrawerMenu() {
         el_smuiDrawer.openDrawer();
@@ -89,11 +87,14 @@
     let el_fragmentManageTeams: FragmentManageTeams | null = $state(null);
     let el_fragmentAuditLog: FragmentAuditLog | null = $state(null);
     let el_dialogImport: SmuiDialogImport;
+
+    type ExportType = { database: DatabaseOperations };
+    let { database }: ExportType = $props();
 </script>
 
 <main class="app-container">
     <SmuiToolbar
-        title={ReactiveData.organization}
+        title={ReactiveDB.definitions.guild}
         showGenerateImageButton={enableGenerateImageButton}
         onClickDrawer={ev_OnClickListener_ToolbarDrawerMenu}
         onClickGenerateImage={ev_OnClickListener_ToolbarGenerateImage}

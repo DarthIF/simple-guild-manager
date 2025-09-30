@@ -341,30 +341,31 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
 
 
-    public async createTeam(gameEvent: GameEvents, name: string, userName?: string): Promise<boolean> {
+    public async createTeam(gameEvent: GameEvents, name: string, userName?: string): Promise<EventTeamType | null> {
         try {
             const db = await this.initialize()
             const collection = db.collection<EventTeamType>(COLLECTION_EVENTS)
 
             // Criar um novo time
             const id = currentUnixTime().toString()
-            const result = await collection.insertOne({
+            const team = {
                 event: gameEvent,
                 id,
                 name,
                 count: 0,
                 size: 4
-            })
-
+            }
+            
+            const result = await collection.insertOne(team)
             if (!result.acknowledged)
-                return false
+                return null
 
             // Adicionar ao registro de auditoria de forma assincrônica
             this.addAuditLog(Actions.CREATE_TEAM, { gameEvent, teamId: id, teamName: name }, userName)
 
-            return true
+            return team
         } catch (error) {
-            return false
+            return null
         }
     }
 

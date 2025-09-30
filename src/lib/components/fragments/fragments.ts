@@ -1,5 +1,5 @@
+import type { MemberTypeV3 } from "$lib/common/database/constants-and-types";
 import { extractHSL, hslToHex } from "$lib/utils/color-util";
-import type { MemberType } from "$lib/utils/reactive-database.svelte";
 
 export enum Fragments {
     UNDEFINED = 0,
@@ -22,7 +22,7 @@ function getVariableColorInHex(computedStyles: CSSStyleDeclaration, variable: st
     return '#000000'
 }
 
-export function getPlaceholderImageUrl(computedStyles: CSSStyleDeclaration, member: MemberType) {
+export function getPlaceholderImageUrl(computedStyles: CSSStyleDeclaration, member: MemberTypeV3) {
     const firstChar = encodeURIComponent(member.name.trim().charAt(0))
     const colorBG = getVariableColorInHex(computedStyles, '--mdc-theme-secondary')
     const colorText = getVariableColorInHex(computedStyles, '--mdc-theme-on-secondary')
@@ -30,7 +30,7 @@ export function getPlaceholderImageUrl(computedStyles: CSSStyleDeclaration, memb
     return `url(https://placehold.co/72x72/${colorBG}/${colorText}?font=roboto&text=${firstChar})`
 }
 
-export function getPlaceHolderStyle(computedStyles: CSSStyleDeclaration, member: MemberType, cssVariable: string = '--bg') {
+export function getPlaceHolderStyle(computedStyles: CSSStyleDeclaration, member: MemberTypeV3, cssVariable: string = '--bg') {
     const cssUrl = getPlaceholderImageUrl(computedStyles, member)
     return `${cssVariable}: ${cssUrl}`
 }

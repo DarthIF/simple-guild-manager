@@ -11,11 +11,13 @@ export type PostTypes = {}
     & PostRemoveMemberToTeamType
     & PostSetCommissionSateType
     & PostResetCommissionCycleType
+    & PostSyncOnlyListCommissionMembersType
 
 
 export type PostSetGuildNameType = {
     newName?: string
 }
+
 
 
 export type PostAddMemberType = {
@@ -32,6 +34,7 @@ export type PostEditMemberType = {
     newName?: string
     newPower?: number
 }
+
 
 
 export type PostCreateTeamType = {
@@ -53,6 +56,7 @@ export type PostAddMemberToTeamType = {
 export type PostRemoveMemberToTeamType = PostAddMemberToTeamType
 
 
+
 export type PostSetCommissionSateType = {
     memberId?: string
     state?: CommissionState
@@ -60,3 +64,13 @@ export type PostSetCommissionSateType = {
 }
 
 export type PostResetCommissionCycleType = {}
+
+
+
+export type PostSyncOnlyListCommissionMembersType = {
+    state?: CommissionState
+}
+
+export type PostSyncOnlyListFreeMembersForEvent = {
+    gameEvent?: GameEvents
+}

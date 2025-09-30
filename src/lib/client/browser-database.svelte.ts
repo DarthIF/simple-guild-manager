@@ -135,24 +135,26 @@ class BrowserDatabaseImpl implements LocalDatabase {
 
 
 
-    public async createTeam(gameEvent: GameEvents, name: string): Promise<boolean> {
+    public async createTeam(gameEvent: GameEvents, name: string): Promise<EventTeamType | null> {
         if (!name || name.length < 0)
-            return false
+            return null
 
         // Adicionar o novo time
         const id = currentUnixTime().toString()
-        ReactiveDB.events.push({
+        const team = {
             event: gameEvent,
             id,
             name,
             count: 0,
             size: 4
-        })
+        }
+
+        ReactiveDB.events.push(team)
 
         // Adicionar ao registro de auditoria, salvamento automático
         await this.addAuditLog(Actions.CREATE_TEAM, { gameEvent, teamId: id, teamName: name })
 
-        return true
+        return team
     }
 
     public async deleteTeam(gameEvent: GameEvents, teamId: string): Promise<boolean> {

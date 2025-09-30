@@ -79,16 +79,16 @@ class ClientDatabaseImpl implements DatabaseOperations {
 
 
 
-    public async createTeam(gameEvent: GameEvents, name: string): Promise<boolean> {
+    public async createTeam(gameEvent: GameEvents, name: string): Promise<EventTeamType|null> {
         const response = await api(Actions.CREATE_TEAM, { gameEvent, name })
         if (!isSuccessfulResponse(response))
-            return false
+            return null
 
         // Sincronizar a informação localmente
         const team: EventTeamType = await response.json()
         ReactiveDB.events.push(team)
 
-        return true
+        return team
     }
 
     public async deleteTeam(gameEvent: GameEvents, teamId: string): Promise<boolean> {

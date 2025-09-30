@@ -1,7 +1,7 @@
 <script>
-    import { ReactiveData } from "$lib/utils/reactive-database.svelte";
     import Card, { Content } from "@smui/card";
     import { Label, Icon } from "@smui/common";
+    import { ReactiveData } from "$lib/utils/reactive-database.svelte";
     import AuditLogItem from "../misc/audit-log-item.svelte";
     import { getAppropriatedString } from "$lib/strings";
     import { basic } from "$lib/strings/strings";

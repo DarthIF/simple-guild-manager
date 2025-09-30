@@ -27,13 +27,30 @@ export function updateDocumentLanguage() {
 
 
 export const ReactiveSettings = $state({
+    /**
+     * `true` se estiver no modo de screen shot
+     */
     screenShotMode: false,
+
+    /**
+     * `true` se estiver em uma pagina do Github
+     */
     isGithubPages: isInGithub(),
+
+    /**
+     * Linguagem atual para o aplicativo
+     */
     lang: getCurrentSupportedLang(),
+
+    /**
+     * `true` se estiver carregando alguma informação
+     */
+    loading: false
 })
 
 
-// Atualizar sempre que a configuração mudar
+// Atualizar o atributo "lang" da pagina sempre que 
+// a configuração reativa mudar
 $effect.root(() => {
     $effect(updateDocumentLanguage)
 })

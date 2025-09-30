@@ -55,7 +55,7 @@ export interface DatabaseOperations {
      * @param name 
      * @param userName 
      */
-    createTeam(gameEvent: GameEvents, name: string, userName?: string): Promise<boolean>
+    createTeam(gameEvent: GameEvents, name: string, userName?: string): Promise<EventTeamType | null>
     /**
      * Apaga a equipe de um evento
      * 
