@@ -48,3 +48,14 @@ export function getLocalizedString(localizedString: LocalizedString): string {
     // @ts-ignore
     return localizedString[lang.code]
 }
+
+
+export function alertWith(obj: string | LocalizedString, ...format: any[]) {
+    const message = getAppropriatedString(obj, ...format)
+    return alert(message)
+}
+
+export function confirmWith(obj: string | LocalizedString, ...format: any[]) {
+    const message = getAppropriatedString(obj, ...format)
+    return confirm(message)
+} 

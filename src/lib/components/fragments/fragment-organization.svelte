@@ -160,7 +160,7 @@
     let el_dialogMember: SmuiDialogMember;
 
     type ExportType = { database: DatabaseOperations };
-    let { database }: ExportType = $props();
+    let { database = $bindable()}: ExportType = $props();
 </script>
 
 <div class="fragment" id="manageOrg">

@@ -146,6 +146,9 @@ function currentUnixTime(): number {
 }
 
 
+/**
+ * @deprecated
+ */
 export function calculateTeamPower(team: TeamType): number {
     let total = 0
     team.members.forEach(memberId => {
@@ -157,6 +160,9 @@ export function calculateTeamPower(team: TeamType): number {
     return total
 }
 
+/**
+ * @deprecated
+ */
 export function calculateTeamPowerToDisplay(team: TeamType | null | undefined): string {
     if (!team)
         return ''
@@ -165,6 +171,9 @@ export function calculateTeamPowerToDisplay(team: TeamType | null | undefined): 
     return formatNumberCompact(power)
 }
 
+/**
+ * @deprecated
+ */
 export function getCommissionStateString(state: CommissionState | number | undefined): LocalizedString {
     switch (state) {
         case CommissionState.AVAILABLE:

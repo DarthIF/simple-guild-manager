@@ -1,9 +1,4 @@
 <script lang="ts">
-    import {
-        CommissionState,
-        getCommissionStateString,
-        type MemberType,
-    } from "$lib/utils/reactive-database.svelte";
     import Dialog, { Content, Title } from "@smui/dialog";
     import List, {
         Graphic,
@@ -13,20 +8,23 @@
         Text,
     } from "@smui/list";
     import { DialogActions } from "./common";
-    import { getAppropriatedString, type LocalizedString } from "$lib/strings";
+    import { getAppropriatedString } from "$lib/strings";
     import { basic, fragment_commissions } from "$lib/strings/strings";
+    import type { MemberTypeV3 } from "$lib/common/database/constants-and-types";
+    import { CommissionState } from "$lib/common/database/enums";
+    import { getCommissionStateString } from "$lib/client/utils";
 
     type CommissionDialogListener = (
         action: DialogActions,
-        member: MemberType,
+        member: MemberTypeV3,
     ) => void;
 
     export function open(
-        member: MemberType,
+        member: MemberTypeV3,
         listener: CommissionDialogListener,
     ) {
-        // Remover o pendentClose
-        clearTimeout(pendentClose);
+        // Remover o PENDENT_CLOSE
+        clearTimeout(PENDENT_CLOSE);
 
         currentMember = member;
         currentListener = listener;
@@ -40,7 +38,7 @@
         currentMember = clone;
         currentListener = null;
 
-        pendentClose = setTimeout(() => {
+        PENDENT_CLOSE = setTimeout(() => {
             currentMember = null;
         }, 250);
     }
@@ -60,30 +58,28 @@
         }
     }
 
-    let pendentClose: number | undefined = undefined;
+    let PENDENT_CLOSE: any = undefined;
 
     let visible: boolean = $state(false);
-    let currentMember: MemberType | null = $state(null);
+    let currentMember: MemberTypeV3 | null = $state(null);
     let currentListener: CommissionDialogListener | null = $state(null);
     let currentState: string = $derived.by(() => {
         if (!currentMember) return "";
 
-        const localized = getCommissionStateString(
-            currentMember.commissions.state,
-        );
+        const localized = getCommissionStateString(currentMember.state);
         return getAppropriatedString(localized);
     });
     let currentStateTime: string = $derived.by(() => {
-        if (!currentMember || currentMember.commissions.time === 0) {
+        if (!currentMember || currentMember.time === 0) {
             return "?";
         }
 
-        return new Date(currentMember.commissions.time).toLocaleDateString();
+        return new Date(currentMember.time).toLocaleDateString();
     });
     let currentMissed: string = $derived.by(() => {
         if (!currentMember) return "";
 
-        const missedCount = currentMember.commissions.missed;
+        const missedCount = currentMember.missed;
 
         if (missedCount === 0) {
             return getAppropriatedString(basic.no);
@@ -109,18 +105,20 @@
 
     <Content>
         <div>
-            State: {currentState}
+            {getAppropriatedString(fragment_commissions.state, currentState)}
         </div>
         <div>
-            Date: {currentStateTime}
+            {getAppropriatedString(fragment_commissions.date, currentStateTime)}
         </div>
         <div>
-            Missed: {currentMissed}
+            {getAppropriatedString(fragment_commissions.missed, currentMissed)}
         </div>
         <List>
             <Separator />
-            {#if currentMember?.commissions.state !== CommissionState.CLOSED}
-                <Subheader tag="h6">Comissão</Subheader>
+            {#if currentMember?.state !== CommissionState.CLOSED}
+                <Subheader tag="h6"
+                    >{getAppropriatedString(basic.manage)}</Subheader
+                >
                 <Item
                     class="dialog-commission-rounded-item"
                     onclick={() => {
@@ -135,7 +133,11 @@
                     >
                         approval_delegation
                     </Graphic>
-                    <Text>Fechar hoje</Text>
+                    <Text>
+                        {getAppropriatedString(
+                            fragment_commissions.close_today,
+                        )}
+                    </Text>
                 </Item>
                 <Item
                     class="dialog-commission-rounded-item"
@@ -151,12 +153,18 @@
                     >
                         event_note
                     </Graphic>
-                    <Text>Marcar como fechado</Text>
+                    <Text>
+                        {getAppropriatedString(
+                            fragment_commissions.mark_closed,
+                        )}
+                    </Text>
                 </Item>
                 <Separator />
             {/if}
 
-            <Subheader tag="h6">Gerenciar</Subheader>
+            <Subheader tag="h6">
+                {getAppropriatedString(basic.manage)}
+            </Subheader>
             <Item
                 class="dialog-commission-rounded-item"
                 onclick={() => {
@@ -166,9 +174,13 @@
                 <Graphic class="material-symbols-rounded" aria-hidden="true">
                     pool
                 </Graphic>
-                <Text>Perdeu a comissão</Text>
+                <Text>
+                    {getAppropriatedString(
+                        fragment_commissions.lost_commission,
+                    )}
+                </Text>
             </Item>
-            {#if currentMember?.commissions.state !== CommissionState.AVAILABLE}
+            {#if currentMember?.state !== CommissionState.AVAILABLE}
                 <Item
                     class="dialog-commission-rounded-item"
                     onclick={() => {
@@ -181,10 +193,14 @@
                     >
                         concierge
                     </Graphic>
-                    <Text>Deixar disponível</Text>
+                    <Text>
+                        {getAppropriatedString(
+                            fragment_commissions.mark_available,
+                        )}
+                    </Text>
                 </Item>
             {/if}
-            {#if currentMember?.commissions.state !== CommissionState.INACTIVE}
+            {#if currentMember?.state !== CommissionState.INACTIVE}
                 <Item
                     class="dialog-commission-rounded-item"
                     onclick={() => {
@@ -197,7 +213,11 @@
                     >
                         person_off
                     </Graphic>
-                    <Text>Marcar como inativo</Text>
+                    <Text>
+                        {getAppropriatedString(
+                            fragment_commissions.mark_inactive,
+                        )}
+                    </Text>
                 </Item>
             {/if}
         </List>

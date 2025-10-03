@@ -64,9 +64,6 @@
     }
 
     onMount(() => {
-        // Carregar o banco de dados no cache
-        Database.loadData();
-
         // Renderizar o fragmento
         window.addEventListener("hashchange", (e) => onUpdateHash());
         onUpdateHash();
@@ -89,7 +86,7 @@
     let el_dialogImport: SmuiDialogImport;
 
     type ExportType = { database: DatabaseOperations };
-    let { database }: ExportType = $props();
+    let { database = $bindable() }: ExportType = $props();
 </script>
 
 <main class="app-container">
@@ -105,13 +102,19 @@
     <div class="page-content">
         {#if currentFragment === Fragments.MANAGE_ORGANIZATION}
             <!-- Manage Organization Page -->
-            <FragmentOrganization bind:this={el_fragmentOrganization} />
+            <FragmentOrganization
+                bind:this={el_fragmentOrganization}
+                bind:database
+            />
         {:else if currentFragment === Fragments.MANAGE_TEAMS}
             <!-- Manage Teams Page -->
-            <FragmentManageTeams bind:this={el_fragmentManageTeams} />
+            <FragmentManageTeams
+                bind:this={el_fragmentManageTeams}
+                bind:database
+            />
         {:else if currentFragment === Fragments.COMMISSIONS}
             <!-- Commissions fragment -->
-            <FragmentCommissions />
+            <FragmentCommissions bind:database />
         {:else if currentFragment === Fragments.AUDIT_LOG}
             <!-- Audit Log Page -->
             <FragmentAuditLog bind:this={el_fragmentAuditLog} />

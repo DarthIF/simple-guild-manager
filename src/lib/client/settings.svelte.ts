@@ -1,3 +1,5 @@
+import { alertWith, getAppropriatedString } from "$lib/strings"
+import { errors } from "$lib/strings/strings"
 import { getCurrentSupportedLang } from "$lib/utils/lang-util"
 
 
@@ -49,8 +51,20 @@ export const ReactiveSettings = $state({
 })
 
 
+
 // Atualizar o atributo "lang" da pagina sempre que 
 // a configuração reativa mudar
 $effect.root(() => {
     $effect(updateDocumentLanguage)
 })
+
+
+
+export function THEN_CALLBACK_COMPLETE_LOAD(v: boolean) {
+    if (!v) {
+        alertWith(errors.unknown_error)
+        return
+    }
+
+    ReactiveSettings.loading = false
+}

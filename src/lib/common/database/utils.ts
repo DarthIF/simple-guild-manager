@@ -123,6 +123,13 @@ export function getMembers(database: DatabaseTypeV3, ...ids: string[]): MemberTy
     return result
 }
 
+export function getMembersOfTeam(database: DatabaseTypeV3, gameEvent: GameEvents, teamId: string): MemberTypeV3[] {
+    return database.members.filter(member => {
+        const memberTeam = getMemberTeamId(member, gameEvent)
+        return memberTeam && memberTeam === teamId
+    })
+}
+
 
 
 export function modifyTeamCount(team: EventTeamType | null, change: number): boolean {

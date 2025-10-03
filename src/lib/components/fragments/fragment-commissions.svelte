@@ -3,12 +3,6 @@
     import HorizontalScrollWarper from "../misc/horizontal-scroll-warper.svelte";
     import Button, { Label } from "@smui/button";
     import LayoutGrid, { Cell } from "@smui/layout-grid";
-    import {
-        CommissionState,
-        Database,
-        ReactiveData,
-        type MemberType,
-    } from "$lib/utils/reactive-database.svelte";
     import SmuiCardCommission from "../smui/cards/smui-card-commission.svelte";
     import SmuiDialogCommission from "../smui/dialogs/smui-dialog-commission.svelte";
     import {
@@ -17,43 +11,71 @@
     } from "../smui/dialogs/common";
     import SmuiDialogPrompt from "../smui/dialogs/smui-dialog-prompt.svelte";
     import { fragment_commissions } from "$lib/strings/strings";
+    import type { MemberTypeV3 } from "$lib/common/database/constants-and-types";
+    import type { DatabaseOperations } from "$lib/common/database/database-interfaces";
+    import { CommissionState } from "$lib/common/database/enums";
+    import { confirmWith } from "$lib/strings";
+    import {
+        ReactiveSettings,
+        THEN_CALLBACK_COMPLETE_LOAD,
+    } from "$lib/client/settings.svelte";
 
     function handleCommissionReset() {
-        if (
-            confirm(
-                "Deseja reiniciar o ciclo de comissões? Essa ação irá limpar a lista de quem fechou as comissões, e não pode ser desfeita.",
-            )
-        ) {
-            Database.resetCommissionCycle();
-        }
+        if (!confirmWith(fragment_commissions.confirm_reset_cycle)) return;
+
+        ReactiveSettings.loading = true;
+        database.resetCommissionCycle().then(THEN_CALLBACK_COMPLETE_LOAD);
     }
 
-    function handleItemClick(member: MemberType) {
+    function handleItemClick(member: MemberTypeV3) {
         el_dialogCommission.open(member, handleDialogListener);
     }
 
-    function handleDialogListener(action: DialogActions, member: MemberType) {
+    function handleDialogListener(action: DialogActions, member: MemberTypeV3) {
+        // Ativar o modo de carregamento
+        ReactiveSettings.loading = true;
+
         switch (action) {
             case DialogActions.COMMISSION_CLOSE_TODAY:
-                Database.setCommissionState(member, CommissionState.CLOSED);
-                break;
+                return database
+                    .setCommissionState(member.id, CommissionState.CLOSED, true)
+                    .then(THEN_CALLBACK_COMPLETE_LOAD);
+
             case DialogActions.COMMISSION_ALREADY_CLOSED:
-                Database.setCommissionState(member, CommissionState.CLOSED, false);
-                break;
+                return database
+                    .setCommissionState(
+                        member.id,
+                        CommissionState.CLOSED,
+                        false,
+                    )
+                    .then(THEN_CALLBACK_COMPLETE_LOAD);
+
             case DialogActions.COMMISSION_AVAILABLE:
-                Database.setCommissionState(member, CommissionState.AVAILABLE);
-                break;
+                return database
+                    .setCommissionState(
+                        member.id,
+                        CommissionState.AVAILABLE,
+                        true,
+                    )
+                    .then(THEN_CALLBACK_COMPLETE_LOAD);
+
             case DialogActions.COMMISSION_INACTIVE:
-                Database.setCommissionState(member, CommissionState.INACTIVE);
-                break;
+                return database
+                    .setCommissionState(
+                        member.id,
+                        CommissionState.INACTIVE,
+                        true,
+                    )
+                    .then(THEN_CALLBACK_COMPLETE_LOAD);
+
             case DialogActions.COMMISSION_MISSED:
-                el_dialogPrompt.setValue(member.commissions.missed);
+                el_dialogPrompt.setValue(member.missed);
                 el_dialogPrompt.open((e: DialogCloseEvent) => {
                     console.log(e.detail.action);
 
                     if (e.detail.action === DialogActions.ACCEPT) {
                         const value = el_dialogPrompt.getValue();
-                        member.commissions.missed = Number.parseInt(value) || 0;
+                        member.missed = Number.parseInt(value) || 0;
                     }
 
                     // Abrir novamente o dialogo
@@ -63,16 +85,31 @@
         }
     }
 
-    onMount(() => {});
+    onMount(async () => {
+        availableMembers = await database.listCommissionMembers(
+            CommissionState.AVAILABLE,
+        );
+
+        closedMembers = await database.listCommissionMembers(
+            CommissionState.CLOSED,
+        );
+
+        inactiveMembers = await database.listCommissionMembers(
+            CommissionState.INACTIVE,
+        );
+    });
 
     const GRID_SPAN_DEVICES = { desktop: 6, tablet: 4, phone: 4 };
 
-    let availableMembers = $derived.by(Database.listCommissionAvailableMembers);
-    let closedMembers = $derived.by(Database.listCommissionClosedMembers);
-    let excludedMembers = $derived.by(Database.listCommissionInactiveMembers);
+    let availableMembers: MemberTypeV3[] = $state([]);
+    let closedMembers: MemberTypeV3[] = $state([]);
+    let inactiveMembers: MemberTypeV3[] = $state([]);
 
     let el_dialogCommission: SmuiDialogCommission;
     let el_dialogPrompt: SmuiDialogPrompt;
+
+    type ExportType = { database: DatabaseOperations };
+    let { database = $bindable() }: ExportType = $props();
 </script>
 
 <div class="fragment" id="manageCommissions">
@@ -101,10 +138,10 @@
                 />
             </Cell>
         {/if}
-        {#if excludedMembers.length > 0}
+        {#if inactiveMembers.length > 0}
             <Cell spanDevices={GRID_SPAN_DEVICES}>
                 <SmuiCardCommission
-                    bind:members={excludedMembers}
+                    bind:members={inactiveMembers}
                     title="Inativos"
                     icon="person_off"
                     onClickListener={handleItemClick}

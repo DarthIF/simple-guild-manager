@@ -14,19 +14,34 @@ export const basic = {
     import_data_invalid_type: { en: 'Please select a JSON file.', pt: 'Por favor, selecione um arquivo JSON.' },
 
     undefined: { en: 'Undefined', pt: 'Indefinido' },
-    error: { en: 'Error warning', pt: 'Aviso de erro' },
+    error_warning: { en: 'Error warning', pt: 'Aviso de erro' },
 
     yes: { en: 'Yes', pt: 'Sim' },
-    no: { en: 'No', pt: 'Não' }
+    no: { en: 'No', pt: 'Não' },
+
+    power: { en: 'Power: %s', pt: 'Poder: %s' },
+
+    commission: { en: 'Commission', pt: 'Comissão' },
+    manage: { en: 'Manage', pt: 'Gerenciar' },
 }
 
 export const action = {
     ok: { en: 'OK', pt: 'OK' },
     cancel: { en: 'Cancel', pt: 'Cancelar' },
     save: { en: 'Save', pt: 'Salvar' },
-    delete: { en: 'Delete', pt: 'Excluir' }
+    delete: { en: 'Delete', pt: 'Excluir' },
+
+    add_member: { en: 'Add member', pt: 'Adicionar membro' },
+    delete_member: { en: 'Delete member', pt: 'Apagar o member' },
+
+    delete_team: { en: 'Delete team?', pt: 'Excluir equipe?' },
 }
 
+export const errors = {
+    unknown_error: { en: 'Unknown error', pt: 'Erro desconhecido' },
+
+    invalid_name: { en: 'Invalid name', pt: 'Nome invalido' },
+}
 
 
 export const fragment_manage = {
@@ -42,11 +57,12 @@ export const fragment_teams = {
     dialog_new_team: { en: 'New team', pt: 'Nova equipe' },
     dialog_team_name: { en: 'Team name', pt: 'Nome da equipe' },
 
-    dialog_delete_team: { en: 'Delete the team?', pt: 'Excluir o time?' },
-
     no_teams: { en: 'No teams', pt: 'Sem equipes' },
 
-    error_invalid_name: { en: 'Invalid name', pt: 'Nome invalido' },
+    total_power: { en: 'Total power:', pt: 'Poder total:' },
+
+    dialog_add_member: { en: 'Add member to team (%s)', pt: 'Adicionar membro à equipe (%s)' },
+    no_free_members: { en: 'No members available', pt: 'Nenhum membro disponível' },
 }
 
 export const fragment_commissions = {
@@ -60,6 +76,21 @@ export const fragment_commissions = {
     action_missed: { en: 'Lost the commission', pt: 'Perdeu a comissão' },
     action_available: { en: 'Mark as available', pt: 'Marcar como disponível' },
     action_inactive: { en: 'Mark as inactive', pt: 'Marcar como inativo' },
+
+    confirm_reset_cycle: { 
+        en: 'Do you want to restart the commission cycle? This action will clear the list of closed commissions and cannot be undone.', 
+        pt: 'Deseja reiniciar o ciclo de comissões? Essa ação irá limpar a lista de quem fechou as comissões, e não pode ser desfeita.' 
+    },
+
+    state: { en: 'State: %s', pt: 'Estado: %s' },
+    date: { en: 'Date: %s', pt: 'Data: %s' },
+    missed: { en: 'Missed: %s', pt: 'Perdido: %s' },
+
+    close_today: { en: 'Close today', pt: 'Fechar hoje' },
+    lost_commission: { en: 'Lost the commission', pt: 'Perdeu a comissão' },
+    mark_closed: { en: 'Mark as closed', pt: 'Marcar como fechado' },
+    mark_available: { en: 'Make as available', pt: 'Deixar como disponível' },
+    mark_inactive: { en: 'Mark as inactive', pt: 'Marcar como inativo' },
 }
 
 
@@ -118,29 +149,14 @@ export const audit_logs = {
 
 
 
-/**
- * @deprecated
- */
-export const component_card_team = {
-    add: { en: 'Add member', pt: 'Adicionar membro' },
-    delete: { en: 'Delete team', pt: 'Apagar o time' },
-
-    total_power: { en: 'Total power:', pt: 'Poder total:' },
-}
-
-/**
- * @deprecated
- */
-export const dialog_add_member = {
-    title: { en: 'Add member to team (%s)', pt: 'Adicionar membro à equipe (%s)' },
-    no_free_members: { en: 'No members available', pt: 'Nenhum membro disponível' },
-}
-
 
 export const database_strings = {
     commission_state_available: { en: 'Available', pt: 'Disponível' },
     commission_state_closed: { en: 'Closed', pt: 'Fechado' },
     commission_state_inactive: { en: 'Inactive', pt: 'Inativo' },
 
-    import_message: { en: 'This will replace all current data. Do you wish to continue?', pt: 'Isso substituirá todos os dados atuais. Deseja continuar?' }
+    import_message: {
+        en: 'This will replace all current data. Do you wish to continue?',
+        pt: 'Isso substituirá todos os dados atuais. Deseja continuar?'
+    }
 }

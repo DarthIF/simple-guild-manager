@@ -3,5 +3,6 @@
         "smui",
         "snapdom",
         "zumer"
-    ]
+    ],
+    "typescript.experimental.useTsgo": true
 }

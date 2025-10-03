@@ -10,23 +10,19 @@
         Meta,
         Separator,
     } from "@smui/list";
-    import {
-        ReactiveData,
-        type MemberType,
-    } from "$lib/utils/reactive-database.svelte";
     import { getAppropriatedString, type LocalizedString } from "$lib/strings";
+    import type { MemberTypeV3 } from "$lib/common/database/constants-and-types";
+
+    function handleClick(member: MemberTypeV3) {
+        onClickListener?.(member);
+    }
 
     type ExportType = {
         title?: string | LocalizedString;
         icon?: string;
-        members: MemberType[];
-        onClickListener?: (member: MemberType) => void;
+        members: MemberTypeV3[];
+        onClickListener?: (member: MemberTypeV3) => void;
     };
-
-    function handleClick(member: MemberType) {
-        onClickListener?.(member);
-    }
-
     let {
         title = "",
         icon = "",
@@ -52,7 +48,7 @@
                             {member.name}
                         </PrimaryText>
                         <SecondaryText>
-                            Missed: {member.commissions.missed}
+                            Missed: {member.missed}
                         </SecondaryText>
                     </Text>
                     <Meta>
