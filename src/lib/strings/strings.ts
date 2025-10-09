@@ -1,6 +1,7 @@
 export const basic = {
     subtitle: { en: 'Simple Guild Manager', pt: 'Simple Guild Manager' },
 
+    home: { en: 'Home', pt: 'Inicio' },
     manage_org: { en: 'Manage Guild', pt: 'Gerenciar Guilda' },
     teams: { en: 'Teams', pt: 'Equipes' },
     commissions: { en: 'Commissions', pt: 'Comissões' },
@@ -10,9 +11,11 @@ export const basic = {
 
     export_data: { en: 'Export Data', pt: 'Exportar Dados' },
     import_data: { en: 'Import Data', pt: 'Importar Dados' },
-
-    import_data_invalid_type: { en: 'Please select a JSON file.', pt: 'Por favor, selecione um arquivo JSON.' },
-
+    
+    settings: { en: 'Webapp Settings', pt: 'Configurações do aplicativo da Web' },
+    source_code: { en: 'Source Code', pt: 'Código Fonte' },
+    about: { en: 'About', pt: 'Sobre' },
+    
     undefined: { en: 'Undefined', pt: 'Indefinido' },
     error_warning: { en: 'Error warning', pt: 'Aviso de erro' },
 
@@ -23,6 +26,8 @@ export const basic = {
 
     commission: { en: 'Commission', pt: 'Comissão' },
     manage: { en: 'Manage', pt: 'Gerenciar' },
+
+    information: { en: 'Information', pt: 'Informação' },
 }
 
 export const action = {
@@ -43,6 +48,14 @@ export const errors = {
     invalid_name: { en: 'Invalid name', pt: 'Nome invalido' },
 }
 
+
+
+export const fragment_home = {
+    no_sync_alert: {
+        en:'The database is saved in your browser, and data is not synced between devices.',
+        pt:'O banco de dados fica salvo no seu navegador, e os dados não são sincronizados entre dispositivos.'
+    }
+}
 
 export const fragment_manage = {
     title_changeOrgName: { en: 'Change Guild Name', pt: 'Mudar Nome da Guilda' },
@@ -91,6 +104,11 @@ export const fragment_commissions = {
     mark_closed: { en: 'Mark as closed', pt: 'Marcar como fechado' },
     mark_available: { en: 'Make as available', pt: 'Deixar como disponível' },
     mark_inactive: { en: 'Mark as inactive', pt: 'Marcar como inativo' },
+}
+
+export const fragment_settings = {
+    change_lang: { en: 'Change language', pt: 'Mudar idioma' },
+    current_lang: { en: 'Current language: %s', pt: 'Idioma atual: %s' },
 }
 
 
@@ -149,12 +167,22 @@ export const audit_logs = {
 
 
 
+export const input_file = {
+    select_file: { en: 'Select file', pt: 'Selecionar arquivo' }, 
+    file_size: { en: 'File size: %s KiB', pt: 'Tamanho do arquivo: %s KiB' },
+}
+
+
 
 export const database_strings = {
     commission_state_available: { en: 'Available', pt: 'Disponível' },
     commission_state_closed: { en: 'Closed', pt: 'Fechado' },
     commission_state_inactive: { en: 'Inactive', pt: 'Inativo' },
 
+    import_data_invalid_type: { 
+        en: 'Please select a JSON file.', 
+        pt: 'Por favor, selecione um arquivo JSON.' 
+    },
     import_message: {
         en: 'This will replace all current data. Do you wish to continue?',
         pt: 'Isso substituirá todos os dados atuais. Deseja continuar?'

@@ -9,8 +9,13 @@
     import FragmentCommissions from "$lib/components/fragments/fragment-commissions.svelte";
     import { Fragments } from "$lib/components/fragments/fragments";
     import { saveElementAsImage } from "$lib/utils/image-util";
-    import type { DatabaseOperations } from "$lib/common/database/database-interfaces";
+    import type {
+        DatabaseEditor,
+        DatabaseOperations,
+    } from "$lib/common/database/database-interfaces";
     import { ReactiveDB } from "$lib/client/reactive-database.svelte";
+    import FragmentSettings from "$lib/components/fragments/fragment-settings.svelte";
+    import FragmentAbout from "$lib/components/fragments/fragment-about.svelte";
 
     function ev_OnClickListener_ToolbarDrawerMenu() {
         el_smuiDrawer.openDrawer();
@@ -32,41 +37,33 @@
 
     // ------------------------------------------
 
-    function onUpdateHash(newHash: string | null = null) {
-        if (newHash === null) {
-            newHash = window.location.hash;
-        }
+    function updateHash() {
+        const newHash = window.location.hash;
 
-        // Definir o item selecionado
-        el_smuiDrawer.setActive(newHash);
-
-        //el_smuiFab.hide();
+        // Desativar o botão
         enableGenerateImageButton = false;
 
         // Atualizar o fragmento
-        switch (newHash) {
-            case "#manageOrg":
-                currentFragment = Fragments.MANAGE_ORGANIZATION;
-                break;
-            case "#manageTeams":
-                currentFragment = Fragments.MANAGE_TEAMS;
-                break;
-            case "#manageCommissions":
-                currentFragment = Fragments.COMMISSIONS;
-                break;
-            case "#auditLog":
-                currentFragment = Fragments.AUDIT_LOG;
-                break;
-            default:
-                currentFragment = Fragments.UNDEFINED;
-                break;
+        let found = false;
+        for (const fragmentID of Object.values(Fragments)) {
+            if (fragmentID !== newHash) continue;
+
+            currentFragment = fragmentID;
+            found = true;
         }
+
+        if (!found) {
+            currentFragment = Fragments.UNDEFINED;
+        }
+
+        // Atualizar o item selecionado
+        el_smuiDrawer.setActive(newHash);
     }
 
     onMount(() => {
         // Renderizar o fragmento
-        window.addEventListener("hashchange", (e) => onUpdateHash());
-        onUpdateHash();
+        window.addEventListener("hashchange", (e) => updateHash());
+        updateHash();
 
         // Adicionar a referencia
         el_smuiDrawer.setDialogImportInstance(el_dialogImport);
@@ -75,7 +72,8 @@
     let lockExport = false;
     let currentFragment: Fragments = $state(Fragments.UNDEFINED);
     let enableGenerateImageButton: boolean = $derived.by(() => {
-        // Deixar visível o botão de gerar a imagem dos times
+        // Deixar visível o botão de gerar a imagem somente
+        // no fragmento de equipes
         return currentFragment === Fragments.MANAGE_TEAMS;
     });
 
@@ -85,7 +83,7 @@
     let el_fragmentAuditLog: FragmentAuditLog | null = $state(null);
     let el_dialogImport: SmuiDialogImport;
 
-    type ExportType = { database: DatabaseOperations };
+    type ExportType = { database: DatabaseOperations & DatabaseEditor };
     let { database = $bindable() }: ExportType = $props();
 </script>
 
@@ -96,28 +94,34 @@
         onClickDrawer={ev_OnClickListener_ToolbarDrawerMenu}
         onClickGenerateImage={ev_OnClickListener_ToolbarGenerateImage}
     />
-    <SmuiDrawer bind:this={el_smuiDrawer} />
+    <SmuiDrawer bind:this={el_smuiDrawer} bind:database />
 
     <!-- Conteúdo principal da pagina -->
     <div class="page-content">
         {#if currentFragment === Fragments.MANAGE_ORGANIZATION}
-            <!-- Manage Organization Page -->
+            <!-- Gerenciar Guilda -->
             <FragmentOrganization
                 bind:this={el_fragmentOrganization}
                 bind:database
             />
         {:else if currentFragment === Fragments.MANAGE_TEAMS}
-            <!-- Manage Teams Page -->
+            <!-- Gerenciar equipes -->
             <FragmentManageTeams
                 bind:this={el_fragmentManageTeams}
                 bind:database
             />
         {:else if currentFragment === Fragments.COMMISSIONS}
-            <!-- Commissions fragment -->
+            <!-- Comissões -->
             <FragmentCommissions bind:database />
         {:else if currentFragment === Fragments.AUDIT_LOG}
-            <!-- Audit Log Page -->
+            <!-- Registro de auditoria -->
             <FragmentAuditLog bind:this={el_fragmentAuditLog} />
+        {:else if currentFragment === Fragments.SETTINGS}
+            <!-- Configurações -->
+            <FragmentSettings />
+        {:else if currentFragment === Fragments.ABOUT}
+            <!-- Sobre o App -->
+            <FragmentAbout />
         {:else}
             <div class="blank-page">
                 <div class="information">

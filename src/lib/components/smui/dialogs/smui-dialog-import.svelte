@@ -5,6 +5,7 @@
     import type { OnDialogClosedListener } from "./common";
     import { getAppropriatedString } from "$lib/strings";
     import { action, basic } from "$lib/strings/strings";
+    import InputFile from "$lib/components/misc/input-file.svelte";
 
     export function open(event: OnDialogClosedListener) {
         onDialogClosed = event;
@@ -34,11 +35,11 @@
     <Title>{getAppropriatedString(basic.import_data)}</Title>
     <Content>
         <div class="dialog-content">
-            <Textfield
-                bind:files
-                variant="outlined"
-                type="file"
+            <InputFile
+                id="file-upload"
+                icon="file_json"
                 accept=".json"
+                bind:files
             />
         </div>
     </Content>

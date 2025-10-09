@@ -14,15 +14,19 @@
         Graphic,
         Separator,
         Subheader,
+        Meta,
     } from "@smui/list";
     import SmuiDialogImport from "./dialogs/smui-dialog-import.svelte";
-    import { getAppropriatedString } from "$lib/strings";
-    import { basic } from "$lib/strings/strings";
-    import {
-        Database,
-        ReactiveData,
-    } from "$lib/utils/reactive-database.svelte";
+    import { alertWith, getAppropriatedString } from "$lib/strings";
+    import { basic, database_strings } from "$lib/strings/strings";
     import { DialogActions } from "./dialogs/common";
+    import { ReactiveDB } from "$lib/client/reactive-database.svelte";
+    import type { DatabaseEditor } from "$lib/common/database/database-interfaces";
+    import {
+        ReactiveSettings,
+        THEN_CALLBACK_COMPLETE_LOAD,
+    } from "$lib/client/settings.svelte";
+    import { Fragments } from "../fragments/fragments";
 
     export function setActive(value: string) {
         active = value;
@@ -46,7 +50,7 @@
     }
 
     function onClickListenerExportData() {
-        Database.exportData();
+        database.exportData();
     }
 
     function onClickListenerImportData() {
@@ -60,14 +64,13 @@
             const files = ref_dialogImport.getFiles();
             const file = files?.[0];
             if (!file) {
-                const text = getAppropriatedString(
-                    basic.import_data_invalid_type,
-                );
-                alert(text);
+                alertWith(database_strings.import_data_invalid_type);
                 return;
             }
 
-            Database.importData(file);
+            // Importar o arquivo
+            ReactiveSettings.loading = true;
+            database.importData(file).then(THEN_CALLBACK_COMPLETE_LOAD);
         });
     }
 
@@ -85,7 +88,17 @@
 
     let ref_dialogImport: SmuiDialogImport;
     let el_drawerOverlay: HTMLDivElement;
-    let { open = false, active = "" } = $props();
+
+    type ExportType = {
+        open?: boolean;
+        active?: string;
+        database: DatabaseEditor;
+    };
+    let {
+        open = false,
+        active = "",
+        database = $bindable(),
+    }: ExportType = $props();
 </script>
 
 <!--
@@ -95,25 +108,32 @@
 
 <Drawer style="user-select: none;" variant="modal" fixed={false} {open}>
     <Header>
-        <Title>{ReactiveData.organization}</Title>
+        <Title>{ReactiveDB.definitions.guild}</Title>
         <Subtitle>{getAppropriatedString(basic.subtitle)}</Subtitle>
     </Header>
     <Content>
         <List>
             <Separator />
 
+            <Item href="#" activated={active === ""} onclick={closeDrawer}>
+                <Graphic class="material-symbols-rounded" aria-hidden="true">
+                    home
+                </Graphic>
+                <Text>{getAppropriatedString(basic.home)}</Text>
+            </Item>
+
             <Item
-                href="#manageOrg"
+                href={Fragments.MANAGE_ORGANIZATION}
                 activated={active === "#manageOrg"}
                 onclick={closeDrawer}
             >
                 <Graphic class="material-symbols-rounded" aria-hidden="true">
-                    settings
+                    empty_dashboard
                 </Graphic>
                 <Text>{getAppropriatedString(basic.manage_org)}</Text>
             </Item>
             <Item
-                href="#manageTeams"
+                href={Fragments.MANAGE_TEAMS}
                 activated={active === "#manageTeams"}
                 onclick={closeDrawer}
             >
@@ -123,7 +143,7 @@
                 <Text>{getAppropriatedString(basic.teams)}</Text>
             </Item>
             <Item
-                href="#manageCommissions"
+                href={Fragments.COMMISSIONS}
                 activated={active === "#manageCommissions"}
                 onclick={closeDrawer}
             >
@@ -133,7 +153,7 @@
                 <Text>{getAppropriatedString(basic.commissions)}</Text>
             </Item>
             <Item
-                href="#auditLog"
+                href={Fragments.AUDIT_LOG}
                 activated={active === "#auditLog"}
                 onclick={closeDrawer}
             >
@@ -168,16 +188,33 @@
             <Separator />
             <Subheader tag="h6">Simple Guild Manager</Subheader>
             <Item
-                onclick={() => {
-                    window.open(
-                        "https://github.com/DarthIF/simple-guild-manager",
-                    );
-                }}
+                href={Fragments.SETTINGS}
+                activated={active === "#settings"}
+                onclick={closeDrawer}
             >
+                <Graphic class="material-symbols-rounded" aria-hidden="true">
+                    settings
+                </Graphic>
+                <Text>{getAppropriatedString(basic.settings)}</Text>
+            </Item>
+            <Item
+                href={Fragments.ABOUT}
+                activated={active === "#about"}
+                onclick={closeDrawer}
+            >
+                <Graphic class="material-symbols-rounded" aria-hidden="true">
+                    info
+                </Graphic>
+                <Text>{getAppropriatedString(basic.about)}</Text>
+            </Item>
+            <Separator />
+            <Item onclick={() => {}}>
                 <Graphic class="material-symbols-rounded" aria-hidden="true">
                     folder_data
                 </Graphic>
-                <Text>Source code</Text>
+                <Text>
+                    {getAppropriatedString(basic.source_code)}
+                </Text>
             </Item>
         </List>
     </Content>

@@ -1,7 +1,6 @@
 <script lang="ts">
     import TopAppBar, { Row, Section, Title } from "@smui/top-app-bar";
     import IconButton from "@smui/icon-button";
-    import { onMount } from "svelte";
     import { ReactiveSettings } from "$lib/client/settings.svelte";
 
     type ToolbarType = {
@@ -70,6 +69,3 @@
         </Section>
     </Row>
 </TopAppBar>
-
-<style>
-</style>

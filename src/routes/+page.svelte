@@ -1,5 +1,5 @@
 <script lang="ts">
-    import WebApp from "$lib/core/web-app.svelte";
+    import WebApp from "$lib/components/core/web-app.svelte";
     import { BrowserDatabase } from "$lib/client/browser-database.svelte";
     import { onMount } from "svelte";
     import { ReactiveSettings } from "$lib/client/settings.svelte";

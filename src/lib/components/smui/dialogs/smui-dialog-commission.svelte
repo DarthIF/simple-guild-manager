@@ -228,12 +228,4 @@
     :global(.dialog-commission-rounded-item) {
         border-radius: 24px;
     }
-
-    .buttons-group {
-        display: flex;
-        flex-direction: column;
-    }
-    .buttons-group ~ .buttons-group {
-        border-top: rgba(0, 0, 0, 0.12) 1px solid;
-    }
 </style>

@@ -1,5 +1,6 @@
 <script lang="ts">
     import Fab, { Icon } from "@smui/fab";
+    import "./css/smui-fab.css";
 
     export function hide() {
         visibility = false;
@@ -18,11 +19,3 @@
         <Icon class="material-symbols-rounded">{icon}</Icon>
     </Fab>
 {/if}
-
-<style>
-    :global(.smui-fab) {
-        position: fixed !important;
-        bottom: 24px;
-        right: 24px;
-    }
-</style>

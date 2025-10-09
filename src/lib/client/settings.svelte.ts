@@ -1,6 +1,22 @@
 import { alertWith, getAppropriatedString } from "$lib/strings"
 import { errors } from "$lib/strings/strings"
-import { getCurrentSupportedLang } from "$lib/utils/lang-util"
+import { getCurrentSupportedLang, type AppLanguageType, getLangWithCode, getDefaultLang } from "$lib/utils/lang-util"
+
+
+const KEY_LOCAL_STORAGE_LANG = 'app-language'
+
+
+
+/**
+ * Função para atualizar a configuração de idioma
+ */
+export function setLanguage(newLang: AppLanguageType) {
+    if (ReactiveSettings.lang.code === newLang.code)
+        return
+
+    ReactiveSettings.lang = newLang
+}
+
 
 
 /**
@@ -8,7 +24,7 @@ import { getCurrentSupportedLang } from "$lib/utils/lang-util"
  * 
  * @returns true se voce estiver no github
  */
-export function isInGithub(): boolean {
+function isInGithub(): boolean {
     if (typeof location === 'undefined')
         return false
 
@@ -17,13 +33,31 @@ export function isInGithub(): boolean {
 }
 
 /**
- * Função para atualizar o atributo "lang" da pagina
+ * Função para atualizar o atributo "lang" da pagina `<html lang=''>`
  */
-export function updateDocumentLanguage() {
+function updateDocumentLanguage(): void {
     if (typeof document === 'undefined' || typeof document.documentElement === 'undefined')
         return
 
     document.documentElement.lang = ReactiveSettings.lang.code
+}
+
+function loadLocalSettings_Lang(): AppLanguageType {
+    if (typeof localStorage === 'undefined')
+        return getDefaultLang()
+
+    const value = localStorage.getItem(KEY_LOCAL_STORAGE_LANG)
+    const lang = getLangWithCode(value)
+    if (lang)
+        return lang
+
+    return getCurrentSupportedLang()
+}
+function saveLocalSettings_Lang() {
+    if (typeof localStorage === 'undefined')
+        return
+
+    localStorage.setItem(KEY_LOCAL_STORAGE_LANG, ReactiveSettings.lang.code)
 }
 
 
@@ -42,7 +76,7 @@ export const ReactiveSettings = $state({
     /**
      * Linguagem atual para o aplicativo
      */
-    lang: getCurrentSupportedLang(),
+    lang: loadLocalSettings_Lang(),
 
     /**
      * `true` se estiver carregando alguma informação
@@ -56,6 +90,7 @@ export const ReactiveSettings = $state({
 // a configuração reativa mudar
 $effect.root(() => {
     $effect(updateDocumentLanguage)
+    $effect(saveLocalSettings_Lang)
 })
 
 
@@ -67,4 +102,4 @@ export function THEN_CALLBACK_COMPLETE_LOAD(v: boolean) {
     }
 
     ReactiveSettings.loading = false
-}
+} 

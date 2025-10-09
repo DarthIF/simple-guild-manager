@@ -123,5 +123,3 @@
         </List>
     </Content>
 </Dialog>
-
-<style></style>

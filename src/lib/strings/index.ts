@@ -1,4 +1,5 @@
 import { getCurrentSupportedLang, SUPPORTED_LANGS } from "$lib/utils/lang-util"
+import { ReactiveSettings } from "$lib/client/settings.svelte";
 
 export type LocalizedString = {
     en: string
@@ -42,10 +43,14 @@ export function getAppropriatedString(obj: string | LocalizedString, ...format: 
     return result
 }
 
-export function getLocalizedString(localizedString: LocalizedString): string {
-    const lang = getCurrentSupportedLang()
+export function getLocalizedString(localizedString: LocalizedString): string { 
+    /**
+     * Usar a variável `ReactiveSettings` dentro dessa função irá fazer o texto atualizar 
+     * automaticamente em um componente quando a linguagem muda por estar em um contexto reativo
+     */
+    const lang = ReactiveSettings.lang 
 
-    // @ts-ignore
+    // @ts-expect-error
     return localizedString[lang.code]
 }
 
