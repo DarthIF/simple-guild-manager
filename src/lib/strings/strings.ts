@@ -63,7 +63,7 @@ export const fragment_manage = {
 
     title_manageMembers: { en: 'Manage Members', pt: 'Gerenciar Membros' },
 
-    title_membersList: { en: 'Member List (%s/30)', pt: 'Lista de Membros (%s/30)' },
+    title_membersList: { en: 'Member List (%s/%s)', pt: 'Lista de Membros (%s/%s)' },
 }
 
 export const fragment_teams = {

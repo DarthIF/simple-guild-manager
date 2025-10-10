@@ -5,7 +5,7 @@
     import SmuiDialogConfirm from "../smui/dialogs/smui-dialog-confirm.svelte";
     import SmuiDialogAddMember from "../smui/dialogs/smui-dialog-add-member.svelte";
     import { DialogActions } from "../smui/dialogs/common";
-    import EventSelectorV2 from "../event-selectorV2.svelte";
+    import EventSelectorV2 from "../selector/event-selectorV2.svelte";
     import CardTeamV2 from "../card-teamV2.svelte";
     import {
         action,

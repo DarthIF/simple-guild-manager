@@ -598,6 +598,13 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
         }
     }
 
+    public listCommissionMembersSync(state: CommissionState): MemberTypeV3[] { 
+
+        console.error('NAO IMPLEMENTADO listCommissionMembersSync')
+
+        return []
+    }
+
 
 
     public async addAuditLog(action: Actions, details: AuditLogDetailsV3, userName?: string): Promise<boolean> {

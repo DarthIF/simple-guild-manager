@@ -16,6 +16,8 @@
     import { ReactiveDB } from "$lib/client/reactive-database.svelte";
     import FragmentSettings from "$lib/components/fragments/fragment-settings.svelte";
     import FragmentAbout from "$lib/components/fragments/fragment-about.svelte";
+    import { getAppropriatedString } from "$lib/strings";
+    import { basic, fragment_home } from "$lib/strings/strings";
 
     function ev_OnClickListener_ToolbarDrawerMenu() {
         el_smuiDrawer.openDrawer();
@@ -125,10 +127,9 @@
         {:else}
             <div class="blank-page">
                 <div class="information">
-                    <h2>Informação</h2>
+                    <h2>{getAppropriatedString(basic.information)}</h2>
                     <h6>
-                        O banco de dados fica salvo no seu navegador, e os dados
-                        não são sincronizados entre dispositivos.
+                        {getAppropriatedString(fragment_home.no_sync_alert)}
                     </h6>
                 </div>
             </div>

@@ -19,6 +19,10 @@
         ReactiveSettings,
         THEN_CALLBACK_COMPLETE_LOAD,
     } from "$lib/client/settings.svelte";
+    import { ReactiveDB } from "$lib/client/reactive-database.svelte";
+    import SmuiFab from "../smui/smui-fab.svelte";
+    import CommissionSelector from "../selector/commission-selector.svelte";
+    import Card, { Content } from "@smui/card";
 
     function handleCommissionReset() {
         if (!confirmWith(fragment_commissions.confirm_reset_cycle)) return;
@@ -85,25 +89,40 @@
         }
     }
 
-    onMount(async () => {
-        availableMembers = await database.listCommissionMembers(
-            CommissionState.AVAILABLE,
-        );
+    function reactiveListMembers(state: CommissionState): MemberTypeV3[] {
+        return [...ReactiveDB.members].filter((m) => m.state === state);
+    }
+    function listMembersAvailable() {
+        return reactiveListMembers(CommissionState.AVAILABLE);
+    }
+    function listMembersClosed() {
+        return reactiveListMembers(CommissionState.CLOSED);
+    }
+    function listMembersInactive() {
+        return reactiveListMembers(CommissionState.INACTIVE);
+    }
 
-        closedMembers = await database.listCommissionMembers(
-            CommissionState.CLOSED,
-        );
-
-        inactiveMembers = await database.listCommissionMembers(
-            CommissionState.INACTIVE,
-        );
-    });
+    onMount(() => {});
 
     const GRID_SPAN_DEVICES = { desktop: 6, tablet: 4, phone: 4 };
+    const GRID_SIZES = { desktop: 4, tablet: 4, phone: 4 };
 
-    let availableMembers: MemberTypeV3[] = $state([]);
-    let closedMembers: MemberTypeV3[] = $state([]);
-    let inactiveMembers: MemberTypeV3[] = $state([]);
+    let selectedTab = $state(CommissionState.AVAILABLE);
+    let availableMembers = $derived.by(listMembersAvailable);
+    let closedMembers = $derived.by(listMembersClosed);
+    let inactiveMembers = $derived.by(listMembersInactive);
+    let targetDisplayMembers = $derived.by(() => {
+        switch (selectedTab) {
+            case CommissionState.AVAILABLE:
+                return availableMembers;
+            case CommissionState.CLOSED:
+                return closedMembers;
+            case CommissionState.INACTIVE:
+                return inactiveMembers;
+            default:
+                return [];
+        }
+    });
 
     let el_dialogCommission: SmuiDialogCommission;
     let el_dialogPrompt: SmuiDialogPrompt;
@@ -112,13 +131,23 @@
     let { database = $bindable() }: ExportType = $props();
 </script>
 
-<div class="fragment" id="manageCommissions">
-    <HorizontalScrollWarper class="fragment-commissions-scroll-warper">
-        <Button variant="outlined" onclick={handleCommissionReset}>
-            <Label>Reiniciar Ciclo</Label>
-        </Button>
-    </HorizontalScrollWarper>
+<div class="fragment">
+    <CommissionSelector bind:selected={selectedTab} />
 
+    <LayoutGrid>
+        {#each targetDisplayMembers as member}
+            <Cell spanDevices={GRID_SIZES}>
+                <Card>
+                    <Content>
+                        <div>{member.name}</div>
+                    </Content>
+                </Card>
+            </Cell>
+        {/each}
+    </LayoutGrid>
+</div>
+
+<div class="fragment" style="display: none;">
     <LayoutGrid>
         <Cell spanDevices={GRID_SPAN_DEVICES}>
             <SmuiCardCommission
@@ -151,6 +180,8 @@
     </LayoutGrid>
 </div>
 
+<SmuiFab icon="sync" onClick={handleCommissionReset} />
+
 <SmuiDialogCommission bind:this={el_dialogCommission} />
 <SmuiDialogPrompt
     bind:this={el_dialogPrompt}
@@ -161,26 +192,5 @@
 <style>
     .fragment {
         user-select: none;
-    }
-
-    @media (max-width: 599px) {
-        :global(.fragment-commissions-scroll-warper) {
-            padding-top: var(--mdc-layout-grid-margin-phone, 16px);
-            padding-left: var(--mdc-layout-grid-margin-phone, 16px);
-        }
-    }
-
-    @media (min-width: 600px) and (max-width: 839px) {
-        :global(.fragment-commissions-scroll-warper) {
-            padding-top: var(--mdc-layout-grid-margin-tablet, 16px);
-            padding-left: var(--mdc-layout-grid-margin-tablet, 16px);
-        }
-    }
-
-    @media (min-width: 840px) {
-        :global(.fragment-commissions-scroll-warper) {
-            padding-top: var(--mdc-layout-grid-margin-desktop, 24px);
-            padding-left: var(--mdc-layout-grid-margin-desktop, 24px);
-        }
     }
 </style>

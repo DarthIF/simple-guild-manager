@@ -11,7 +11,8 @@ export const DATA_STRUCTURE_TEMPLATE: DatabaseJsonType = {
     userAgent: '💻',
     definitions: {
         id: DEFINITIONS_DEFAULT_ID,
-        guild: 'Guild Name 🎈'
+        guild: 'Guild Name 🎈',
+        maxMembers: 30
     },
     members: [],
     events: [],
@@ -25,6 +26,7 @@ export function validateDatabase(data: any): boolean {
         && typeof data.definitions === 'object'
         && typeof data.definitions.id === 'string'
         && typeof data.definitions.guild === 'string'
+        && typeof data.definitions.maxMembers === 'number'
         && typeof data.members === 'object'
         && typeof data.events === 'object'
         && typeof data.auditLog === 'object'
@@ -70,6 +72,11 @@ export type DefinitionsType = {
      * Nome da guilda
      */
     guild: string
+
+    /**
+     * Máximo de membros que a guilda pode ter
+     */
+    maxMembers: number
 }
 
 

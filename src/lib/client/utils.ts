@@ -34,7 +34,7 @@ export function getCommissionStateString(state: CommissionState) {
             return database_strings.commission_state_closed
         case CommissionState.INACTIVE:
             return database_strings.commission_state_inactive
-    }
-
-    return basic.undefined
+        default:
+            return basic.undefined
+    }   
 } 

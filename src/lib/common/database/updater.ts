@@ -30,7 +30,8 @@ export function v0_to_v1(backup: string | null | undefined) {
             userAgent: '💻',
             definitions: {
                 id: 'default',
-                guild: 'Guild Name 🎈'
+                guild: 'Guild Name 🎈',
+                maxMembers: 30
             },
             members: [],
             events: [],

@@ -160,7 +160,7 @@
     let el_dialogMember: SmuiDialogMember;
 
     type ExportType = { database: DatabaseOperations };
-    let { database = $bindable()}: ExportType = $props();
+    let { database = $bindable() }: ExportType = $props();
 </script>
 
 <div class="fragment" id="manageOrg">
@@ -186,7 +186,13 @@
 
     <div class="space-item"></div>
 
-    <SmuiSettingsCard title={getTitleOfCard(ReactiveDB.members)}>
+    <SmuiSettingsCard
+        title={getAppropriatedString(
+            fragment_manage.title_membersList,
+            ReactiveDB.members.length.toString(),
+            ReactiveDB.definitions.maxMembers,
+        )}
+    >
         <List class="" twoLine avatarList nonInteractive>
             {#each sortedMembers as member, index}
                 <Item>

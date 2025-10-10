@@ -74,7 +74,7 @@
         box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 20px 0px;
     }
 
-    .card .top-section {
+    .top-section {
         height: 150px;
         position: relative;
 
@@ -92,7 +92,7 @@
         background-size: cover;
     }
 
-    .card .top-section .border {
+    .top-section .border {
         border-bottom-right-radius: 10px;
         height: 32px;
         width: 130px;
@@ -103,7 +103,7 @@
         box-shadow: -10px -10px 0 0 var(--card-background);
     }
 
-    .card .top-section .border::before {
+    .top-section .border::before {
         content: "";
         position: absolute;
         width: 16px;
@@ -115,7 +115,7 @@
         box-shadow: -5px -5px 0 2px var(--card-background);
     }
 
-    .card .top-section::before {
+    .top-section::before {
         content: "";
         position: absolute;
         top: 32px;
@@ -127,7 +127,7 @@
         box-shadow: -5px -5px 0 2px var(--card-background);
     }
 
-    .card .top-section .icons {
+    .top-section .icons {
         position: absolute;
         top: 0;
         width: 100%;
@@ -136,7 +136,7 @@
         justify-content: space-between;
     }
 
-    .card .top-section .icons .logo {
+    .top-section .icons .logo {
         height: 100%;
         width: 100%;
         margin-left: 16px;
@@ -146,31 +146,18 @@
         align-items: center;
     }
 
-    .card .top-section .icons .logo .top-section {
-        height: 100%;
-    }
-
-    .card .top-section .icons .social-media {
+    .top-section .icons .social-media {
         height: 100%;
         padding: 8px 15px;
         display: flex;
         gap: 7px;
     }
 
-    .card .top-section .icons .social-media .svg {
-        height: 100%;
-        fill: #1b233d;
-    }
-
-    .card .top-section .icons .social-media .svg:hover {
-        fill: white;
-    }
-
-    .card .bottom-section {
+    .bottom-section {
         margin-top: 24px;
     }
 
-    .card .bottom-section .title {
+    .bottom-section .title {
         display: block;
         font-size: 17px;
         font-weight: bolder;
@@ -179,29 +166,29 @@
         letter-spacing: 2px;
     }
 
-    .card .bottom-section .row {
+    .bottom-section .row {
         display: flex;
         justify-content: space-between;
         margin-top: 12px;
     }
 
-    .card .bottom-section .row .item {
+    .bottom-section .row .item {
         flex: 30%;
         text-align: center;
         padding: 5px;
         color: var(--card-color);
     }
 
-    .card .bottom-section .row .item .big-text {
+    .bottom-section .row .item .big-text {
         font-size: 12px;
         display: block;
     }
 
-    .card .bottom-section .row .item .regular-text {
+    .bottom-section .row .item .regular-text {
         font-size: 9px;
     }
 
-    .card .bottom-section .row .item:nth-child(2) {
+    .bottom-section .row .item:nth-child(2) {
         border-left: 1px solid rgba(255, 255, 255, 0.126);
         border-right: 1px solid rgba(255, 255, 255, 0.126);
     }

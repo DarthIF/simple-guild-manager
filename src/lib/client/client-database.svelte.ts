@@ -79,7 +79,7 @@ class ClientDatabaseImpl implements DatabaseOperations {
 
 
 
-    public async createTeam(gameEvent: GameEvents, name: string): Promise<EventTeamType|null> {
+    public async createTeam(gameEvent: GameEvents, name: string): Promise<EventTeamType | null> {
         const response = await api(Actions.CREATE_TEAM, { gameEvent, name })
         if (!isSuccessfulResponse(response))
             return null
@@ -205,4 +205,4 @@ class ClientDatabaseImpl implements DatabaseOperations {
 
 }
 
-export const ClientDatabase = new ClientDatabaseImpl()
+export const ClientDatabase = new ClientDatabaseImpl() 
