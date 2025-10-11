@@ -3,7 +3,8 @@ import { getMemberTeamId } from '$lib/common/database/utils'
 import { formatNumberCompact } from '$lib/utils/number-util'
 import { ReactiveDB } from './reactive-database.svelte'
 import { CommissionState } from "$lib/common/database/enums";
-import { basic, database_strings } from "$lib/strings/strings";
+import { basic, database_strings, fragment_commissions } from "$lib/strings/strings";
+import { getAppropriatedString } from "$lib/strings";
 
 
 export function calculateTeamPower(team: EventTeamType): number {
@@ -37,4 +38,13 @@ export function getCommissionStateString(state: CommissionState) {
         default:
             return basic.undefined
     }   
+}
+
+export function getDateOrLastClosedString(state: CommissionState, time: number) {
+    const dateString = new Date(time).toLocaleDateString()
+
+    if (state === CommissionState.CLOSED)
+        return getAppropriatedString(fragment_commissions.last_closed, dateString)
+
+    return getAppropriatedString(fragment_commissions.date, dateString)
 } 

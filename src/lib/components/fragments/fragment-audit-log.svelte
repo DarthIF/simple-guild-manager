@@ -1,28 +1,22 @@
 <script>
-    import Card, { Content } from "@smui/card";
-    import { Label, Icon } from "@smui/common";
-    import { ReactiveData } from "$lib/utils/reactive-database.svelte";
-    import AuditLogItem from "../misc/audit-log-item.svelte";
+    import { ReactiveDB } from "$lib/client/reactive-database.svelte";
     import { getAppropriatedString } from "$lib/strings";
     import { basic } from "$lib/strings/strings";
 </script>
 
 <div class="fragment" id="auditLog">
-    <Card>
-        <Content>
-            <div class="card-title">
-                <Icon class="material-symbols-rounded">history</Icon>
-                <h6>{getAppropriatedString(basic.audit_log)}</h6>
+    {#each ReactiveDB.auditLog as item}
+        <div class="log-item-warper">
+            <div class="log-item-letter">
+                {item?.user?.[0] || "?"}
             </div>
-            <ul class="list" id="auditLogList">
-                {#each ReactiveData.auditLog as log}
-                    <li class="item">
-                        <AuditLogItem {log} />
-                    </li>
-                {/each}
-            </ul>
-        </Content>
-    </Card>
+
+            <div class="log-item">
+                <span>{item.user} {item.action}</span>
+                <span>{new Date(item.unixTime).toLocaleString()}</span>
+            </div>
+        </div>
+    {/each}
 </div>
 
 <style>
@@ -30,34 +24,29 @@
         padding: 16px;
     }
 
-    .card-title {
-        padding-top: 16px;
-        padding-left: 16px;
-        padding-bottom: 8px;
+    .log-item-warper {
+        display: flex;
+    }
+
+    .log-item-letter {
+        height: 32px;
+        aspect-ratio: 1 / 1;
 
         display: flex;
         align-items: center;
+        justify-content: center;
+
+        border-radius: 50%;
+
+        background: var(--mdc-theme-secondary);
+        color: var(--mdc-theme-on-secondary);
+        font-size: medium;
     }
 
-    .card-title > h6 {
-        margin-left: 8px;
-    }
-
-    .list {
-    }
-
-    .item {
-        padding: 12px 16px;
-
-        border-bottom: 1px solid #eee;
+    .log-item {
+margin-left: 12px;
 
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .item:last-child {
-        padding-bottom: 0;
-        border-bottom: none;
+        flex-direction: column;
     }
 </style>

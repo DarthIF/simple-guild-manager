@@ -13,31 +13,39 @@ function isLocalizedString(obj: any) {
         if (Object.prototype.hasOwnProperty.call(obj, lang.code))
             continue
 
+        // Não possui algum dos atributos de lang code suportados
         return false
     }
 
     return true
 }
 
+function convertToString(item: any): string { 
+    switch (typeof item) {
+        case 'number':
+            return item.toString()
+
+        case 'string':
+            return item
+
+        case 'object': 
+            return isLocalizedString(item) 
+                ? getLocalizedString(item) 
+                : JSON.stringify(item)
+
+        default:
+            return ''
+    }
+}
+
 
 export function getAppropriatedString(obj: string | LocalizedString, ...format: any[]): string {
-    let result: string
-    if (typeof obj === 'string')
-        result = obj
-    else
-        result = getLocalizedString(obj)
+    let result = convertToString(obj)
 
     // Formatar a string
     for (const item of format) {
-        let str: string
-        if (item && isLocalizedString(item))
-            str = getLocalizedString(item)
-        else if (item)
-            str = item
-        else
-            str = ''
-
-        result = result.replace(/%s/, str)
+        const toFormat = convertToString(item)
+        result = result.replace(/%s/, toFormat)
     }
 
     return result

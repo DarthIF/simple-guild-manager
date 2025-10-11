@@ -116,9 +116,9 @@
         <List>
             <Separator />
             {#if currentMember?.state !== CommissionState.CLOSED}
-                <Subheader tag="h6"
-                    >{getAppropriatedString(basic.manage)}</Subheader
-                >
+                <Subheader tag="h6">
+                    {getAppropriatedString(basic.commission)}
+                </Subheader>
                 <Item
                     class="dialog-commission-rounded-item"
                     onclick={() => {

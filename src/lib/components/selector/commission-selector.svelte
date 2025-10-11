@@ -4,6 +4,7 @@
     import { CommissionState } from "$lib/common/database/enums";
     import { getCommissionStateString } from "$lib/client/utils";
     import { getAppropriatedString } from "$lib/strings";
+    import "./scroll-warper-responsive-margin.css";
 
     function getVariant(target: CommissionState) {
         // Selecionado
@@ -40,33 +41,10 @@
 {/snippet}
 
 <HorizontalScrollWarper
-    class={className + " fragment-commissions-scroll-warper"}
+    class={"scroll-warper-responsive-margin " + className}
     {style}
 >
     {@render fakeTab(CommissionState.AVAILABLE)}
     {@render fakeTab(CommissionState.CLOSED)}
     {@render fakeTab(CommissionState.INACTIVE)}
 </HorizontalScrollWarper>
-
-<style>
-    @media (max-width: 599px) {
-        :global(.fragment-commissions-scroll-warper) {
-            padding-top: var(--mdc-layout-grid-margin-phone, 16px);
-            padding-left: var(--mdc-layout-grid-margin-phone, 16px);
-        }
-    }
-
-    @media (min-width: 600px) and (max-width: 839px) {
-        :global(.fragment-commissions-scroll-warper) {
-            padding-top: var(--mdc-layout-grid-margin-tablet, 16px);
-            padding-left: var(--mdc-layout-grid-margin-tablet, 16px);
-        }
-    }
-
-    @media (min-width: 840px) {
-        :global(.fragment-commissions-scroll-warper) {
-            padding-top: var(--mdc-layout-grid-margin-desktop, 24px);
-            padding-left: var(--mdc-layout-grid-margin-desktop, 24px);
-        }
-    }
-</style>

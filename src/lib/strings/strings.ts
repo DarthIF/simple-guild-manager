@@ -98,6 +98,7 @@ export const fragment_commissions = {
     state: { en: 'State: %s', pt: 'Estado: %s' },
     date: { en: 'Date: %s', pt: 'Data: %s' },
     missed: { en: 'Missed: %s', pt: 'Perdido: %s' },
+    last_closed: {en:'Last closed: %s', pt:'Último fechado: %s'},
 
     close_today: { en: 'Close today', pt: 'Fechar hoje' },
     lost_commission: { en: 'Lost the commission', pt: 'Perdeu a comissão' },

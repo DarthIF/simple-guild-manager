@@ -1,9 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import HorizontalScrollWarper from "../misc/horizontal-scroll-warper.svelte";
-    import Button, { Label } from "@smui/button";
     import LayoutGrid, { Cell } from "@smui/layout-grid";
-    import SmuiCardCommission from "../smui/cards/smui-card-commission.svelte";
     import SmuiDialogCommission from "../smui/dialogs/smui-dialog-commission.svelte";
     import {
         DialogActions,
@@ -22,7 +19,7 @@
     import { ReactiveDB } from "$lib/client/reactive-database.svelte";
     import SmuiFab from "../smui/smui-fab.svelte";
     import CommissionSelector from "../selector/commission-selector.svelte";
-    import Card, { Content } from "@smui/card";
+    import CardCommissionMember from "../card-commission-member.svelte";
 
     function handleCommissionReset() {
         if (!confirmWith(fragment_commissions.confirm_reset_cycle)) return;
@@ -90,7 +87,9 @@
     }
 
     function reactiveListMembers(state: CommissionState): MemberTypeV3[] {
-        return [...ReactiveDB.members].filter((m) => m.state === state);
+        return [...ReactiveDB.members]
+            .filter((m) => m.state === state)
+            .sort((a, b) => b.power - a.power);
     }
     function listMembersAvailable() {
         return reactiveListMembers(CommissionState.AVAILABLE);
@@ -102,9 +101,6 @@
         return reactiveListMembers(CommissionState.INACTIVE);
     }
 
-    onMount(() => {});
-
-    const GRID_SPAN_DEVICES = { desktop: 6, tablet: 4, phone: 4 };
     const GRID_SIZES = { desktop: 4, tablet: 4, phone: 4 };
 
     let selectedTab = $state(CommissionState.AVAILABLE);
@@ -137,46 +133,12 @@
     <LayoutGrid>
         {#each targetDisplayMembers as member}
             <Cell spanDevices={GRID_SIZES}>
-                <Card>
-                    <Content>
-                        <div>{member.name}</div>
-                    </Content>
-                </Card>
+                <CardCommissionMember
+                    {member}
+                    onClickListener={handleItemClick}
+                />
             </Cell>
         {/each}
-    </LayoutGrid>
-</div>
-
-<div class="fragment" style="display: none;">
-    <LayoutGrid>
-        <Cell spanDevices={GRID_SPAN_DEVICES}>
-            <SmuiCardCommission
-                bind:members={availableMembers}
-                title="Disponível"
-                icon="approval_delegation"
-                onClickListener={handleItemClick}
-            />
-        </Cell>
-        {#if closedMembers.length > 0}
-            <Cell spanDevices={GRID_SPAN_DEVICES}>
-                <SmuiCardCommission
-                    bind:members={closedMembers}
-                    title="Fechado"
-                    icon="event_note"
-                    onClickListener={handleItemClick}
-                />
-            </Cell>
-        {/if}
-        {#if inactiveMembers.length > 0}
-            <Cell spanDevices={GRID_SPAN_DEVICES}>
-                <SmuiCardCommission
-                    bind:members={inactiveMembers}
-                    title="Inativos"
-                    icon="person_off"
-                    onClickListener={handleItemClick}
-                />
-            </Cell>
-        {/if}
     </LayoutGrid>
 </div>
 
