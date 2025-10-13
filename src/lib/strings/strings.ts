@@ -28,6 +28,8 @@ export const basic = {
     manage: { en: 'Manage', pt: 'Gerenciar' },
 
     information: { en: 'Information', pt: 'Informação' },
+
+    you: { en: 'You', pt: 'Você' },
 }
 
 export const action = {
@@ -52,8 +54,8 @@ export const errors = {
 
 export const fragment_home = {
     no_sync_alert: {
-        en:'The database is saved in your browser, and data is not synced between devices.',
-        pt:'O banco de dados fica salvo no seu navegador, e os dados não são sincronizados entre dispositivos.'
+        en: 'The database is saved in your browser, and data is not synced between devices.',
+        pt: 'O banco de dados fica salvo no seu navegador, e os dados não são sincronizados entre dispositivos.'
     }
 }
 
@@ -98,7 +100,7 @@ export const fragment_commissions = {
     state: { en: 'State: %s', pt: 'Estado: %s' },
     date: { en: 'Date: %s', pt: 'Data: %s' },
     missed: { en: 'Missed: %s', pt: 'Perdido: %s' },
-    last_closed: {en:'Last closed: %s', pt:'Último fechado: %s'},
+    last_closed: { en: 'Last closed: %s', pt: 'Último fechado: %s' },
 
     close_today: { en: 'Close today', pt: 'Fechar hoje' },
     lost_commission: { en: 'Lost the commission', pt: 'Perdeu a comissão' },
@@ -114,6 +116,9 @@ export const fragment_settings = {
 
 
 
+/**
+ * @deprecated
+ */
 export const audit_logs = {
     change_organization_name: {
         en: 'Organization name changed from "%s" to "%s"',
@@ -187,5 +192,19 @@ export const database_strings = {
     import_message: {
         en: 'This will replace all current data. Do you wish to continue?',
         pt: 'Isso substituirá todos os dados atuais. Deseja continuar?'
-    }
+    },
+
+    log_set_guild_name: { en: '%s updated guild %s', pt: '%s atualizou a guilda %s' },
+
+    log_add_member: { en: '%s added a member', pt: '%s adicionou um membro' },
+    log_delete_member: { en: '%s deleted a member', pt: '%s excluiu um membro' },
+    log_edit_member: { en: '%s updated a member', pt: '%s atualizou um membro' },
+    
+    log_create_team: { en: '%s created a team for the %s event', pt: '%s criou uma equipe para o evento %s' },
+    log_delete_team: { en: '%s deleted a team of %s event', pt: '%s excluiu uma equipe do evento %s' },
+    log_add_member_to_team: { en: '%s added %s to team %s', pt: '%s adicionou %s à equipe %s' },
+    log_remove_member_from_team: { en: '%s removed %s of team %s', pt: '%s removeu %s da equipe %s' },
+
+    log_commission_set_state: { en: '%s defined %s as %s', pt: '%s definiu %s como %s' },
+    log_commission_reset_cycle: { en: '%s restarted the commission cycle', pt: '%s reiniciou o ciclo de comissão' },
 }

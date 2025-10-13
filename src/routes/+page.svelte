@@ -3,8 +3,8 @@
     import { BrowserDatabase } from "$lib/client/browser-database.svelte";
     import { onMount } from "svelte";
     import { ReactiveSettings } from "$lib/client/settings.svelte";
-    import "$lib/css/glass.css";
     import LoadingLoader from "$lib/components/misc/loading-loader.svelte";
+    import "$lib/components/css/glass.css";
 
     onMount(() => {
         ReactiveSettings.loading = true;

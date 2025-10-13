@@ -1,5 +1,5 @@
 <script lang="ts">
-    import "$lib/css/glitch.css";
+    import "$lib/components/css/glitch.css";
 </script>
 
 <!-- From Uiverse.io by Smit-Prajapati -->

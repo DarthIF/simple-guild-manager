@@ -1,5 +1,9 @@
-import { UNDEFINED_TEAM, type DatabaseTypeV3, type EventTeamType, type MemberTypeV3 } from './constants-and-types'
-import { GameEvents } from './enums'
+import type { DatabaseTypeV3, EventTeamType, MemberTypeV3 } from './constants-and-types'
+import { UNDEFINED_TEAM, } from './constants-and-types'
+import { GameEvents, Actions } from './enums'
+import { getAppropriatedString } from "$lib/strings";
+import { database_strings, basic } from "$lib/strings/strings";
+import { ReactiveDB } from "$lib/client/reactive-database.svelte";
 
 
 
@@ -139,4 +143,4 @@ export function modifyTeamCount(team: EventTeamType | null, change: number): boo
     team.count += change
 
     return true
-}
+} 
