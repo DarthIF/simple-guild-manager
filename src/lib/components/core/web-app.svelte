@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
+    import { page } from "$app/state";
     import SmuiToolbar from "$lib/components/smui/smui-toolbar.svelte";
     import SmuiDrawer from "$lib/components/smui/smui-drawer.svelte";
     import SmuiDialogImport from "$lib/components/smui/dialogs/smui-dialog-import.svelte";
@@ -7,7 +8,12 @@
     import FragmentManageTeams from "$lib/components/fragments/fragment-manage-teams.svelte";
     import FragmentOrganization from "$lib/components/fragments/fragment-organization.svelte";
     import FragmentCommissions from "$lib/components/fragments/fragment-commissions.svelte";
-    import { Fragments } from "$lib/components/fragments/fragments";
+    import {
+        Fragments,
+        FragmentsParams,
+        getFragmentForID,
+        type FragmentPageState,
+    } from "$lib/components/fragments/fragments";
     import { saveElementAsImage } from "$lib/utils/image-util";
     import type {
         DatabaseEditor,
@@ -39,44 +45,9 @@
 
     // ------------------------------------------
 
-    function updateHash() {
-        const newHash = window.location.hash;
-
-        // Desativar o botão
-        enableGenerateImageButton = false;
-
-        // Atualizar o fragmento
-        let found = false;
-        for (const fragmentID of Object.values(Fragments)) {
-            if (fragmentID !== newHash) continue;
-
-            currentFragment = fragmentID;
-            found = true;
-        }
-
-        if (!found) {
-            currentFragment = Fragments.UNDEFINED;
-        }
-
-        // Atualizar o item selecionado
-        el_smuiDrawer.setActive(newHash);
-    }
-
     onMount(() => {
-        // Renderizar o fragmento
-        window.addEventListener("hashchange", (e) => updateHash());
-        updateHash();
-
         // Adicionar a referencia
         el_smuiDrawer.setDialogImportInstance(el_dialogImport);
-    });
-
-    let lockExport = false;
-    let currentFragment: Fragments = $state(Fragments.UNDEFINED);
-    let enableGenerateImageButton: boolean = $derived.by(() => {
-        // Deixar visível o botão de gerar a imagem somente
-        // no fragmento de equipes
-        return currentFragment === Fragments.MANAGE_TEAMS;
     });
 
     let el_smuiDrawer: SmuiDrawer;
@@ -84,6 +55,26 @@
     let el_fragmentManageTeams: FragmentManageTeams | null = $state(null);
     let el_fragmentAuditLog: FragmentAuditLog | null = $state(null);
     let el_dialogImport: SmuiDialogImport;
+
+    let lockExport = $state(false);
+    let currentFragment: Fragments = $derived.by(() => {
+        const state: FragmentPageState = page.state;
+        const fragmentState = state.fragment || Fragments.UNDEFINED;
+        const extraState = state.extra || null; // Nao utilizado ainda
+
+        // Atualizar a ui da pagina
+        return fragmentState;
+    });
+    let enableGenerateImageButton: boolean = $derived.by(() => {
+        // Deixar visível o botão de gerar a imagem somente
+        // no fragmento de equipes
+        return currentFragment === Fragments.MANAGE_TEAMS;
+    });
+
+    $effect(() => {
+        // Atualizar o item selecionado
+        el_smuiDrawer.setActive(currentFragment);
+    });
 
     type ExportType = { database: DatabaseOperations & DatabaseEditor };
     let { database = $bindable() }: ExportType = $props();

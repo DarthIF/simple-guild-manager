@@ -200,8 +200,8 @@ export const database_strings = {
     log_delete_member: { en: '%s deleted a member', pt: '%s excluiu um membro' },
     log_edit_member: { en: '%s updated a member', pt: '%s atualizou um membro' },
     
-    log_create_team: { en: '%s created a team for the %s event', pt: '%s criou uma equipe para o evento %s' },
-    log_delete_team: { en: '%s deleted a team of %s event', pt: '%s excluiu uma equipe do evento %s' },
+    log_create_team: { en: '%s created team [%s] for the %s event', pt: '%s criou a equipe [%s] para o evento %s' },
+    log_delete_team: { en: '%s deleted team [%s] of %s event', pt: '%s excluiu a equipe [%s] do evento %s' },
     log_add_member_to_team: { en: '%s added %s to team %s', pt: '%s adicionou %s à equipe %s' },
     log_remove_member_from_team: { en: '%s removed %s of team %s', pt: '%s removeu %s da equipe %s' },
 

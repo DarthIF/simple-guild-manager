@@ -225,7 +225,8 @@ class BrowserDatabaseImpl implements LocalDatabase {
         for (const member of ReactiveDB.members) {
             const teamId = getMemberTeamId(member, gameEvent)
 
-            if (isUndefinedTeamID(teamId))
+            // Verificar se o membro está em uma equipe
+            if (isUndefinedTeamID(teamId) === true)
                 freeMembers.push(member)
         }
 
@@ -336,4 +337,4 @@ class BrowserDatabaseImpl implements LocalDatabase {
 }
 
 
-export const BrowserDatabase = new BrowserDatabaseImpl()
+export const BrowserDatabase = new BrowserDatabaseImpl() 

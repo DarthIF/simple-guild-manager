@@ -26,23 +26,21 @@
         ReactiveSettings,
         THEN_CALLBACK_COMPLETE_LOAD,
     } from "$lib/client/settings.svelte";
-    import { Fragments } from "../fragments/fragments";
+    import { Fragments, navigateToFragment } from "../fragments/fragments";
 
     export function setActive(value: string) {
         active = value;
         open = false;
-
-        updateOverlay();
     }
 
     export function openDrawer() {
         open = true;
-        updateOverlay();
     }
 
     export function closeDrawer() {
+        // Atualizar a variável, a UI sera
+        // atualizada na função effect
         open = false;
-        updateOverlay();
     }
 
     export function setDialogImportInstance(dialog: SmuiDialogImport) {
@@ -74,20 +72,20 @@
         });
     }
 
-    function updateOverlay() {
+    function isActive(fragmentID: string) {
+        return active === fragmentID;
+    }
+
+    let ref_dialogImport: SmuiDialogImport;
+    let el_drawerOverlay: HTMLDivElement;
+
+    $effect(() => {
         if (open) {
             el_drawerOverlay.classList.add("open");
         } else {
             el_drawerOverlay.classList.remove("open");
         }
-    }
-
-    onMount(() => {
-        updateOverlay();
     });
-
-    let ref_dialogImport: SmuiDialogImport;
-    let el_drawerOverlay: HTMLDivElement;
 
     type ExportType = {
         open?: boolean;
@@ -95,8 +93,8 @@
         database: DatabaseEditor;
     };
     let {
-        open = false,
-        active = "",
+        open = $bindable(false),
+        active = $bindable(""),
         database = $bindable(),
     }: ExportType = $props();
 </script>
@@ -115,7 +113,13 @@
         <List>
             <Separator />
 
-            <Item href="#" activated={active === ""} onclick={closeDrawer}>
+            <Item
+                activated={isActive(Fragments.UNDEFINED)}
+                onclick={() => {
+                    closeDrawer();
+                    navigateToFragment(Fragments.UNDEFINED);
+                }}
+            >
                 <Graphic class="material-symbols-rounded" aria-hidden="true">
                     home
                 </Graphic>
@@ -123,9 +127,11 @@
             </Item>
 
             <Item
-                href={Fragments.MANAGE_ORGANIZATION}
-                activated={active === "#manageOrg"}
-                onclick={closeDrawer}
+                activated={isActive(Fragments.MANAGE_ORGANIZATION)}
+                onclick={() => {
+                    closeDrawer();
+                    navigateToFragment(Fragments.MANAGE_ORGANIZATION);
+                }}
             >
                 <Graphic class="material-symbols-rounded" aria-hidden="true">
                     empty_dashboard
@@ -133,9 +139,11 @@
                 <Text>{getAppropriatedString(basic.manage_org)}</Text>
             </Item>
             <Item
-                href={Fragments.MANAGE_TEAMS}
-                activated={active === "#manageTeams"}
-                onclick={closeDrawer}
+                activated={isActive(Fragments.MANAGE_TEAMS)}
+                onclick={() => {
+                    closeDrawer();
+                    navigateToFragment(Fragments.MANAGE_TEAMS);
+                }}
             >
                 <Graphic class="material-symbols-rounded" aria-hidden="true">
                     diversity_3
@@ -143,9 +151,11 @@
                 <Text>{getAppropriatedString(basic.teams)}</Text>
             </Item>
             <Item
-                href={Fragments.COMMISSIONS}
-                activated={active === "#manageCommissions"}
-                onclick={closeDrawer}
+                activated={isActive(Fragments.COMMISSIONS)}
+                onclick={() => {
+                    closeDrawer();
+                    navigateToFragment(Fragments.COMMISSIONS);
+                }}
             >
                 <Graphic class="material-symbols-rounded" aria-hidden="true">
                     sports_martial_arts
@@ -153,9 +163,11 @@
                 <Text>{getAppropriatedString(basic.commissions)}</Text>
             </Item>
             <Item
-                href={Fragments.AUDIT_LOG}
-                activated={active === "#auditLog"}
-                onclick={closeDrawer}
+                activated={isActive(Fragments.AUDIT_LOG)}
+                onclick={() => {
+                    closeDrawer();
+                    navigateToFragment(Fragments.AUDIT_LOG);
+                }}
             >
                 <Graphic class="material-symbols-rounded" aria-hidden="true">
                     history
@@ -188,9 +200,11 @@
             <Separator />
             <Subheader tag="h6">Simple Guild Manager</Subheader>
             <Item
-                href={Fragments.SETTINGS}
-                activated={active === "#settings"}
-                onclick={closeDrawer}
+                activated={isActive(Fragments.SETTINGS)}
+                onclick={() => {
+                    closeDrawer();
+                    navigateToFragment(Fragments.SETTINGS);
+                }}
             >
                 <Graphic class="material-symbols-rounded" aria-hidden="true">
                     settings
@@ -198,9 +212,11 @@
                 <Text>{getAppropriatedString(basic.settings)}</Text>
             </Item>
             <Item
-                href={Fragments.ABOUT}
-                activated={active === "#about"}
-                onclick={closeDrawer}
+                activated={isActive(Fragments.ABOUT)}
+                onclick={() => {
+                    closeDrawer();
+                    navigateToFragment(Fragments.ABOUT);
+                }}
             >
                 <Graphic class="material-symbols-rounded" aria-hidden="true">
                     info

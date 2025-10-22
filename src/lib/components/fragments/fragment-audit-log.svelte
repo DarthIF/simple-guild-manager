@@ -4,8 +4,14 @@
     import { ReactiveDB } from "$lib/client/reactive-database.svelte";
     import { ReactiveSettings } from "$lib/client/settings.svelte";
     import type { AuditLogTypeV3 } from "$lib/common/database/constants-and-types";
-    import { AuditLogMessageResolvers } from "$lib/client/utils";
-    import "$lib/components/css/responsive-margin.css"; 
+    import { AuditLogMessages } from "$lib/client/utils";
+    import "$lib/components/css/responsive-margin.css";
+    import { onDestroy, onMount } from "svelte";
+    import {
+        getFragmentForID,
+        navigateToFragment,
+        navigateToFragmentByHash,
+    } from "./fragments";
 
     function getLetter(text: string | null | undefined) {
         const letter = text?.[0];
@@ -19,9 +25,30 @@
     }
 
     function getMessage(item: AuditLogTypeV3): string {
-        const resolver = AuditLogMessageResolvers.get(item.action);
+        const resolver = AuditLogMessages.get(item.action);
         return resolver ? resolver(item) : `action=${item.action}`;
     }
+
+    function onHashChange(ev: HashChangeEvent) {
+        const hash = location.hash;
+        navigateToFragmentByHash(hash);
+    }
+
+    onMount(() => {
+        // Limpar o hash ao abrir o fragmento
+        location.hash = "";
+
+        // Adicionar o evento
+        window.addEventListener("hashchange", onHashChange);
+    });
+
+    onDestroy(() => {
+        // Remover o evento
+        window.removeEventListener("hashchange", onHashChange);
+
+        // Limpar o hash ao fechar o fragmento
+        location.hash = "";
+    });
 
     let LANG_CODE = $derived(ReactiveSettings.lang.code);
 </script>
@@ -36,7 +63,7 @@
                     </div>
 
                     <div class="log-item">
-                        <span>{getMessage(item)}</span>
+                        <span>{@html getMessage(item)}</span>
                         <span>
                             {getRelativeTime(item.unixTime)}
                         </span>

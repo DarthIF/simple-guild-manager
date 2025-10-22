@@ -2,9 +2,10 @@ import type { EventTeamType, AuditLogTypeV3 } from '$lib/common/database/constan
 import { getMemberTeamId } from '$lib/common/database/utils'
 import { formatNumberCompact } from '$lib/utils/number-util'
 import { ReactiveDB } from './reactive-database.svelte'
-import { CommissionState, Actions } from "$lib/common/database/enums";
-import { basic, database_strings, fragment_commissions } from "$lib/strings/strings";
-import { getAppropriatedString } from "$lib/strings";
+import { CommissionState, Actions } from "$lib/common/database/enums"
+import { basic, database_strings, fragment_commissions } from "$lib/strings/strings"
+import { getAppropriatedString } from "$lib/strings"
+import { Fragments, FragmentsParams, getNavigateURL } from "$lib/components/fragments/fragments"
 
 
 export function calculateTeamPower(team: EventTeamType): number {
@@ -68,38 +69,111 @@ function resolveMember(memberId: string | undefined) {
     return ReactiveDB.members.find(m => m.id === memberId)
 }
 
+function crateAnchor_ManageTeams(gameEvent: string | undefined) {
+    if (!gameEvent)
+        return '?'
 
-export const AuditLogMessageResolvers = new Map<Actions, AuditLogMessageResolverFunction>()
+    const base = gameEvent.replaceAll('_', ' ')
+    const text = base[0].toUpperCase() + base.substring(1)
+    const href = `#${Fragments.MANAGE_TEAMS}&${gameEvent}`
+
+    return `<a href="${href}">${text}</a>`
+}
 
 
-AuditLogMessageResolvers.set(Actions.SET_GUILD_NAME, item => {
+
+export const AuditLogMessages = new Map<Actions, AuditLogMessageResolverFunction>()
+
+
+
+AuditLogMessages.set(Actions.SET_GUILD_NAME, item => {
     const user = resolveUsername(item)
 
     return getAppropriatedString(database_strings.log_set_guild_name,
-        // Variáveis para formatar 
+    // Variáveis para formatar 
         user, item.details.newName
     )
 })
 
 
+AuditLogMessages.set(Actions.ADD_MEMBER, item => { 
+    const user = resolveUsername(item)
+
+    return getAppropriatedString(database_strings.log_add_member,
+    // Variáveis para formatar 
+        user
+    )
+})
+AuditLogMessages.set(Actions.DELETE_MEMBER, item => {
+    const user = resolveUsername(item)
+
+    return getAppropriatedString(database_strings.log_delete_member,
+    // Variáveis para formatar 
+        user
+    )
+})
+AuditLogMessages.set(Actions.EDIT_MEMBER, item => {
+    const user = resolveUsername(item)
+
+    return getAppropriatedString(database_strings.log_edit_member,
+    // Variáveis para formatar 
+        user
+    )
+})
 
 
+AuditLogMessages.set(Actions.CREATE_TEAM, item => {
+    const user = resolveUsername(item)
+    const team = item.details.teamName || '?'
+    const eventAnchor = crateAnchor_ManageTeams(item.details.gameEvent)
 
-AuditLogMessageResolvers.set(Actions.COMMISSION_SET_STATE, item => { 
+    return getAppropriatedString(database_strings.log_create_team,
+    // Variáveis para formatar 
+        user, team, eventAnchor
+    )
+})
+AuditLogMessages.set(Actions.DELETE_TEAM, item => { 
+    const user = resolveUsername(item)
+    const eventAnchor = crateAnchor_ManageTeams(item.details.gameEvent)
+
+    return getAppropriatedString(database_strings.log_delete_team,
+    // Variáveis para formatar 
+        user, eventAnchor
+    )
+})
+AuditLogMessages.set(Actions.ADD_MEMBER_TO_TEAM, item => {
+    const user = resolveUsername(item) 
+
+    return getAppropriatedString(database_strings.log_add_member_to_team,
+    // Variáveis para formatar 
+        user,  
+    )
+})
+AuditLogMessages.set(Actions.REMOVE_MEMBER_FROM_TEAM, item => { 
+    const user = resolveUsername(item)
+
+    return getAppropriatedString(database_strings.log_remove_member_from_team,
+    // Variáveis para formatar 
+        user,  
+    )
+})
+
+
+AuditLogMessages.set(Actions.COMMISSION_SET_STATE, item => { 
     const user = resolveUsername(item)
     const member = resolveMember(item.details.memberId)?.name || '?'
     const state = getCommissionStateString(item.details.state || CommissionState.AVAILABLE)
 
     return getAppropriatedString(database_strings.log_commission_set_state, 
-        // Variáveis para formatar
+    // Variáveis para formatar
         user, member, state
     )
 })
-AuditLogMessageResolvers.set(Actions.COMMISSION_RESET_CYCLE, item => {
+AuditLogMessages.set(Actions.COMMISSION_RESET_CYCLE, item => {
     const user = resolveUsername(item)
 
     return getAppropriatedString(database_strings.log_commission_reset_cycle, 
-        // Variáveis para formatar
+    // Variáveis para formatar
         user 
     )
 })

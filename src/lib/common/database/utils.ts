@@ -48,9 +48,9 @@ export function forEachGameEventSync(callback: (event: GameEvents) => void) {
 
 export function isUndefinedTeamID(teamId: string | null | undefined): boolean {
     return teamId === null
-        && teamId === undefined
-        && teamId === ''
-        && teamId === UNDEFINED_TEAM
+        || teamId === undefined
+        || teamId === ''
+        || teamId === UNDEFINED_TEAM
 }
 
 export function getMemberTeamId(member: MemberTypeV3 | null | undefined, gameEvent: GameEvents): string {
