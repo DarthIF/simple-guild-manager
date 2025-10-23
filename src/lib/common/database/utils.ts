@@ -143,4 +143,22 @@ export function modifyTeamCount(team: EventTeamType | null, change: number): boo
     team.count += change
 
     return true
-} 
+}
+
+
+
+export function getGameEventFromString(str: string | null | undefined) {
+    switch (str) {
+        case GameEvents.WORLD_TREE:
+            return GameEvents.WORLD_TREE
+        case GameEvents.MINES_IN_DUNGEON:
+            return GameEvents.MINES_IN_DUNGEON
+        case GameEvents.CLOUD_KINGDOM:
+            return GameEvents.CLOUD_KINGDOM
+        case GameEvents.CASSINO_ON_YACHT:
+            return GameEvents.CASSINO_ON_YACHT
+        default:
+            return null
+    }
+}
+

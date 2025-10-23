@@ -55,15 +55,16 @@
     let el_fragmentManageTeams: FragmentManageTeams | null = $state(null);
     let el_fragmentAuditLog: FragmentAuditLog | null = $state(null);
     let el_dialogImport: SmuiDialogImport;
+    let el_pageContent: HTMLDivElement;
 
     let lockExport = $state(false);
     let currentFragment: Fragments = $derived.by(() => {
+        // Verificar qual fragmento foi definido no estado da pagina
         const state: FragmentPageState = page.state;
-        const fragmentState = state.fragment || Fragments.UNDEFINED;
-        const extraState = state.extra || null; // Nao utilizado ainda
+        const fragment = state.fragment || Fragments.UNDEFINED;
 
         // Atualizar a ui da pagina
-        return fragmentState;
+        return fragment;
     });
     let enableGenerateImageButton: boolean = $derived.by(() => {
         // Deixar visível o botão de gerar a imagem somente
@@ -74,6 +75,9 @@
     $effect(() => {
         // Atualizar o item selecionado
         el_smuiDrawer.setActive(currentFragment);
+
+        // Rolar a pagina para cima quando trocar de fragmento
+        el_pageContent.scrollTo(0, 0);
     });
 
     type ExportType = { database: DatabaseOperations & DatabaseEditor };
@@ -90,7 +94,7 @@
     <SmuiDrawer bind:this={el_smuiDrawer} bind:database />
 
     <!-- Conteúdo principal da pagina -->
-    <div class="page-content">
+    <div bind:this={el_pageContent} class="page-content">
         {#if currentFragment === Fragments.MANAGE_ORGANIZATION}
             <!-- Gerenciar Guilda -->
             <FragmentOrganization

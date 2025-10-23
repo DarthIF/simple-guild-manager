@@ -18,14 +18,21 @@
     import type { EventTeamType } from "$lib/common/database/constants-and-types";
     import { GameEvents } from "$lib/common/database/enums";
     import { ReactiveSettings } from "$lib/client/settings.svelte";
+    import { onDestroy, onMount } from "svelte";
+    import { pushState } from "$app/navigation";
+    import { page } from "$app/state";
+    import type { FragmentPageState } from "./fragments";
+    import { getGameEventFromString } from "$lib/common/database/utils";
 
     export function getElementToRender(): HTMLElement {
         return el_cardsGrid;
     }
 
     export function getGameEvent(): GameEvents {
-        return GAME_EVENT;
+        return SELECTED_GAME_EVENT;
     }
+
+    // ------------------------------------------
 
     function handleAddMember(gameEvent: GameEvents, team: EventTeamType) {
         el_dialogAddMember.open(gameEvent, team);
@@ -72,7 +79,7 @@
 
         // Criar o time
         ReactiveSettings.loading = true;
-        database.createTeam(GAME_EVENT, value).then((team) => {
+        database.createTeam(SELECTED_GAME_EVENT, value).then((team) => {
             if (!team) {
                 alert("Create team error");
             }
@@ -81,13 +88,27 @@
         });
     }
 
-    // --------------------------------
+    // ------------------------------------------
 
-    let GAME_EVENT: GameEvents = $state(GameEvents.WORLD_TREE);
+    onMount(() => {
+        const state: FragmentPageState = page.state;
+        const gameEvent = getGameEventFromString(state.extra);
+
+        if (gameEvent) {
+            SELECTED_GAME_EVENT = gameEvent;
+        }
+    });
+
+    onDestroy(() => {});
+
+    // ------------------------------------------
+
+    let SELECTED_GAME_EVENT: GameEvents = $state(GameEvents.WORLD_TREE);
     let EVENT_TEAMS: EventTeamType[] = $state([]);
 
     $effect(() => {
-        database.listTeams(GAME_EVENT).then((list) => {
+        database.listTeams(SELECTED_GAME_EVENT).then((list) => {
+            // Atualizar a lista de times para o evento
             EVENT_TEAMS = list;
         });
     });
@@ -101,8 +122,8 @@
     let { database = $bindable() }: ExportType = $props();
 </script>
 
-<EventSelectorV2 class="event-selector" bind:selected={GAME_EVENT} />
-<div bind:this={el_cardsGrid} id="manageTeams">
+<EventSelectorV2 class="event-selector" bind:selected={SELECTED_GAME_EVENT} />
+<div bind:this={el_cardsGrid}>
     <!-- Nenhuma equipe -->
     {#if EVENT_TEAMS.length < 1}
         <div class="empty-div">
@@ -118,7 +139,7 @@
                 <CardTeamV2
                     {index}
                     {team}
-                    gameEvent={GAME_EVENT}
+                    gameEvent={SELECTED_GAME_EVENT}
                     {database}
                     onAddMemberClick={handleAddMember}
                     onDeleteTeamClick={handleDeleteTeam}

@@ -7,11 +7,7 @@
     import { AuditLogMessages } from "$lib/client/utils";
     import "$lib/components/css/responsive-margin.css";
     import { onDestroy, onMount } from "svelte";
-    import {
-        getFragmentForID,
-        navigateToFragment,
-        navigateToFragmentByHash,
-    } from "./fragments";
+    import { navigateToFragmentByHash } from "./fragments";
 
     function getLetter(text: string | null | undefined) {
         const letter = text?.[0];

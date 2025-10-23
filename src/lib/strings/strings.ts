@@ -196,14 +196,20 @@ export const database_strings = {
 
     log_set_guild_name: { en: '%s updated guild %s', pt: '%s atualizou a guilda %s' },
 
-    log_add_member: { en: '%s added a member', pt: '%s adicionou um membro' },
-    log_delete_member: { en: '%s deleted a member', pt: '%s excluiu um membro' },
-    log_edit_member: { en: '%s updated a member', pt: '%s atualizou um membro' },
+    log_add_member: { en: '%s added member %s', pt: '%s adicionou o(a) membro(a) %s' },
+    log_delete_member: { en: '%s deleted member %s', pt: '%s excluiu o(a) membro(a) %s' },
+    log_edit_member: { en: '%s updated member %s', pt: '%s atualizou o(a) membro(a) %s' },
     
     log_create_team: { en: '%s created team [%s] for the %s event', pt: '%s criou a equipe [%s] para o evento %s' },
     log_delete_team: { en: '%s deleted team [%s] of %s event', pt: '%s excluiu a equipe [%s] do evento %s' },
-    log_add_member_to_team: { en: '%s added %s to team %s', pt: '%s adicionou %s à equipe %s' },
-    log_remove_member_from_team: { en: '%s removed %s of team %s', pt: '%s removeu %s da equipe %s' },
+    log_add_member_to_team: {
+        en: '%s added %s to team [%s], on event %s', 
+        pt: '%s adicionou %s à equipe [%s], no evento %s' 
+    },
+    log_remove_member_from_team: {
+        en: '%s removed %s of team [%s], on event %s', 
+        pt: '%s removeu %s da equipe [%s], no evento %s' 
+    },
 
     log_commission_set_state: { en: '%s defined %s as %s', pt: '%s definiu %s como %s' },
     log_commission_reset_cycle: { en: '%s restarted the commission cycle', pt: '%s reiniciou o ciclo de comissão' },
