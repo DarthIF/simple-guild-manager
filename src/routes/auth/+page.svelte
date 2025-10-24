@@ -23,6 +23,7 @@
 
     const MODE_LOGIN = 1;
     const MODE_REGISTER = 2;
+    
     let value_username = $state("");
     let value_password = $state("");
     let current_mode = $state(MODE_LOGIN);
