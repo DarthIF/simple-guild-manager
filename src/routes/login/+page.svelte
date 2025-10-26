@@ -7,6 +7,7 @@
 </script>
 
 <main>
+    <div class="background"></div>
     <div class="card">
         <form action="?/login" method="POST" use:enhance>
             <h1>Login</h1>

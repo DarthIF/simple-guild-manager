@@ -15,6 +15,7 @@
 		"smui-theme-dark": "smui-theme compile static/smui-dark.css -i src/theme/dark"
 	},
 	"devDependencies": {
+		"@material/typography": "^14.0.0",
 		"@smui-extra/badge": "^8.0.3",
 		"@smui/button": "^8.0.3",
 		"@smui/card": "^8.0.3",

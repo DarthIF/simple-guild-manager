@@ -80,13 +80,17 @@
         el_pageContent.scrollTo(0, 0);
     });
 
-    type ExportType = { database: DatabaseOperations & DatabaseEditor };
-    let { database = $bindable() }: ExportType = $props();
+    type ExportType = {
+        database: DatabaseOperations & DatabaseEditor;
+        title?: string;
+        children?: any;
+    };
+    let { database = $bindable(), title, children }: ExportType = $props();
 </script>
 
 <main class="app-container">
     <SmuiToolbar
-        title={ReactiveDB.definitions.guild}
+        title={title || ReactiveDB.definitions.guild}
         showGenerateImageButton={enableGenerateImageButton}
         onClickDrawer={ev_OnClickListener_ToolbarDrawerMenu}
         onClickGenerateImage={ev_OnClickListener_ToolbarGenerateImage}
@@ -121,7 +125,9 @@
             <FragmentAbout />
         {:else}
             <div class="blank-page">
-                <div class="information">
+                {@render children?.()}
+
+                <div class="information" style="display: none;">
                     <h2>{getAppropriatedString(basic.information)}</h2>
                     <h6>
                         {getAppropriatedString(fragment_home.no_sync_alert)}

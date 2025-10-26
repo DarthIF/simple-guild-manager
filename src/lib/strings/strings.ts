@@ -11,11 +11,11 @@ export const basic = {
 
     export_data: { en: 'Export Data', pt: 'Exportar Dados' },
     import_data: { en: 'Import Data', pt: 'Importar Dados' },
-    
+
     settings: { en: 'Webapp Settings', pt: 'Configurações do aplicativo da Web' },
     source_code: { en: 'Source Code', pt: 'Código Fonte' },
     about: { en: 'About', pt: 'Sobre' },
-    
+
     undefined: { en: 'Undefined', pt: 'Indefinido' },
     error_warning: { en: 'Error warning', pt: 'Aviso de erro' },
 
@@ -53,10 +53,41 @@ export const errors = {
 
 
 export const fragment_home = {
+    /**
+     * @deprecated
+     */
     no_sync_alert: {
         en: 'The database is saved in your browser, and data is not synced between devices.',
         pt: 'O banco de dados fica salvo no seu navegador, e os dados não são sincronizados entre dispositivos.'
-    }
+    },
+
+
+    no_sync_greeting: {
+        en: 'Welcome back',
+        pt: 'Bem-vindo de volta'
+    },
+    no_sync_line_1: {
+        en: 'The database is saved in your browser.',
+        pt: 'O banco de dados fica salvo no seu navegador.'
+    },
+    no_sync_line_2: {
+        en: 'Information is not synchronized between devices.',
+        pt: 'As informações não são sincronizados entre dispositivos.'
+    },
+
+
+    database_greeting: {
+        en: 'Welcome, %s',
+        pt: 'Bem-vindo, %s'
+    },
+    database_line_1: {
+        en: 'Information from %s database is synchronized.',
+        pt: 'As informações do %s banco de dados  são sincronizadas.'
+    },
+    database_line_2: {
+        en: 'Make changes carefully.',
+        pt: 'Faça alterações com cuidado.'
+    },
 }
 
 export const fragment_manage = {
@@ -92,9 +123,9 @@ export const fragment_commissions = {
     action_available: { en: 'Mark as available', pt: 'Marcar como disponível' },
     action_inactive: { en: 'Mark as inactive', pt: 'Marcar como inativo' },
 
-    confirm_reset_cycle: { 
-        en: 'Do you want to restart the commission cycle? This action will clear the list of closed commissions and cannot be undone.', 
-        pt: 'Deseja reiniciar o ciclo de comissões? Essa ação irá limpar a lista de quem fechou as comissões, e não pode ser desfeita.' 
+    confirm_reset_cycle: {
+        en: 'Do you want to restart the commission cycle? This action will clear the list of closed commissions and cannot be undone.',
+        pt: 'Deseja reiniciar o ciclo de comissões? Essa ação irá limpar a lista de quem fechou as comissões, e não pode ser desfeita.'
     },
 
     state: { en: 'State: %s', pt: 'Estado: %s' },
@@ -174,7 +205,7 @@ export const audit_logs = {
 
 
 export const input_file = {
-    select_file: { en: 'Select file', pt: 'Selecionar arquivo' }, 
+    select_file: { en: 'Select file', pt: 'Selecionar arquivo' },
     file_size: { en: 'File size: %s KiB', pt: 'Tamanho do arquivo: %s KiB' },
 }
 
@@ -185,9 +216,9 @@ export const database_strings = {
     commission_state_closed: { en: 'Closed', pt: 'Fechado' },
     commission_state_inactive: { en: 'Inactive', pt: 'Inativo' },
 
-    import_data_invalid_type: { 
-        en: 'Please select a JSON file.', 
-        pt: 'Por favor, selecione um arquivo JSON.' 
+    import_data_invalid_type: {
+        en: 'Please select a JSON file.',
+        pt: 'Por favor, selecione um arquivo JSON.'
     },
     import_message: {
         en: 'This will replace all current data. Do you wish to continue?',
@@ -199,16 +230,16 @@ export const database_strings = {
     log_add_member: { en: '%s added member %s', pt: '%s adicionou o(a) membro(a) %s' },
     log_delete_member: { en: '%s deleted member %s', pt: '%s excluiu o(a) membro(a) %s' },
     log_edit_member: { en: '%s updated member %s', pt: '%s atualizou o(a) membro(a) %s' },
-    
+
     log_create_team: { en: '%s created team [%s] for the %s event', pt: '%s criou a equipe [%s] para o evento %s' },
     log_delete_team: { en: '%s deleted team [%s] of %s event', pt: '%s excluiu a equipe [%s] do evento %s' },
     log_add_member_to_team: {
-        en: '%s added %s to team [%s], on event %s', 
-        pt: '%s adicionou %s à equipe [%s], no evento %s' 
+        en: '%s added %s to team [%s], on event %s',
+        pt: '%s adicionou %s à equipe [%s], no evento %s'
     },
     log_remove_member_from_team: {
-        en: '%s removed %s of team [%s], on event %s', 
-        pt: '%s removeu %s da equipe [%s], no evento %s' 
+        en: '%s removed %s of team [%s], on event %s',
+        pt: '%s removeu %s da equipe [%s], no evento %s'
     },
 
     log_commission_set_state: { en: '%s defined %s as %s', pt: '%s definiu %s como %s' },

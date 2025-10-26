@@ -1,4 +1,4 @@
-import type { DatabaseOperations } from '$lib/common/database/database-interfaces'
+import type { DatabaseEditor, DatabaseOperations } from '$lib/common/database/database-interfaces'
 import { UNDEFINED_TEAM, type EventTeamType, type MemberTypeV3 } from '$lib/common/database/constants-and-types'
 import { Actions, CommissionState, GameEvents } from '$lib/common/database/enums'
 import { isSuccessfulResponse } from '$lib/utils/http-util'
@@ -16,7 +16,7 @@ function api(action: Actions, postContent: any): Promise<Response> {
 
 
 
-class ClientDatabaseImpl implements DatabaseOperations {
+class ClientDatabaseImpl implements DatabaseOperations, DatabaseEditor {
 
     public async setGuildName(newName: string): Promise<boolean> {
         const response = await api(Actions.SET_GUILD_NAME, { newName })
@@ -202,6 +202,16 @@ class ClientDatabaseImpl implements DatabaseOperations {
         return getMembers(ReactiveDB, ...membersIDS)
     }
 
+
+    public async importData(file: File): Promise<boolean> {
+        console.error('MÉTODO NAO IMPLEMENTADO AINDA')
+        return false
+    }
+
+    public exportData(): boolean {
+        console.error('MÉTODO NAO IMPLEMENTADO AINDA')
+        return false
+    }
 
 }
 

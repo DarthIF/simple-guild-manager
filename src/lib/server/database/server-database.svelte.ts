@@ -629,3 +629,8 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 }
 
 export const RemoteDatabase = new RemoteDatabaseImpl()
+
+
+// Adicionar o URL do banco de dados
+const mongoUri = `mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_CLUSTER}`
+RemoteDatabase.setMongoUri(mongoUri)

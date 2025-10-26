@@ -5,6 +5,9 @@
     import { ReactiveSettings } from "$lib/client/settings.svelte";
     import LoadingLoader from "$lib/components/misc/loading-loader.svelte";
     import "$lib/components/css/glass.css";
+    import Card, { Content } from "@smui/card";
+    import { getAppropriatedString } from "$lib/strings";
+    import { fragment_home } from "$lib/strings/strings";
 
     onMount(() => {
         ReactiveSettings.loading = true;
@@ -22,7 +25,25 @@
     let database = $state(BrowserDatabase);
 </script>
 
-<WebApp bind:database />
+<WebApp bind:database>
+    <Card>
+        <Content>
+            <div style="padding: 1rem;">
+                <h6 class="title">
+                    {getAppropriatedString(fragment_home.no_sync_greeting)}
+                </h6>
+                <div class="subtitle">
+                    <p>
+                        {getAppropriatedString(fragment_home.no_sync_line_1)}
+                    </p>
+                    <p>
+                        {getAppropriatedString(fragment_home.no_sync_line_2)}
+                    </p>
+                </div>
+            </div>
+        </Content>
+    </Card>
+</WebApp>
 
 {#if ReactiveSettings.loading}
     <div class="loader-view fill">
@@ -34,6 +55,14 @@
 {/if}
 
 <style>
+    .title {
+        margin: 0;
+    }
+
+    .subtitle {
+        color: #888;
+    }
+
     .loader-view {
         z-index: 9999;
         position: fixed;

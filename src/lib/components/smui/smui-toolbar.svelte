@@ -60,7 +60,7 @@
                     class="material-symbols-rounded"
                     aria-label=""
                     onclick={() => {
-                        location.assign("/auth");
+                        location.assign("/login");
                     }}
                 >
                     account_circle
