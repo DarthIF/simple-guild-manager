@@ -7,7 +7,8 @@
     import "$lib/components/css/glass.css";
     import Card, { Content } from "@smui/card";
     import { getAppropriatedString } from "$lib/strings";
-    import { fragment_home } from "$lib/strings/strings";
+    import { basic, fragment_home } from "$lib/strings/strings";
+    import { ReactiveDB } from "$lib/client/reactive-database.svelte";
 
     onMount(() => {
         ReactiveSettings.loading = true;
@@ -25,7 +26,15 @@
     let database = $state(BrowserDatabase);
 </script>
 
-<WebApp bind:database>
+<WebApp
+    bind:database
+    title={ReactiveDB.definitions.guild}
+    subtitle={getAppropriatedString(basic.subtitle)}
+    enableProfileButton={ReactiveSettings.isGithubPages === false}
+    onClickListenerProfileButton={() => {
+        location.assign("/login");
+    }}
+>
     <Card>
         <Content>
             <div style="padding: 1rem;">

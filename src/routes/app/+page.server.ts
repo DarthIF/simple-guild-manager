@@ -22,5 +22,6 @@ export const load = (async ({ cookies }) => {
     return {
         name: user.name,
         icon: user.icon,
+        token: session
     }
 }) satisfies PageServerLoad

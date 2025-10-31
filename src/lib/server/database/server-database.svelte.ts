@@ -5,6 +5,10 @@ import { DEFINITIONS_DEFAULT_ID, UNDEFINED_TEAM, type DefinitionsType, type Memb
 import { Actions, CommissionState, GameEvents, Role } from '$lib/common/database/enums'
 import { currentUnixTime } from '$lib/utils/time-util'
 import { forEachGameEvent, getMemberTeamId, isUndefinedTeamID, setMemberTeamId } from '$lib/common/database/utils'
+import { fancyLog } from '../util/server-log'
+
+
+const TAG = 'ServerDatabase'
 
 
 export interface User {
@@ -22,6 +26,8 @@ export interface UserDatabase {
     createUser(username: string, password: string): Promise<boolean>
 
     findUser(name: string | null | undefined): Promise<User | null>
+
+    fundUserByToken(token: string | null | undefined): Promise<User | null>
 
     createSession(name: string): Promise<string | null>
 
@@ -126,13 +132,15 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
             return result.acknowledged
         } catch (e) {
-            console.error(e)
+            fancyLog(TAG, 'Erro inesperado: ', e)
         }
 
         return false
     }
 
     public async findUser(name: string | null | undefined): Promise<User | null> {
+        fancyLog(TAG, `Procurando pelo nome de usuário [${name}]`)
+
         if (typeof name !== 'string')
             return null
 
@@ -144,7 +152,27 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
             return find
         } catch (e) {
-            console.error(e)
+            fancyLog(TAG, 'Erro inesperado: ', e)
+        }
+
+        return null
+    }
+
+    public async fundUserByToken(token: string | null | undefined): Promise<User | null> {
+        fancyLog(TAG, `Procurando pelo token de usuário [${token}]`)
+
+        if (typeof token !== 'string')
+            return null
+
+        try {
+            const db = await this.initialize()
+            const collection = db.collection<User>(COLLECTION_USERS)
+
+            const find = await collection.findOne({ token })
+
+            return find
+        } catch (e) {
+            fancyLog(TAG, 'Erro inesperado: ', e)
         }
 
         return null
@@ -160,7 +188,7 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
             return result.acknowledged ? newToken : null
         } catch (e) {
-            console.error(e)
+            fancyLog(TAG, 'Erro inesperado: ', e)
         }
 
         return null
@@ -176,7 +204,7 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
             return find
         } catch (e) {
-            console.error(e)
+            fancyLog(TAG, 'Erro inesperado: ', e)
         }
 
         return null
@@ -355,7 +383,7 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
                 count: 0,
                 size: 4
             }
-            
+
             const result = await collection.insertOne(team)
             if (!result.acknowledged)
                 return null
@@ -598,7 +626,7 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
         }
     }
 
-    public listCommissionMembersSync(state: CommissionState): MemberTypeV3[] { 
+    public listCommissionMembersSync(state: CommissionState): MemberTypeV3[] {
 
         console.error('NAO IMPLEMENTADO listCommissionMembersSync')
 

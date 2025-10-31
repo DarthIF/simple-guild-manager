@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { page } from "$app/state";
-    import SmuiToolbar from "$lib/components/smui/smui-toolbar.svelte";
+    import SmuiToolbar from "$lib/components/core/app-toolbar.svelte";
     import SmuiDrawer from "$lib/components/smui/smui-drawer.svelte";
     import SmuiDialogImport from "$lib/components/smui/dialogs/smui-dialog-import.svelte";
     import FragmentAuditLog from "$lib/components/fragments/fragment-audit-log.svelte";
@@ -10,8 +10,6 @@
     import FragmentCommissions from "$lib/components/fragments/fragment-commissions.svelte";
     import {
         Fragments,
-        FragmentsParams,
-        getFragmentForID,
         type FragmentPageState,
     } from "$lib/components/fragments/fragments";
     import { saveElementAsImage } from "$lib/utils/image-util";
@@ -19,17 +17,14 @@
         DatabaseEditor,
         DatabaseOperations,
     } from "$lib/common/database/database-interfaces";
-    import { ReactiveDB } from "$lib/client/reactive-database.svelte";
     import FragmentSettings from "$lib/components/fragments/fragment-settings.svelte";
     import FragmentAbout from "$lib/components/fragments/fragment-about.svelte";
-    import { getAppropriatedString } from "$lib/strings";
-    import { basic, fragment_home } from "$lib/strings/strings";
 
-    function ev_OnClickListener_ToolbarDrawerMenu() {
+    function onClickToolbar_DrawerMenu() {
         el_smuiDrawer.openDrawer();
     }
 
-    function ev_OnClickListener_ToolbarGenerateImage() {
+    function onClickToolbar_GenerateImage() {
         if (lockExport || !el_fragmentManageTeams) {
             console.error("Aguarde...");
             return;
@@ -80,22 +75,41 @@
         el_pageContent.scrollTo(0, 0);
     });
 
+    // ------------------------------------------
+
     type ExportType = {
         database: DatabaseOperations & DatabaseEditor;
         title?: string;
+        subtitle?: string;
+        enableProfileButton?: boolean;
+        onClickListenerProfileButton?: () => void;
         children?: any;
     };
-    let { database = $bindable(), title, children }: ExportType = $props();
+    let {
+        database = $bindable(),
+        title = $bindable(""),
+        subtitle = $bindable(""),
+        enableProfileButton = false,
+        onClickListenerProfileButton = undefined,
+        children,
+    }: ExportType = $props();
 </script>
 
 <main class="app-container">
     <SmuiToolbar
-        title={title || ReactiveDB.definitions.guild}
+        {title}
         showGenerateImageButton={enableGenerateImageButton}
-        onClickDrawer={ev_OnClickListener_ToolbarDrawerMenu}
-        onClickGenerateImage={ev_OnClickListener_ToolbarGenerateImage}
+        showProfileButton={enableProfileButton}
+        onClickDrawer={onClickToolbar_DrawerMenu}
+        onClickGenerateImage={onClickToolbar_GenerateImage}
+        onClickProfileButton={onClickListenerProfileButton}
     />
-    <SmuiDrawer bind:this={el_smuiDrawer} bind:database />
+    <SmuiDrawer
+        bind:title
+        bind:subtitle
+        bind:database
+        bind:this={el_smuiDrawer}
+    />
 
     <!-- Conteúdo principal da pagina -->
     <div bind:this={el_pageContent} class="page-content">
@@ -126,13 +140,6 @@
         {:else}
             <div class="blank-page">
                 {@render children?.()}
-
-                <div class="information" style="display: none;">
-                    <h2>{getAppropriatedString(basic.information)}</h2>
-                    <h6>
-                        {getAppropriatedString(fragment_home.no_sync_alert)}
-                    </h6>
-                </div>
             </div>
         {/if}
     </div>
@@ -165,12 +172,5 @@
         display: flex;
         align-items: center;
         justify-content: center;
-    }
-
-    .information {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
     }
 </style>

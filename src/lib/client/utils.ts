@@ -38,7 +38,7 @@ export function getCommissionStateString(state: CommissionState) {
             return database_strings.commission_state_inactive
         default:
             return basic.undefined
-    }   
+    }
 }
 
 export function getDateOrLastClosedString(state: CommissionState, time: number) {
@@ -100,18 +100,18 @@ AuditLogMessages.set(Actions.SET_GUILD_NAME, item => {
     const user = resolveUsername(item)
 
     return getAppropriatedString(database_strings.log_set_guild_name,
-    // Variáveis para formatar 
+        // Variáveis para formatar 
         user, item.details.newName
     )
 })
 
 
-AuditLogMessages.set(Actions.ADD_MEMBER, item => { 
+AuditLogMessages.set(Actions.ADD_MEMBER, item => {
     const user = resolveUsername(item)
     const memberName = item.details.name || '?'
 
     return getAppropriatedString(database_strings.log_add_member,
-    // Variáveis para formatar 
+        // Variáveis para formatar 
         user,
         memberName
     )
@@ -121,7 +121,7 @@ AuditLogMessages.set(Actions.DELETE_MEMBER, item => {
     const memberName = item.details.name || '?'
 
     return getAppropriatedString(database_strings.log_delete_member,
-    // Variáveis para formatar 
+        // Variáveis para formatar 
         user,
         memberName
     )
@@ -131,7 +131,7 @@ AuditLogMessages.set(Actions.EDIT_MEMBER, item => {
     const memberName = item.details.newName || '?'
 
     return getAppropriatedString(database_strings.log_edit_member,
-    // Variáveis para formatar 
+        // Variáveis para formatar 
         user,
         memberName
     )
@@ -144,16 +144,16 @@ AuditLogMessages.set(Actions.CREATE_TEAM, item => {
     const eventAnchor = crateAnchor_ManageTeams(item.details.gameEvent)
 
     return getAppropriatedString(database_strings.log_create_team,
-    // Variáveis para formatar 
+        // Variáveis para formatar 
         user, team, eventAnchor
     )
 })
-AuditLogMessages.set(Actions.DELETE_TEAM, item => { 
+AuditLogMessages.set(Actions.DELETE_TEAM, item => {
     const user = resolveUsername(item)
     const eventAnchor = crateAnchor_ManageTeams(item.details.gameEvent)
 
     return getAppropriatedString(database_strings.log_delete_team,
-    // Variáveis para formatar 
+        // Variáveis para formatar 
         user, eventAnchor
     )
 })
@@ -164,21 +164,21 @@ AuditLogMessages.set(Actions.ADD_MEMBER_TO_TEAM, item => {
     const eventAnchor = crateAnchor_ManageTeams(item.details.gameEvent)
 
     return getAppropriatedString(database_strings.log_add_member_to_team,
-    // Variáveis para formatar 
+        // Variáveis para formatar 
         user,
         member,
         team,
         eventAnchor
     )
 })
-AuditLogMessages.set(Actions.REMOVE_MEMBER_FROM_TEAM, item => { 
+AuditLogMessages.set(Actions.REMOVE_MEMBER_FROM_TEAM, item => {
     const user = resolveUsername(item)
     const member = resolveMember(item.details.memberId)?.name || '?'
     const team = resolveTeam(item.details.gameEvent, item.details.teamId)?.name || '?'
     const eventAnchor = crateAnchor_ManageTeams(item.details.gameEvent)
 
     return getAppropriatedString(database_strings.log_remove_member_from_team,
-    // Variáveis para formatar 
+        // Variáveis para formatar 
         user,
         member,
         team,
@@ -187,21 +187,21 @@ AuditLogMessages.set(Actions.REMOVE_MEMBER_FROM_TEAM, item => {
 })
 
 
-AuditLogMessages.set(Actions.COMMISSION_SET_STATE, item => { 
+AuditLogMessages.set(Actions.COMMISSION_SET_STATE, item => {
     const user = resolveUsername(item)
     const member = resolveMember(item.details.memberId)?.name || '?'
     const state = getCommissionStateString(item.details.state || CommissionState.AVAILABLE)
 
-    return getAppropriatedString(database_strings.log_commission_set_state, 
-    // Variáveis para formatar
+    return getAppropriatedString(database_strings.log_commission_set_state,
+        // Variáveis para formatar
         user, member, state
     )
 })
 AuditLogMessages.set(Actions.COMMISSION_RESET_CYCLE, item => {
     const user = resolveUsername(item)
 
-    return getAppropriatedString(database_strings.log_commission_reset_cycle, 
-    // Variáveis para formatar
-        user 
+    return getAppropriatedString(database_strings.log_commission_reset_cycle,
+        // Variáveis para formatar
+        user
     )
 })

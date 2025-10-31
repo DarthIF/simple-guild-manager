@@ -1,7 +1,6 @@
 <script lang="ts">
     import TopAppBar, { Row, Section, Title } from "@smui/top-app-bar";
     import IconButton from "@smui/icon-button";
-    import { ReactiveSettings } from "$lib/client/settings.svelte";
 
     type ToolbarType = {
         title?: string;
@@ -11,9 +10,11 @@
         secondaryColor?: boolean;
 
         showGenerateImageButton?: boolean;
+        showProfileButton?: boolean;
 
         onClickDrawer?: () => void;
         onClickGenerateImage?: () => void;
+        onClickProfileButton?: () => void;
     };
 
     let {
@@ -24,9 +25,11 @@
         secondaryColor = false,
 
         showGenerateImageButton = false,
+        showProfileButton = false,
 
         onClickDrawer = undefined,
         onClickGenerateImage = undefined,
+        onClickProfileButton = undefined,
     }: ToolbarType = $props();
 </script>
 
@@ -55,13 +58,11 @@
                 </IconButton>
             {/if}
 
-            {#if !ReactiveSettings.isGithubPages}
+            {#if showProfileButton}
                 <IconButton
                     class="material-symbols-rounded"
                     aria-label=""
-                    onclick={() => {
-                        location.assign("/login");
-                    }}
+                    onclick={onClickProfileButton}
                 >
                     account_circle
                 </IconButton>

@@ -213,6 +213,11 @@ class ClientDatabaseImpl implements DatabaseOperations, DatabaseEditor {
         return false
     }
 
+
+    public async downloadDatabase(): Promise<boolean> {
+        return false
+    }
+
 }
 
 export const ClientDatabase = new ClientDatabaseImpl() 

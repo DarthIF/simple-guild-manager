@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { onMount } from "svelte";
     import Drawer, {
         AppContent,
         Content,
@@ -17,7 +16,11 @@
         Meta,
     } from "@smui/list";
     import SmuiDialogImport from "./dialogs/smui-dialog-import.svelte";
-    import { alertWith, getAppropriatedString } from "$lib/strings";
+    import {
+        alertWith,
+        getAppropriatedString,
+        type LocalizedString,
+    } from "$lib/strings";
     import { basic, database_strings } from "$lib/strings/strings";
     import { DialogActions } from "./dialogs/common";
     import { ReactiveDB } from "$lib/client/reactive-database.svelte";
@@ -88,11 +91,30 @@
     });
 
     type ExportType = {
+        /**
+         * Titulo
+         */
+        title?: string;
+        /**
+         * Subtitulo
+         */
+        subtitle?: string;
+        /**
+         * Abrir ou fechar a drawer
+         */
         open?: boolean;
+        /**
+         * Item selecionado atualmente
+         */
         active?: string;
+        /**
+         * Instancia banco de dados usado para exportar ou importar
+         */
         database: DatabaseEditor;
     };
     let {
+        title = $bindable(""),
+        subtitle = $bindable(""),
         open = $bindable(false),
         active = $bindable(""),
         database = $bindable(),
@@ -104,134 +126,127 @@
     https://sveltematerialui.com/demo/drawer/
 -->
 
+<!-- Modelo de item da Drawer -->
+{#snippet MItem(
+    icon: string,
+    text: string | LocalizedString,
+    activated: boolean,
+    onclick: () => void,
+)}
+    <Item {activated} {onclick}>
+        <Graphic class="material-symbols-rounded" aria-hidden="true">
+            {icon}
+        </Graphic>
+        <Text>
+            {getAppropriatedString(text)}
+        </Text>
+    </Item>
+{/snippet}
+
+<!-- Drawer -->
 <Drawer style="user-select: none;" variant="modal" fixed={false} {open}>
     <Header>
-        <Title>{ReactiveDB.definitions.guild}</Title>
-        <Subtitle>{getAppropriatedString(basic.subtitle)}</Subtitle>
+        <Title>{title}</Title>
+        <Subtitle>{subtitle}</Subtitle>
     </Header>
     <Content>
         <List>
             <Separator />
 
-            <Item
-                activated={isActive(Fragments.UNDEFINED)}
-                onclick={() => {
+            {@render MItem(
+                "home",
+                basic.home,
+                isActive(Fragments.UNDEFINED),
+                () => {
                     closeDrawer();
                     navigateToFragment(Fragments.UNDEFINED);
-                }}
-            >
-                <Graphic class="material-symbols-rounded" aria-hidden="true">
-                    home
-                </Graphic>
-                <Text>{getAppropriatedString(basic.home)}</Text>
-            </Item>
-
-            <Item
-                activated={isActive(Fragments.MANAGE_ORGANIZATION)}
-                onclick={() => {
+                },
+            )}
+            {@render MItem(
+                "empty_dashboard",
+                basic.manage_org,
+                isActive(Fragments.MANAGE_ORGANIZATION),
+                () => {
                     closeDrawer();
                     navigateToFragment(Fragments.MANAGE_ORGANIZATION);
-                }}
-            >
-                <Graphic class="material-symbols-rounded" aria-hidden="true">
-                    empty_dashboard
-                </Graphic>
-                <Text>{getAppropriatedString(basic.manage_org)}</Text>
-            </Item>
-            <Item
-                activated={isActive(Fragments.MANAGE_TEAMS)}
-                onclick={() => {
+                },
+            )}
+            {@render MItem(
+                "diversity_3",
+                basic.teams,
+                isActive(Fragments.MANAGE_TEAMS),
+                () => {
                     closeDrawer();
                     navigateToFragment(Fragments.MANAGE_TEAMS);
-                }}
-            >
-                <Graphic class="material-symbols-rounded" aria-hidden="true">
-                    diversity_3
-                </Graphic>
-                <Text>{getAppropriatedString(basic.teams)}</Text>
-            </Item>
-            <Item
-                activated={isActive(Fragments.COMMISSIONS)}
-                onclick={() => {
+                },
+            )}
+            {@render MItem(
+                "sports_martial_arts",
+                basic.commissions,
+                isActive(Fragments.COMMISSIONS),
+                () => {
                     closeDrawer();
                     navigateToFragment(Fragments.COMMISSIONS);
-                }}
-            >
-                <Graphic class="material-symbols-rounded" aria-hidden="true">
-                    sports_martial_arts
-                </Graphic>
-                <Text>{getAppropriatedString(basic.commissions)}</Text>
-            </Item>
-            <Item
-                activated={isActive(Fragments.AUDIT_LOG)}
-                onclick={() => {
+                },
+            )}
+            {@render MItem(
+                "history",
+                basic.audit_log,
+                isActive(Fragments.AUDIT_LOG),
+                () => {
                     closeDrawer();
                     navigateToFragment(Fragments.AUDIT_LOG);
-                }}
-            >
-                <Graphic class="material-symbols-rounded" aria-hidden="true">
-                    history
-                </Graphic>
-                <Text>{getAppropriatedString(basic.audit_log)}</Text>
-            </Item>
+                },
+            )}
 
             <Separator />
             <Subheader tag="h6">
                 {getAppropriatedString(basic.category_database)}
             </Subheader>
 
-            <Item onclick={onClickListenerExportData}>
-                <Graphic class="material-symbols-rounded" aria-hidden="true">
-                    save
-                </Graphic>
-                <Text>
-                    {getAppropriatedString(basic.export_data)}
-                </Text>
-            </Item>
-            <Item onclick={onClickListenerImportData}>
-                <Graphic class="material-symbols-rounded" aria-hidden="true">
-                    upload_file
-                </Graphic>
-                <Text>
-                    {getAppropriatedString(basic.import_data)}
-                </Text>
-            </Item>
+            {@render MItem(
+                "save",
+                basic.export_data,
+                false,
+                onClickListenerExportData,
+            )}
+            {@render MItem(
+                "upload_file",
+                basic.import_data,
+                false,
+                onClickListenerImportData,
+            )}
 
             <Separator />
             <Subheader tag="h6">Simple Guild Manager</Subheader>
-            <Item
-                activated={isActive(Fragments.SETTINGS)}
-                onclick={() => {
+
+            {@render MItem(
+                "settings",
+                basic.settings,
+                isActive(Fragments.SETTINGS),
+                () => {
                     closeDrawer();
                     navigateToFragment(Fragments.SETTINGS);
-                }}
-            >
-                <Graphic class="material-symbols-rounded" aria-hidden="true">
-                    settings
-                </Graphic>
-                <Text>{getAppropriatedString(basic.settings)}</Text>
-            </Item>
-            <Item
-                activated={isActive(Fragments.ABOUT)}
-                onclick={() => {
+                },
+            )}
+            {@render MItem(
+                "info",
+                basic.about,
+                isActive(Fragments.ABOUT),
+                () => {
                     closeDrawer();
                     navigateToFragment(Fragments.ABOUT);
-                }}
-            >
-                <Graphic class="material-symbols-rounded" aria-hidden="true">
-                    info
-                </Graphic>
-                <Text>{getAppropriatedString(basic.about)}</Text>
-            </Item>
+                },
+            )}
+
             <Separator />
-            <Item onclick={() => {}}>
-                <Graphic class="material-symbols-rounded" aria-hidden="true">
-                    folder_data
-                </Graphic>
-                <Text>
-                    {getAppropriatedString(basic.source_code)}
-                </Text>
-            </Item>
+
+            {@render MItem("folder_data", basic.source_code, false, () => {
+                window.open(
+                    "https://github.com/DarthIF/simple-guild-manager",
+                    "_blank",
+                );
+            })}
         </List>
     </Content>
 </Drawer>
