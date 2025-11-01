@@ -14,8 +14,8 @@ export enum Actions {
     COMMISSION_RESET_CYCLE = 'crc',
 
 
-    SYNC_ONLY_LIST_FREE_MEMBERS_FOR_EVENT = 'lfm',
     SYNC_ONLY_LIST_COMMISSION_MEMBERS = 'lcm',
+    SYNC_ONLY_LIST_FREE_MEMBERS_FOR_EVENT = 'lfm',
 }
 
 export enum GameEvents {

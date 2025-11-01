@@ -1,6 +1,7 @@
 import { Collection, Db, FindCursor, MongoClient, type WithId } from 'mongodb'
 import bcrypt from 'bcryptjs'
 import type { DatabaseAuditLog, DatabaseOperations } from '$lib/common/database/database-interfaces'
+import type { User, UserDatabase } from './user'
 import { DEFINITIONS_DEFAULT_ID, UNDEFINED_TEAM, type DefinitionsType, type MemberTypeV3, type EventTeamType, type AuditLogTypeV3, type AuditLogDetailsV3 } from '$lib/common/database/constants-and-types'
 import { Actions, CommissionState, GameEvents, Role } from '$lib/common/database/enums'
 import { currentUnixTime } from '$lib/utils/time-util'
@@ -9,31 +10,6 @@ import { fancyLog } from '../util/server-log'
 
 
 const TAG = 'ServerDatabase'
-
-
-export interface User {
-    // Autenticação
-    name: string
-    hash: string
-    token: string
-
-    // Personalização
-    icon: string
-}
-
-export interface UserDatabase {
-
-    createUser(username: string, password: string): Promise<boolean>
-
-    findUser(name: string | null | undefined): Promise<User | null>
-
-    fundUserByToken(token: string | null | undefined): Promise<User | null>
-
-    createSession(name: string): Promise<string | null>
-
-    findSession(token: string): Promise<User | null>
-
-}
 
 
 const DATABASE_NAME = 'simple-guild-manager'

@@ -8,7 +8,7 @@ export type PostTypes = {}
     & PostCreateTeamType
     & PostDeleteTeamType
     & PostAddMemberToTeamType
-    & PostRemoveMemberToTeamType
+    & PostRemoveMemberFromTeamType
     & PostSetCommissionSateType
     & PostResetCommissionCycleType
     & PostSyncOnlyListCommissionMembersType
@@ -53,7 +53,7 @@ export type PostAddMemberToTeamType = {
     memberId?: string
 }
 
-export type PostRemoveMemberToTeamType = PostAddMemberToTeamType
+export type PostRemoveMemberFromTeamType = PostAddMemberToTeamType
 
 
 
