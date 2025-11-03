@@ -1,6 +1,7 @@
 import type { Nullable } from '$lib/utils/types'
 import type { PostSetGuildNameType, PostAddMemberType, PostDeleteMemberType, PostEditMemberType, PostCreateTeamType, PostDeleteTeamType, PostAddMemberToTeamType, PostRemoveMemberFromTeamType, PostSetCommissionSateType, PostResetCommissionCycleType, PostSyncOnlyListCommissionMembersType, PostSyncOnlyListFreeMembersForEvent, PostTypes } from '$lib/common/database/post-types'
 import type { User } from './user'
+import type { DatabaseOperations } from '$lib/common/database/database-interfaces'
 import { Actions } from '$lib/common/database/enums'
 
 
@@ -33,6 +34,12 @@ export interface ActionResolver<T> {
 }
 
 export abstract class ActionResolverBase<T> implements ActionResolver<T> {
+    protected db: DatabaseOperations
+
+    public constructor(database: DatabaseOperations) {
+        this.db = database
+    }
+
 
     public resolve(action: Actions, user: Nullable<User>, data: PostTypes): Promise<T> {
         switch (action) {
