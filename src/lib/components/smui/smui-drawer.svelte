@@ -23,7 +23,7 @@
     } from "$lib/strings";
     import { basic, database_strings } from "$lib/strings/strings";
     import { DialogActions } from "./dialogs/common";
-    import { ReactiveDB } from "$lib/client/reactive-database.svelte";
+    import { ReactiveDB } from "$lib/client/reactive-db.svelte";
     import type { DatabaseEditor } from "$lib/common/database/database-interfaces";
     import {
         ReactiveSettings,

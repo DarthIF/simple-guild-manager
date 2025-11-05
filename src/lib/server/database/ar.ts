@@ -75,8 +75,15 @@ export abstract class ActionResolverBase<T> implements ActionResolver<T> {
                 return this.syncListCommissionMembers(user, data)
             case Actions.SYNC_ONLY_LIST_FREE_MEMBERS_FOR_EVENT:
                 return this.syncListFreeMembersForEvent(user, data)
+
+
+            default:
+                return this.defaultResolve()
         }
     }
+
+    protected abstract defaultResolve(): Promise<T>
+
 
 
     abstract setGuildName(user: Nullable<User>, data: PostSetGuildNameType): Promise<T>

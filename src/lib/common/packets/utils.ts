@@ -6,8 +6,8 @@ import { Base64 } from "js-base64"
  * @param obj 
  * @returns 
  */
-export function b64Stringify(obj: any) {
-    const str = JSON.stringify(obj)
+export function packetEncode(toEncode: any) {
+    const str = JSON.stringify(toEncode)
     return Base64.encode(str)
         .replaceAll('\n', ' ')
         .trim()
@@ -20,7 +20,18 @@ export function b64Stringify(obj: any) {
  * @param b64Str 
  * @returns 
  */
-export function b64Parser(b64Str: string) {
-    const str = Base64.decode(b64Str)
-    return JSON.parse(str)
+export function packetDecode(toDecode: any) {
+    if (toDecode === undefined)
+        return undefined
+
+    if (toDecode === null || typeof toDecode !== 'string' || toDecode === '')
+        return null
+
+    try {
+        const str = Base64.decode(toDecode)
+        return JSON.parse(str)
+    } catch (error) {
+        console.error(error)
+        return null
+    }
 }

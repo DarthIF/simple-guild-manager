@@ -1,15 +1,19 @@
 import { StatusCodes } from 'http-status-codes'
 import type { PostAddMemberToTeamType, PostAddMemberType, PostCreateTeamType, PostDeleteMemberType, PostDeleteTeamType, PostEditMemberType, PostRemoveMemberFromTeamType, PostResetCommissionCycleType, PostSetCommissionSateType, PostSetGuildNameType, PostSyncOnlyListCommissionMembersType, PostSyncOnlyListFreeMembersForEvent, PostTypes } from '$lib/common/database/post-types'
-import type { DatabaseOperations } from '$lib/common/database/database-interfaces'
 import type { Nullable } from '$lib/utils/types'
 import type { User } from './user'
-import { ActionResolverBase, type ActionResolver } from './ar'
+import { ActionResolverBase } from './ar'
 import { Actions } from '$lib/common/database/enums'
 import { send } from '$lib/utils/http-util'
 import { includePacket } from '../packets'
 
 
 export class ServerActionResolver extends ActionResolverBase<Response> {
+
+    protected async defaultResolve(): Promise<Response> {
+        return send(StatusCodes.SERVICE_UNAVAILABLE)
+    }
+
 
     public async setGuildName(user: Nullable<User>, data: PostSetGuildNameType): Promise<Response> {
         // Validar os tipos antes
@@ -20,7 +24,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
         const updated = await this.db.setGuildName(data.newName, user?.name)
         if (updated) {
             // Adicionar um pacote pendente se for pertinente
-            includePacket(Actions.SET_GUILD_NAME, data)
+            includePacket(user?.token, Actions.SET_GUILD_NAME, data)
 
             return send(StatusCodes.OK, data)
         }
@@ -39,7 +43,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
         const member = await this.db.addMember(data.name, data.power, user?.name)
         if (member) {
             // Adicionar um pacote pendente se for pertinente
-            includePacket(Actions.ADD_MEMBER, member)
+            includePacket(user?.token, Actions.ADD_MEMBER, member)
 
             return send(StatusCodes.OK, member)
         }
@@ -57,7 +61,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
         const deleted = await this.db.deleteMember(data.memberId, user?.name)
         if (deleted) {
             // Adicionar um pacote pendente se for pertinente
-            includePacket(Actions.DELETE_MEMBER, data)
+            includePacket(user?.token, Actions.DELETE_MEMBER, data)
 
             return send(StatusCodes.OK, data)
         }
@@ -75,7 +79,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
         const member = await this.db.editMember(data.memberId, data.newName, data.newPower, user?.name)
         if (member) {
             // Adicionar um pacote pendente se for pertinente
-            includePacket(Actions.EDIT_MEMBER, member)
+            includePacket(user?.token, Actions.EDIT_MEMBER, member)
 
             return send(StatusCodes.OK, member)
         }
@@ -94,7 +98,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
         const team = await this.db.createTeam(data.gameEvent, data.name, user?.name)
         if (team) {
             // Adicionar um pacote pendente se for pertinente
-            includePacket(Actions.CREATE_TEAM, team)
+            includePacket(user?.token, Actions.CREATE_TEAM, team)
 
             return send(StatusCodes.OK, team)
         }
@@ -112,7 +116,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
         const deleted = await this.db.deleteTeam(data.gameEvent, data.teamId, user?.name)
         if (deleted) {
             // Adicionar um pacote pendente se for pertinente
-            includePacket(Actions.DELETE_TEAM, data)
+            includePacket(user?.token, Actions.DELETE_TEAM, data)
 
             return send(StatusCodes.OK, data)
         }
@@ -130,7 +134,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
         const added = await this.db.addMemberToTeam(data.gameEvent, data.teamId, data.memberId, user?.name)
         if (added) {
             // Adicionar um pacote pendente se for pertinente
-            includePacket(Actions.ADD_MEMBER_TO_TEAM, data)
+            includePacket(user?.token, Actions.ADD_MEMBER_TO_TEAM, data)
 
             return send(StatusCodes.OK, data)
         }
@@ -148,7 +152,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
         const removed = await this.db.removeMemberFromTeam(data.gameEvent, data.teamId, data.memberId, user?.name)
         if (removed) {
             // Adicionar um pacote pendente se for pertinente
-            includePacket(Actions.REMOVE_MEMBER_FROM_TEAM, data)
+            includePacket(user?.token, Actions.REMOVE_MEMBER_FROM_TEAM, data)
 
             return send(StatusCodes.OK, data)
         }
@@ -168,7 +172,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
         const updated = await this.db.setCommissionState(data.memberId, data.state, data.updateTime, user?.name)
         if (updated) {
             // Adicionar um pacote pendente se for pertinente
-            includePacket(Actions.COMMISSION_SET_STATE, data)
+            includePacket(user?.token, Actions.COMMISSION_SET_STATE, data)
 
             return send(StatusCodes.OK, data)
         }
@@ -181,7 +185,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
         const reset = await this.db.resetCommissionCycle(user?.name)
         if (reset) {
             // Adicionar um pacote pendente se for pertinente
-            includePacket(Actions.COMMISSION_RESET_CYCLE, {})
+            includePacket(user?.token, Actions.COMMISSION_RESET_CYCLE, {})
 
             return send(StatusCodes.OK)
         }
@@ -200,7 +204,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
         const members = await this.db.listCommissionMembers(data.state)
 
         // Adicionar um pacote pendente se for pertinente
-        includePacket(Actions.SYNC_ONLY_LIST_COMMISSION_MEMBERS, members)
+        includePacket(user?.token, Actions.SYNC_ONLY_LIST_COMMISSION_MEMBERS, members)
 
         return send(StatusCodes.OK, members)
     }
@@ -214,7 +218,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
         const members = await this.db.listFreeMembersForEvent(data.gameEvent)
 
         // Adicionar um pacote pendente se for pertinente
-        includePacket(Actions.SYNC_ONLY_LIST_FREE_MEMBERS_FOR_EVENT, members)
+        includePacket(user?.token, Actions.SYNC_ONLY_LIST_FREE_MEMBERS_FOR_EVENT, members)
 
         return send(StatusCodes.OK, members)
     }

@@ -1,10 +1,14 @@
 import type { RequestHandler } from './$types'
+import type { Undefinable } from '$lib/utils/types'
 import { produce } from 'sveltekit-sse'
 import { fancyLog } from '$lib/server/util/server-log'
-import { b64Stringify } from '$lib/common/packets/utils'
+import { packetEncode } from '$lib/common/packets/utils'
+import { nextPacket, type ServerPacketType } from '$lib/server/packets'
+import { setUserOnline } from '$lib/server/online'
 
 const TAG = 'sync+server.ts'
-const DELAY_MS = 2000
+const WAIT_DELAY = 2000
+const SENDED_DELAY = 100
 
 
 function delay(milliseconds: number) {
@@ -16,6 +20,8 @@ function delay(milliseconds: number) {
 
 export const POST = (({ request }) => {
     let token = request.headers.get('session')
+    let isConnected = false
+    let packet: Undefinable<ServerPacketType> = undefined
 
     if (!token)
         token = 'null'
@@ -23,35 +29,62 @@ export const POST = (({ request }) => {
     return produce(async (connection) => {
         fancyLog(TAG, `Nova conexão estabelecida para token: ${token}`)
 
-        let isConnected = true
+        // Definir o usuário como online
+        setUserOnline(token, true)
 
+        // Loop para atualizar os pacotes para esse cliente
+        isConnected = true
         while (isConnected) {
             try {
-                const packet = {
-                    action: 'foo',
-                    data: 'bar',
-                    timestamp: new Date().toISOString()
+                // Aguardar um tempo para surgir um pacote
+                await delay(packet ? SENDED_DELAY : WAIT_DELAY)
+
+                // Usuário está desconectado
+                if (!isConnected)
+                    break
+
+                // Ler o pacote pendente
+                packet = nextPacket()
+
+                // Não tem um pacote, pular para o proximo loop
+                if (!packet) {
+                    fancyLog(TAG, `Sem pacotes para: ${token}`)
+                    continue
                 }
-                const { error } = connection.emit('message', b64Stringify(packet))
+
+                // Ignorar o pacote se estiver sendo enviado para o autor
+                if (packet.author === token) {
+                    fancyLog(TAG, `Pacote ignorado para ${token}`)
+                    continue
+                }
+
+                // Enviar o pacote para o cliente
+                const { error } = connection.emit('message', packetEncode(packet.send))
 
                 // Parar o loop em caso de erro
                 if (error) {
                     fancyLog(TAG, `Erro ao enviar mensagem ${token} ➜ `, error?.message)
                     isConnected = false
-                    return
+                    break
                 }
 
                 // A mensagem foi enviada para o cliente
                 fancyLog(TAG, `Mensagem enviada para ${token}`)
-
-                // Aguardar
-                await delay(DELAY_MS)
             } catch (error) {
                 fancyLog(TAG, `Erro inesperado para ${token} ➜ `, error)
                 isConnected = false
-                return
+                break
             }
         }
-    }, { ping: 5000 })
+
+        // Finalizar a conexão
+        connection.lock.set(false)
+    }, {
+        ping: 5_000,
+        stop: () => {
+            setUserOnline(token, false)
+            isConnected = false
+        }
+    })
 
 }) satisfies RequestHandler

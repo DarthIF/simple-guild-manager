@@ -1,7 +1,7 @@
 <script lang="ts">
     import Card, { Content } from "@smui/card";
     import { DateTime } from "luxon";
-    import { ReactiveDB } from "$lib/client/reactive-database.svelte";
+    import { ReactiveDB } from "$lib/client/reactive-db.svelte";
     import { ReactiveSettings } from "$lib/client/settings.svelte";
     import type { AuditLogTypeV3 } from "$lib/common/database/constants-and-types";
     import { AuditLogMessages } from "$lib/client/utils";

@@ -1,7 +1,6 @@
 <script lang="ts">
     import { source } from "sveltekit-sse";
-    import { Base64 } from "js-base64";
-    import { b64Parser } from "$lib/common/packets/utils";
+    import { packetDecode } from "$lib/common/packets/utils";
 
     let { token } = $props();
 
@@ -15,7 +14,7 @@
     }).select("message");
 
     sync.subscribe((data) => {
-        const packet = b64Parser(data);
+        const packet = packetDecode(data);
         console.log("Received data", packet);
     });
 </script>

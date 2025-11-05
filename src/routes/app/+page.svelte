@@ -6,7 +6,7 @@
     import { getAppropriatedString } from "$lib/strings";
     import { fragment_home } from "$lib/strings/strings";
     import { ClientDatabase } from "$lib/client/client-database.svelte";
-    import { ReactiveDB } from "$lib/client/reactive-database.svelte";
+    import { ReactiveDB } from "$lib/client/reactive-db.svelte";
     import AppSync from "$lib/components/core/app-sync.svelte";
     import "animate.css";
 

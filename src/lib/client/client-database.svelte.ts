@@ -3,7 +3,8 @@ import { UNDEFINED_TEAM, type EventTeamType, type MemberTypeV3 } from '$lib/comm
 import { Actions, CommissionState, GameEvents } from '$lib/common/database/enums'
 import { isSuccessfulResponse } from '$lib/utils/http-util'
 import { findEventTeamIndex, findMemberByID, findMemberIndexByID, getEventTeam, getEventTeams, getMembers, setMemberTeamId } from '$lib/common/database/utils'
-import { ReactiveDB } from './reactive-database.svelte'
+import { ReactiveDB } from './reactive-db.svelte'
+import type { PacketType } from '$lib/common/packets/type'
 
 
 
@@ -16,16 +17,16 @@ function api(action: Actions, postContent: any): Promise<Response> {
 
 
 
-class ClientDatabaseImpl implements DatabaseOperations, DatabaseEditor {
+class ClientDatabaseApi implements DatabaseOperations, DatabaseEditor {
 
     public async setGuildName(newName: string): Promise<boolean> {
+        // Enviar a operação para o servidor
         const response = await api(Actions.SET_GUILD_NAME, { newName })
         if (!isSuccessfulResponse(response))
             return false
 
         // Sincronizar a informação localmente
-        ReactiveDB.definitions.guild = newName
-        return true
+        return await ClientSync.setGuildName(newName)
     }
 
 
@@ -37,9 +38,7 @@ class ClientDatabaseImpl implements DatabaseOperations, DatabaseEditor {
 
         // Sincronizar a informação localmente
         const member: MemberTypeV3 = await response.json()
-        ReactiveDB.members.push(member)
-
-        return member
+        return await ClientSync.addMember(member)
     }
 
     public async deleteMember(memberId: string): Promise<boolean> {
@@ -48,11 +47,7 @@ class ClientDatabaseImpl implements DatabaseOperations, DatabaseEditor {
             return false
 
         // Sincronizar a informação localmente
-        const memberIndex = findMemberIndexByID(ReactiveDB, memberId)
-        if (memberIndex > -1)
-            ReactiveDB.members.splice(memberIndex, 1) // Remover o membro
-
-        return true
+        return await ClientSync.deleteMember(memberId)
     }
 
     public async editMember(memberId: string, newName: string, newPower: number): Promise<MemberTypeV3 | null> {
@@ -61,14 +56,7 @@ class ClientDatabaseImpl implements DatabaseOperations, DatabaseEditor {
             return null
 
         // Sincronizar a informação localmente
-        const member = findMemberByID(ReactiveDB, memberId)
-        if (!member)
-            return null
-
-        member.name = newName
-        member.power = newPower
-
-        return member
+        return await ClientSync.editMember(memberId, newName, newPower)
     }
 
     public async findMember(memberId: string): Promise<MemberTypeV3 | null> {
@@ -86,9 +74,7 @@ class ClientDatabaseImpl implements DatabaseOperations, DatabaseEditor {
 
         // Sincronizar a informação localmente
         const team: EventTeamType = await response.json()
-        ReactiveDB.events.push(team)
-
-        return team
+        return await ClientSync.createTeam(team)
     }
 
     public async deleteTeam(gameEvent: GameEvents, teamId: string): Promise<boolean> {
@@ -97,17 +83,7 @@ class ClientDatabaseImpl implements DatabaseOperations, DatabaseEditor {
             return false
 
         // Sincronizar a informação localmente 
-        const index = findEventTeamIndex(ReactiveDB, gameEvent, teamId)
-
-        if (index < 0)
-            // Retornar true porque nesse contexto o time foi removido no servidor
-            // porem no cliente não existia, isso realmente pode acontecer????
-            return true
-
-        // Deletar o time
-        ReactiveDB.events.splice(index, 1)
-
-        return true
+        return await ClientSync.deleteTeam(gameEvent, teamId)
     }
 
     public async listTeams(gameEvent: GameEvents): Promise<EventTeamType[]> {
@@ -120,15 +96,7 @@ class ClientDatabaseImpl implements DatabaseOperations, DatabaseEditor {
             return false
 
         // Sincronizar a informação localmente
-        const member = findMemberByID(ReactiveDB, memberId)
-        if (member)
-            setMemberTeamId(member, gameEvent, teamId)
-
-        const team = getEventTeam(ReactiveDB, gameEvent, teamId)
-        if (team)
-            team.count += 1
-
-        return true
+        return await ClientSync.addMemberToTeam(gameEvent, teamId, memberId)
     }
 
     public async removeMemberFromTeam(gameEvent: GameEvents, teamId: string, memberId: string): Promise<boolean> {
@@ -137,15 +105,7 @@ class ClientDatabaseImpl implements DatabaseOperations, DatabaseEditor {
             return false
 
         // Sincronizar a informação localmente
-        const member = findMemberByID(ReactiveDB, memberId)
-        if (member)
-            setMemberTeamId(member, gameEvent, UNDEFINED_TEAM)
-
-        const team = getEventTeam(ReactiveDB, gameEvent, teamId)
-        if (team)
-            team.count -= 1
-
-        return true
+        return await ClientSync.removeMemberFromTeam(gameEvent, teamId, memberId)
     }
 
     public async listFreeMembersForEvent(gameEvent: GameEvents): Promise<MemberTypeV3[]> {
@@ -168,13 +128,7 @@ class ClientDatabaseImpl implements DatabaseOperations, DatabaseEditor {
 
         // Sincronizar a informação localmente
         const result: MemberTypeV3 = await response.json()
-        const member = findMemberByID(ReactiveDB, memberId)
-        if (member) {
-            member.state = result.state
-            member.time = result.time
-        }
-
-        return true
+        return await ClientSync.setCommissionState(memberId, result.state, result.time)
     }
 
     public async resetCommissionCycle(): Promise<boolean> {
@@ -183,12 +137,7 @@ class ClientDatabaseImpl implements DatabaseOperations, DatabaseEditor {
             return false
 
         // Sincronizar a informação localmente
-        for (const member of ReactiveDB.members) {
-            member.state = CommissionState.AVAILABLE
-            member.time = 0
-        }
-
-        return true
+        return await ClientSync.resetCommissionCycle()
     }
 
     public async listCommissionMembers(state: CommissionState): Promise<MemberTypeV3[]> {
@@ -220,4 +169,124 @@ class ClientDatabaseImpl implements DatabaseOperations, DatabaseEditor {
 
 }
 
-export const ClientDatabase = new ClientDatabaseImpl() 
+class ClientSyncImpl {
+
+    public async syncFromPacket(packet: PacketType) {
+        switch (packet.action) {
+            case Actions.SET_GUILD_NAME:
+            case Actions.ADD_MEMBER:
+            case Actions.DELETE_MEMBER:
+            case Actions.EDIT_MEMBER:
+            case Actions.CREATE_TEAM:
+            case Actions.DELETE_TEAM:
+            case Actions.ADD_MEMBER_TO_TEAM:
+            case Actions.REMOVE_MEMBER_FROM_TEAM:
+            case Actions.COMMISSION_SET_STATE:
+            case Actions.COMMISSION_RESET_CYCLE:
+            default:
+                return
+        }
+    }
+
+
+
+    public async setGuildName(newName: string): Promise<boolean> {
+        ReactiveDB.definitions.guild = newName
+        return true
+    }
+
+
+
+    public async addMember(member: MemberTypeV3): Promise<MemberTypeV3 | null> {
+        ReactiveDB.members.push(member)
+        return member
+    }
+
+    public async deleteMember(memberId: string): Promise<boolean> {
+        const memberIndex = findMemberIndexByID(ReactiveDB, memberId)
+        if (memberIndex > -1)
+            ReactiveDB.members.splice(memberIndex, 1) // Remover o membro
+
+        return true
+    }
+
+    public async editMember(memberId: string, newName: string, newPower: number): Promise<MemberTypeV3 | null> {
+        const member = findMemberByID(ReactiveDB, memberId)
+        if (!member)
+            return null
+
+        member.name = newName
+        member.power = newPower
+
+        return member
+    }
+
+
+    public async createTeam(team: EventTeamType): Promise<EventTeamType | null> {
+        ReactiveDB.events.push(team)
+        return team
+    }
+
+    public async deleteTeam(gameEvent: GameEvents, teamId: string): Promise<boolean> {
+        const index = findEventTeamIndex(ReactiveDB, gameEvent, teamId)
+        if (index < 0)
+            // Retornar true porque nesse contexto o time foi removido no servidor
+            // porem no cliente não existia, isso realmente pode acontecer????
+            return true
+
+        // Deletar o time
+        ReactiveDB.events.splice(index, 1)
+        return true
+    }
+
+    public async addMemberToTeam(gameEvent: GameEvents, teamId: string, memberId: string): Promise<boolean> {
+        const member = findMemberByID(ReactiveDB, memberId)
+        if (member)
+            setMemberTeamId(member, gameEvent, teamId)
+
+        const team = getEventTeam(ReactiveDB, gameEvent, teamId)
+        if (team)
+            team.count += 1
+
+        return true
+    }
+
+    public async removeMemberFromTeam(gameEvent: GameEvents, teamId: string, memberId: string): Promise<boolean> {
+        const member = findMemberByID(ReactiveDB, memberId)
+        if (member)
+            setMemberTeamId(member, gameEvent, UNDEFINED_TEAM)
+
+        const team = getEventTeam(ReactiveDB, gameEvent, teamId)
+        if (team)
+            team.count -= 1
+
+        return true
+    }
+
+
+    public async setCommissionState(memberId: string, state: CommissionState, time: number): Promise<boolean> {
+        const member = findMemberByID(ReactiveDB, memberId)
+        if (member) {
+            member.state = state
+            member.time = time
+        }
+
+        return true
+    }
+
+    public async resetCommissionCycle(userName?: string): Promise<boolean> {
+        for (const member of ReactiveDB.members) {
+            member.state = CommissionState.AVAILABLE
+            member.time = 0
+        }
+
+        return true
+    }
+
+}
+
+
+export const ClientDatabase = new ClientDatabaseApi()
+
+export const ClientSync = new ClientSyncImpl()
+

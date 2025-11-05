@@ -1,9 +1,6 @@
 import type { DatabaseTypeV3, EventTeamType, MemberTypeV3 } from './constants-and-types'
 import { UNDEFINED_TEAM, } from './constants-and-types'
 import { GameEvents, Actions } from './enums'
-import { getAppropriatedString } from "$lib/strings";
-import { database_strings, basic } from "$lib/strings/strings";
-import { ReactiveDB } from "$lib/client/reactive-database.svelte";
 
 
 

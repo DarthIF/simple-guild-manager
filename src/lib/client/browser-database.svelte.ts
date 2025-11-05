@@ -3,7 +3,7 @@ import { UNDEFINED_TEAM, validadeDatabaseJson, type MemberTypeV3, type DatabaseJ
 import { Actions, CommissionState, GameEvents, Role } from '$lib/common/database/enums'
 import { findMemberByID, getMemberTeam, modifyTeamCount, setMemberTeamId, getMemberTeamId, isUndefinedTeamID, findMemberIndexByID, getEventTeams, findEventTeamIndex, getEventTeam } from '$lib/common/database/utils'
 import { currentUnixTime } from '$lib/utils/time-util'
-import { createDefaultData, ReactiveDB } from './reactive-database.svelte'
+import { createDefaultData, ReactiveDB } from './reactive-db.svelte'
 import { downloadJsonFile, readFileAsString } from '$lib/utils/file-utils'
 import { getAppropriatedString } from '$lib/strings'
 import { database_strings } from '$lib/strings/strings'

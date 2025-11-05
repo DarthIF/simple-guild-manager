@@ -1,7 +1,7 @@
 import type { EventTeamType, AuditLogTypeV3 } from '$lib/common/database/constants-and-types'
 import { getMemberTeamId } from '$lib/common/database/utils'
 import { formatNumberCompact } from '$lib/utils/number-util'
-import { ReactiveDB } from './reactive-database.svelte'
+import { ReactiveDB } from './reactive-db.svelte'
 import { CommissionState, Actions } from "$lib/common/database/enums"
 import { basic, database_strings, fragment_commissions } from "$lib/strings/strings"
 import { getAppropriatedString } from "$lib/strings"

@@ -25,7 +25,7 @@
     import { onMount } from "svelte";
     import type { DatabaseOperations } from "$lib/common/database/database-interfaces";
     import type { MemberTypeV3 } from "$lib/common/database/constants-and-types";
-    import { ReactiveDB } from "$lib/client/reactive-database.svelte";
+    import { ReactiveDB } from "$lib/client/reactive-db.svelte";
     import { ReactiveSettings } from "$lib/client/settings.svelte";
 
     function saveNewOrgName() {

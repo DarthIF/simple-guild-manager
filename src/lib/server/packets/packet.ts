@@ -1,6 +1,6 @@
-import type { Actions } from '$lib/common/database/enums'
+import type { PacketType } from '$lib/common/packets/type'
 
-export type PacketType = {
-    action: Actions
-    data: any
+export type ServerPacketType = {
+    author: string | null | undefined
+    send: PacketType
 }

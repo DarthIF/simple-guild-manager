@@ -1,4 +1,8 @@
+import { fancyLog } from "../util/server-log"
+
+
 const currentOnline = new Set<string>()
+const TAG = 'ServerOnline'
 
 
 export function getOnlineCount(): number {
@@ -9,9 +13,11 @@ export function getOnlineUsers(): string[] {
     return [...currentOnline]
 }
 
-export function setUserOnline(username: string, online: boolean) {
+export function setUserOnline(token: string, online: boolean) {
+    fancyLog(TAG, `Usuário [${token}] está ${online ? 'online' : 'offline'}`)
+
     if (online)
-        currentOnline.add(username)
+        currentOnline.add(token)
     else
-        currentOnline.delete(username)
+        currentOnline.delete(token)
 }

@@ -14,6 +14,11 @@ function CommonReturn(obj: any, valid = StatusCodes.OK, invalid = StatusCodes.IN
 
 export class ClientActionResolver extends ActionResolverBase<StatusCodes> {
 
+    protected async defaultResolve(): Promise<StatusCodes> {
+        return StatusCodes.SERVICE_UNAVAILABLE
+    }
+
+
     public async setGuildName(user: Nullable<User>, data: PostSetGuildNameType): Promise<StatusCodes> {
         // Validar os tipos antes
         if (typeof data.newName !== 'string')

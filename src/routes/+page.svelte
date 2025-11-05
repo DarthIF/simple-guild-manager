@@ -8,7 +8,7 @@
     import Card, { Content } from "@smui/card";
     import { getAppropriatedString } from "$lib/strings";
     import { basic, fragment_home } from "$lib/strings/strings";
-    import { ReactiveDB } from "$lib/client/reactive-database.svelte";
+    import { ReactiveDB } from "$lib/client/reactive-db.svelte";
 
     onMount(() => {
         ReactiveSettings.loading = true;

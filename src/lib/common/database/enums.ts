@@ -1,4 +1,8 @@
+import type { NullableU } from "$lib/utils/types"
+
 export enum Actions {
+    UNDEFINED = 'undefined',
+
     SET_GUILD_NAME = 'con',
 
     ADD_MEMBER = 'am',
@@ -36,4 +40,14 @@ export enum Role {
     ELITE = 1,
     VICE_PRESIDENT = 2,
     PRESIDENT = 3,
+}
+
+
+export function parseActions(str: NullableU<string>): Actions {
+    for (const action of Object.values(Actions)) {
+        if (action === str)
+            return action
+    }
+
+    return Actions.UNDEFINED
 }

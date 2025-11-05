@@ -12,7 +12,7 @@
         ReactiveSettings,
         THEN_CALLBACK_COMPLETE_LOAD,
     } from "$lib/client/settings.svelte";
-    import { ReactiveDB } from "$lib/client/reactive-database.svelte";
+    import { ReactiveDB } from "$lib/client/reactive-db.svelte";
     import { GameEvents } from "$lib/common/database/enums";
     import { calculateTeamPowerCompact } from "$lib/client/utils";
     import { getMembersOfTeam } from "$lib/common/database/utils";

@@ -5,6 +5,7 @@ import { StatusCodes } from 'http-status-codes'
 import { send } from '$lib/utils/http-util'
 import { fancyLog } from '$lib/server/util/server-log'
 import { ServerActionResolver } from '$lib/server/database/server-actions-resolver'
+import { parseActions } from '$lib/common/database/enums'
 
 
 const TAG = 'mu+server.svelte'
@@ -33,5 +34,6 @@ export const POST = (async ({ request, cookies, params }) => {
 
     fancyLog(TAG, `[${token}] post content ➜  `, data)
 
-    return await actionResolver.resolve(params.action, user, data)
+    const action = parseActions(params.action)
+    return await actionResolver.resolve(action, user, data)
 }) satisfies RequestHandler

@@ -16,7 +16,7 @@
         ReactiveSettings,
         THEN_CALLBACK_COMPLETE_LOAD,
     } from "$lib/client/settings.svelte";
-    import { ReactiveDB } from "$lib/client/reactive-database.svelte";
+    import { ReactiveDB } from "$lib/client/reactive-db.svelte";
     import SmuiFab from "../smui/smui-fab.svelte";
     import CommissionSelector from "../selector/commission-selector.svelte";
     import CardCommissionMember from "../card-commission-member.svelte";
