@@ -21,3 +21,12 @@ export function setUserOnline(token: string, online: boolean) {
     else
         currentOnline.delete(token)
 }
+
+export function checkIfHasSendedToAllUsersOnline(sendedTo: Set<string>): boolean {
+    for (const online of currentOnline) {
+        if (!sendedTo.has(online))
+            return false
+    }
+
+    return true
+}

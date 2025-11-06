@@ -1,5 +1,5 @@
 import type { RequestHandler } from './$types'
-import type { Undefinable } from '$lib/utils/types'
+import type { Nullable, NullableU, Undefinable } from '$lib/utils/types'
 import { produce } from 'sveltekit-sse'
 import { fancyLog } from '$lib/server/util/server-log'
 import { packetEncode } from '$lib/common/packets/utils'
@@ -21,7 +21,7 @@ function delay(milliseconds: number) {
 export const POST = (({ request }) => {
     let token = request.headers.get('session')
     let isConnected = false
-    let packet: Undefinable<ServerPacketType> = undefined
+    let packet: Nullable<ServerPacketType> = null
 
     if (!token)
         token = 'null'
@@ -44,11 +44,11 @@ export const POST = (({ request }) => {
                     break
 
                 // Ler o pacote pendente
-                packet = nextPacket()
+                packet = nextPacket(token)
 
                 // Não tem um pacote, pular para o proximo loop
                 if (!packet) {
-                    fancyLog(TAG, `Sem pacotes para: ${token}`)
+                    // fancyLog(TAG, `Sem pacotes para: ${token}`)
                     continue
                 }
 

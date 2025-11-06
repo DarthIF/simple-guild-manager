@@ -1,4 +1,4 @@
-import type { LocalDatabase } from '$lib/common/database/database-interfaces'
+import type { DatabaseOperationResult_SetCommissionState, LocalDatabase } from '$lib/common/database/database-interfaces'
 import { UNDEFINED_TEAM, validadeDatabaseJson, type MemberTypeV3, type DatabaseJsonType, type AuditLogDetailsV3, type EventTeamType } from '$lib/common/database/constants-and-types'
 import { Actions, CommissionState, GameEvents, Role } from '$lib/common/database/enums'
 import { findMemberByID, getMemberTeam, modifyTeamCount, setMemberTeamId, getMemberTeamId, isUndefinedTeamID, findMemberIndexByID, getEventTeams, findEventTeamIndex, getEventTeam } from '$lib/common/database/utils'
@@ -235,22 +235,28 @@ class BrowserDatabaseImpl implements LocalDatabase {
 
 
 
-    public async setCommissionState(memberId: string, state: CommissionState, updateTime: boolean): Promise<boolean> {
+    public async setCommissionState(memberId: string, state: CommissionState, updateTime: boolean): Promise<DatabaseOperationResult_SetCommissionState> {
         const member = findMemberByID(ReactiveDB, memberId)
-
         if (!member)
-            return false
+            return { updated: false }
 
         member.state = state
 
         if (updateTime)
             member.time = currentUnixTime()
+        else
+            member.time = 0
 
 
         // Adicionar ao registro de auditoria, salvamento automático
         await this.addAuditLog(Actions.COMMISSION_SET_STATE, { memberId, state })
 
-        return true
+        return {
+            updated: true,
+            memberId,
+            state,
+            time: member.time
+        }
     }
 
     public async resetCommissionCycle(): Promise<boolean> {

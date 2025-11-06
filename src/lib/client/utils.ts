@@ -1,11 +1,11 @@
-import type { EventTeamType, AuditLogTypeV3 } from '$lib/common/database/constants-and-types'
+import type { EventTeamType, AuditLogTypeV3, MemberTypeV3 } from '$lib/common/database/constants-and-types'
 import { getMemberTeamId } from '$lib/common/database/utils'
 import { formatNumberCompact } from '$lib/utils/number-util'
 import { ReactiveDB } from './reactive-db.svelte'
 import { CommissionState, Actions } from "$lib/common/database/enums"
 import { basic, database_strings, fragment_commissions } from "$lib/strings/strings"
 import { getAppropriatedString } from "$lib/strings"
-import { Fragments, FragmentsParams, getNavigateURL } from "$lib/components/fragments/fragments"
+import { Fragments } from "$lib/components/fragments/fragments"
 
 
 export function calculateTeamPower(team: EventTeamType): number {
@@ -48,6 +48,17 @@ export function getDateOrLastClosedString(state: CommissionState, time: number) 
         return getAppropriatedString(fragment_commissions.last_closed, dateString)
 
     return getAppropriatedString(fragment_commissions.date, dateString)
+}
+
+
+export function replaceMember(member: MemberTypeV3) {
+    const index = ReactiveDB.members.findIndex(m => m.id === member.id)
+
+    if (index < 0)
+        return false
+
+    ReactiveDB.members[index] = member
+    return true
 }
 
 

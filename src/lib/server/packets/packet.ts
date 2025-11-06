@@ -1,6 +1,7 @@
 import type { PacketType } from '$lib/common/packets/type'
 
 export type ServerPacketType = {
-    author: string | null | undefined
+    author: string
+    sended: Set<string>
     send: PacketType
 }

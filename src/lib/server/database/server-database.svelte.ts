@@ -1,6 +1,6 @@
 import { Collection, Db, FindCursor, MongoClient, type WithId } from 'mongodb'
 import bcrypt from 'bcryptjs'
-import type { DatabaseAuditLog, DatabaseOperations } from '$lib/common/database/database-interfaces'
+import type { DatabaseAuditLog, DatabaseOperationResult_SetCommissionState, DatabaseOperations } from '$lib/common/database/database-interfaces'
 import type { User, UserDatabase } from './user'
 import { DEFINITIONS_DEFAULT_ID, UNDEFINED_TEAM, type DefinitionsType, type MemberTypeV3, type EventTeamType, type AuditLogTypeV3, type AuditLogDetailsV3 } from '$lib/common/database/constants-and-types'
 import { Actions, CommissionState, GameEvents, Role } from '$lib/common/database/enums'
@@ -538,7 +538,7 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
 
 
-    public async setCommissionState(memberId: string, state: CommissionState, updateTime: boolean, userName?: string): Promise<boolean> {
+    public async setCommissionState(memberId: string, state: CommissionState, updateTime: boolean, userName?: string): Promise<DatabaseOperationResult_SetCommissionState> {
         try {
             const db = await this.initialize()
             const collection = db.collection<MemberTypeV3>(COLLECTION_MEMBERS)
@@ -548,14 +548,19 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
             const result = await collection.updateOne({ id: memberId }, { $set: { state, time } })
 
             if (!result.acknowledged)
-                return false
+                return { updated: false }
 
             // Adicionar ao registro de auditoria de forma assincrônica
             this.addAuditLog(Actions.COMMISSION_SET_STATE, { memberId, state }, userName)
 
-            return true
+            return {
+                updated: true,
+                memberId,
+                state,
+                time
+            }
         } catch (error) {
-            return false
+            return { updated: false }
         }
     }
 

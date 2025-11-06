@@ -21,8 +21,8 @@ export const DATA_STRUCTURE_TEMPLATE: DatabaseJsonType = {
 
 
 
-export function validateDatabase(data: any): boolean {
-    return data
+export function validateDatabase(data: Partial<DatabaseTypeV3>): boolean {
+    const step_1 = data
         && typeof data.definitions === 'object'
         && typeof data.definitions.id === 'string'
         && typeof data.definitions.guild === 'string'
@@ -31,14 +31,55 @@ export function validateDatabase(data: any): boolean {
         && typeof data.events === 'object'
         && typeof data.auditLog === 'object'
         && Array.isArray(data.members)
-        && Array.isArray(data.members)
+        && Array.isArray(data.events)
         && Array.isArray(data.auditLog)
+
+    if (!step_1)
+        return false
+
+    // @ts-ignore
+    for (const m of data.members) {
+        if (validateMemberTypeV3(m) !== true)
+            return false
+    }
+
+    //@ts-ignore
+    for (const t of data.events) {
+        if (validateEventTeamType(t) !== true)
+            return false
+    }
+
+    return true
 }
 
-export function validadeDatabaseJson(data: any): boolean {
+export function validadeDatabaseJson(data: Partial<DatabaseJsonType>): boolean {
     return validateDatabase(data) && typeof data.version === 'number'
 }
 
+export function validateMemberTypeV3(member: Partial<MemberTypeV3>): boolean {
+    return member
+        && typeof member.id === 'string'
+        && typeof member.name === 'string'
+        && typeof member.power === 'number'
+        && typeof member.role === 'number'
+        && typeof member.offline === 'number'
+        && typeof member.state === 'number'
+        && typeof member.time === 'number'
+        && typeof member.missed === 'number'
+        && typeof member.worldTree === 'string'
+        && typeof member.minesInDungeon === 'string'
+        && typeof member.cloudKingdom === 'string'
+        && typeof member.cassinoOnYacht === 'string'
+}
+
+export function validateEventTeamType(team: Partial<EventTeamType>) {
+    return team
+        && typeof team.event === 'string'
+        && typeof team.id === 'string'
+        && typeof team.name === 'string'
+        && typeof team.count === 'number'
+        && typeof team.size === 'number'
+}
 
 
 

@@ -1,5 +1,5 @@
 import { StatusCodes } from 'http-status-codes'
-import type { PostAddMemberToTeamType, PostAddMemberType, PostCreateTeamType, PostDeleteMemberType, PostDeleteTeamType, PostEditMemberType, PostRemoveMemberFromTeamType, PostResetCommissionCycleType, PostSetCommissionSateType, PostSetGuildNameType, PostSyncOnlyListCommissionMembersType, PostSyncOnlyListFreeMembersForEvent, PostTypes } from '$lib/common/database/post-types'
+import type { PostAddMemberToTeamType, PostAddMemberType, PostCreateTeamType, PostDeleteMemberType, PostDeleteTeamType, PostEditMemberType, PostRemoveMemberFromTeamType, PostResetCommissionCycleType, PostSetCommissionSateType, PostSetGuildNameType, PostSyncOnlyListCommissionMembersType, PostSyncOnlyListFreeMembersForEvent, PostTypes, ResponseSetCommissionSateType } from '$lib/common/database/post-types'
 import type { Nullable } from '$lib/utils/types'
 import type { User } from './user'
 import { ActionResolverBase } from './ar'
@@ -169,12 +169,18 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
             return send(StatusCodes.BAD_REQUEST)
 
         // Atualizar o membro
-        const updated = await this.db.setCommissionState(data.memberId, data.state, data.updateTime, user?.name)
-        if (updated) {
-            // Adicionar um pacote pendente se for pertinente
-            includePacket(user?.token, Actions.COMMISSION_SET_STATE, data)
+        const result = await this.db.setCommissionState(data.memberId, data.state, data.updateTime, user?.name)
+        if (result.updated) {
+            const response: ResponseSetCommissionSateType = {
+                memberId: result.memberId,
+                state: result.state,
+                time: result.time
+            }
 
-            return send(StatusCodes.OK, data)
+            // Adicionar um pacote pendente se for pertinente
+            includePacket(user?.token, Actions.COMMISSION_SET_STATE, response)
+
+            return send(StatusCodes.OK, response)
         }
 
         // Erro interno

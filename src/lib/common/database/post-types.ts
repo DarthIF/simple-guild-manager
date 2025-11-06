@@ -1,3 +1,4 @@
+import type { EventTeamType, MemberTypeV3 } from "./constants-and-types"
 import type { CommissionState, GameEvents } from "./enums"
 
 export type PostTypes = {}
@@ -73,4 +74,22 @@ export type PostSyncOnlyListCommissionMembersType = {
 
 export type PostSyncOnlyListFreeMembersForEvent = {
     gameEvent?: GameEvents
+}
+
+
+
+//  ---------------------------------------------
+
+
+
+export type ResponseAddMemberType = Partial<MemberTypeV3>
+
+export type ResponseEditMemberType = Partial<MemberTypeV3>
+
+export type ResponseCreateTeamType = Partial<EventTeamType>
+
+export type ResponseSetCommissionSateType = {
+    memberId?: string
+    state?: CommissionState
+    time?: number
 }

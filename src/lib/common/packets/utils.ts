@@ -1,4 +1,6 @@
 import { Base64 } from "js-base64"
+import type { PacketType } from "./type"
+import type { NullableU } from "$lib/utils/types"
 
 /**
  * Converte um {@link Object} em Json e depois em Base64
@@ -6,7 +8,7 @@ import { Base64 } from "js-base64"
  * @param obj 
  * @returns 
  */
-export function packetEncode(toEncode: any) {
+export function packetEncode(toEncode: Partial<PacketType>) {
     const str = JSON.stringify(toEncode)
     return Base64.encode(str)
         .replaceAll('\n', ' ')
@@ -20,7 +22,7 @@ export function packetEncode(toEncode: any) {
  * @param b64Str 
  * @returns 
  */
-export function packetDecode(toDecode: any) {
+export function packetDecode(toDecode: NullableU<string>): NullableU<Partial<PacketType>> {
     if (toDecode === undefined)
         return undefined
 

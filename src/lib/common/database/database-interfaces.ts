@@ -105,7 +105,7 @@ export interface DatabaseOperations {
      * @param updateTime 
      * @param userName 
      */
-    setCommissionState(memberId: string, state: CommissionState, updateTime: boolean, userName?: string): Promise<boolean>
+    setCommissionState(memberId: string, state: CommissionState, updateTime: boolean, userName?: string): Promise<DatabaseOperationResult_SetCommissionState>
     /**
      * Reinicia o ciclo de comissões
      * 
@@ -151,4 +151,13 @@ export interface LocalDatabase extends DatabaseOperations, DatabaseEditor, Datab
 
     saveData(): Promise<boolean>
 
-}  
+}
+
+
+
+export type DatabaseOperationResult_SetCommissionState = {
+    updated: boolean
+    memberId?: string
+    state?: CommissionState
+    time?: number
+}
