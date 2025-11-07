@@ -1,10 +1,13 @@
 import type { RequestHandler } from './$types'
-import type { Nullable, NullableU, Undefinable } from '$lib/utils/types'
-import { produce } from 'sveltekit-sse'
+import type { Nullable } from '$lib/utils/types'
+import type { PacketType } from '$lib/common/packets/type'
+import { produce, type Connection } from 'sveltekit-sse'
 import { fancyLog } from '$lib/server/util/server-log'
 import { packetEncode } from '$lib/common/packets/utils'
 import { nextPacket, type ServerPacketType } from '$lib/server/packets'
 import { setUserOnline } from '$lib/server/online'
+import { RemoteDatabase } from '$lib/server/database/server-database.svelte'
+import { Actions } from '$lib/common/database/enums'
 
 const TAG = 'sync+server.ts'
 const WAIT_DELAY = 2000
@@ -17,20 +20,47 @@ function delay(milliseconds: number) {
     })
 }
 
+async function sendDatabase(connection: Connection, token: string) {
+    const exportedDB = await RemoteDatabase.createExportableDatabase({
+        definitions: true,
+        members: true,
+        events: true
+    })
+
+    const packet: PacketType = {
+        action: Actions.SYNC_ONLY_DATABASE_LOAD,
+        exported: exportedDB
+    }
+
+    const { error } = connection.emit('message', packetEncode(packet))
+    if (error) {
+        fancyLog(TAG, `Erro ao enviar o banco de dados para ${token} ➜ `, error?.message)
+    }
+}
+
 
 export const POST = (({ request }) => {
     let token = request.headers.get('session')
     let isConnected = false
     let packet: Nullable<ServerPacketType> = null
 
-    if (!token)
-        token = 'null'
-
     return produce(async (connection) => {
+        // Token invalido
+        if (!token)
+            return
+
+
+        // Validar o token primeiro
+
+
+        // Usuário valido
         fancyLog(TAG, `Nova conexão estabelecida para token: ${token}`)
 
         // Definir o usuário como online
         setUserOnline(token, true)
+
+        // Enviar o banco de dados para o cliente
+        sendDatabase(connection, token)
 
         // Loop para atualizar os pacotes para esse cliente
         isConnected = true
@@ -63,7 +93,7 @@ export const POST = (({ request }) => {
 
                 // Parar o loop em caso de erro
                 if (error) {
-                    fancyLog(TAG, `Erro ao enviar mensagem ${token} ➜ `, error?.message)
+                    fancyLog(TAG, `Erro ao enviar pacote para ${token} ➜ `, error?.message)
                     isConnected = false
                     break
                 }
@@ -80,10 +110,12 @@ export const POST = (({ request }) => {
         // Finalizar a conexão
         connection.lock.set(false)
     }, {
-        ping: 5_000,
+        ping: 5000,
         stop: () => {
-            setUserOnline(token, false)
             isConnected = false
+
+            if (token)
+                setUserOnline(token, false)
         }
     })
 

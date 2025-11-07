@@ -1,4 +1,4 @@
-import type { DatabaseJsonType } from "./constants-and-types"
+import { UNDEFINED_TEAM, type DatabaseJsonType } from "./constants-and-types"
 import { CommissionState, GameEvents, Role } from "./enums"
 import { currentUnixTime } from "$lib/utils/time-util"
 import { setMemberTeamId } from "./utils";
@@ -58,10 +58,11 @@ export function v0_to_v1(backup: string | null | undefined) {
                     state: member.commissions?.state || CommissionState.AVAILABLE,
                     time: member.commissions?.time || 0,
                     missed: member.commissions?.missed || 0,
-                    worldTree: '',
-                    minesInDungeon: '',
-                    cloudKingdom: '',
-                    cassinoOnYacht: '',
+                    worldTree: UNDEFINED_TEAM,
+                    minesInDungeon: UNDEFINED_TEAM,
+                    cloudKingdom: UNDEFINED_TEAM,
+                    cassinoOnYacht: UNDEFINED_TEAM,
+                    infernoRally: UNDEFINED_TEAM
                 })
             }
 

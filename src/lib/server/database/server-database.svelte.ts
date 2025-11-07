@@ -2,10 +2,10 @@ import { Collection, Db, FindCursor, MongoClient, type WithId } from 'mongodb'
 import bcrypt from 'bcryptjs'
 import type { DatabaseAuditLog, DatabaseOperationResult_SetCommissionState, DatabaseOperations } from '$lib/common/database/database-interfaces'
 import type { User, UserDatabase } from './user'
-import { DEFINITIONS_DEFAULT_ID, UNDEFINED_TEAM, type DefinitionsType, type MemberTypeV3, type EventTeamType, type AuditLogTypeV3, type AuditLogDetailsV3 } from '$lib/common/database/constants-and-types'
+import { DEFINITIONS_DEFAULT_ID, UNDEFINED_TEAM, type DefinitionsType, type MemberTypeV3, type EventTeamType, type AuditLogTypeV3, type AuditLogDetailsV3, type DatabaseTypeV3, type DatabaseExportOptionsType } from '$lib/common/database/constants-and-types'
 import { Actions, CommissionState, GameEvents, Role } from '$lib/common/database/enums'
 import { currentUnixTime } from '$lib/utils/time-util'
-import { forEachGameEvent, getMemberTeamId, isUndefinedTeamID, setMemberTeamId } from '$lib/common/database/utils'
+import { forEachGameEvent, getGameEventField, getMemberTeamId, isUndefinedTeamID, setMemberTeamId } from '$lib/common/database/utils'
 import { fancyLog } from '../util/server-log'
 
 
@@ -61,15 +61,15 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
     }
 
     public async initialize(): Promise<Db> {
-        if (this.db)
-            return this.db
-
         if (!this.mongoURI)
             throw new Error('Erro ao iniciar o banco de dados, mongoUri não foi definido.')
 
         try {
-            this.client = new MongoClient(this.mongoURI)
-            this.db = this.client.db(DATABASE_NAME)
+            if (!this.client)
+                this.client = new MongoClient(this.mongoURI)
+
+            if (!this.db)
+                this.db = this.client.db(DATABASE_NAME)
 
             return this.db
         } catch (error) {
@@ -92,9 +92,10 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
     public async createUser(username: string, password: string): Promise<boolean> {
         try {
+            const saltRounds = process.env.BCRYPT_SALT_ROUNDS || 10
             const db = await this.initialize()
             const collection = db.collection<User>(COLLECTION_USERS)
-            const passwordHash = await bcrypt.hash(password, 10)
+            const passwordHash = await bcrypt.hash(password, saltRounds)
 
             const result = await collection.insertOne({
                 // Autenticação
@@ -221,6 +222,7 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
             return true
         } catch (error) {
+            console.error(error)
             return false
         }
     }
@@ -253,7 +255,8 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
                 worldTree: UNDEFINED_TEAM,
                 minesInDungeon: UNDEFINED_TEAM,
                 cloudKingdom: UNDEFINED_TEAM,
-                cassinoOnYacht: UNDEFINED_TEAM
+                cassinoOnYacht: UNDEFINED_TEAM,
+                infernoRally: UNDEFINED_TEAM,
             }
 
             const result = await collection.insertOne(member)
@@ -266,6 +269,7 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
             // Retornar a instancia do membro
             return member
         } catch (error) {
+            console.error(error)
             return null
         }
     }
@@ -298,6 +302,7 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
             return true
         } catch (error) {
+            console.error(error)
             return false
         }
     }
@@ -326,6 +331,7 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
             return member
         } catch (error) {
+            console.error(error)
             return null
         }
     }
@@ -339,6 +345,7 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
             return result
         } catch (error) {
+            console.error(error)
             return null
         }
     }
@@ -369,6 +376,7 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
             return team
         } catch (error) {
+            console.error(error)
             return null
         }
     }
@@ -379,38 +387,15 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
             const collectionMembers = db.collection<MemberTypeV3>(COLLECTION_MEMBERS)
             const collectionEvents = db.collection<EventTeamType>(COLLECTION_EVENTS)
 
-
-            // Remover os membros da equipe
-            const toUpdate = new Array<MemberTypeV3>()
-            const cursor = collectionMembers.find()
-            while (await cursor.hasNext()) {
-                const member = await cursor.next()
-                const currentMemberTeam = getMemberTeamId(member, gameEvent)
-
-                if (member && currentMemberTeam && currentMemberTeam === teamId) {
-                    setMemberTeamId(member, gameEvent, UNDEFINED_TEAM)
-
-                    toUpdate.push(member)
-                }
-            }
-
             // Atualizar os membros no banco de dados
-            for (const member of toUpdate) {
-                await collectionMembers.updateOne(
-                    { id: member.id },
-                    {
-                        $set: {
-                            worldTree: member.worldTree,
-                            minesInDungeon: member.minesInDungeon,
-                            cloudKingdom: member.cloudKingdom,
-                            cassinoOnYacht: member.cassinoOnYacht,
-                        }
-                    }
-                )
-            }
+            const updateField = getGameEventField(gameEvent)
+            await collectionMembers.updateMany(
+                { [updateField]: teamId },
+                { $set: { [updateField]: UNDEFINED_TEAM } }
+            )
 
             // Deletar o time
-            const deleteResult = await collectionEvents.deleteOne({ id: teamId })
+            const deleteResult = await collectionEvents.deleteOne({ event: gameEvent, id: teamId })
 
             if (!deleteResult)
                 return false
@@ -420,6 +405,7 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
             return true
         } catch (error) {
+            console.error(error)
             return false
         }
     }
@@ -431,16 +417,15 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
             // Listar todos os times do evento
             const result = new Array<EventTeamType>()
-            const cursor = collection.find({ event: gameEvent })
-            while (await cursor.hasNext()) {
-                const team = await cursor.next()
-
-                if (team)
-                    result.push(team)
+            const allEventTeams = await collection.find({ event: gameEvent }).toArray()
+            for (const eventTeam of allEventTeams) {
+                if (eventTeam)
+                    result.push(eventTeam)
             }
 
             return result
         } catch (error) {
+            console.error(error)
             return []
         }
     }
@@ -477,6 +462,7 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
             return true
         } catch (error) {
+            console.error(error)
             return false
         }
     }
@@ -512,6 +498,7 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
             return true
         } catch (error) {
+            console.error(error)
             return false
         }
     }
@@ -522,16 +509,16 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
             // Listar os membros iterando o cursor
             const result = new Array<MemberTypeV3>()
-            const cursor = findMembersOfTeam(db, gameEvent, UNDEFINED_TEAM)
-            while (cursor.hasNext()) {
-                const member = await cursor.next()
+            const allMembers = await findMembersOfTeam(db, gameEvent, UNDEFINED_TEAM).toArray()
 
+            for (const member of allMembers) {
                 if (member)
                     result.push(member)
             }
 
             return result
         } catch (error) {
+            console.error(error)
             return []
         }
     }
@@ -560,6 +547,7 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
                 time
             }
         } catch (error) {
+            console.error(error)
             return { updated: false }
         }
     }
@@ -582,6 +570,7 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
             return true
         } catch (error) {
+            console.error(error)
             return false
         }
     }
@@ -593,16 +582,15 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
             // Listar os membros iterando o cursor
             const result = new Array<MemberTypeV3>()
-            const cursor = collection.find({ state })
-            while (cursor.hasNext()) {
-                const member = await cursor.next()
-
+            const members = await collection.find({ state }).toArray()
+            for (const member of members) {
                 if (member)
                     result.push(member)
             }
 
             return result
         } catch (error) {
+            console.error(error)
             return []
         }
     }
@@ -631,8 +619,109 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
             return result.acknowledged
         } catch (error) {
+            console.error(error)
             return false
         }
+    }
+
+
+
+    public async createExportableDatabase(exportOptions: DatabaseExportOptionsType): Promise<Partial<DatabaseTypeV3>> {
+        console.log('  ➜  ExportableDatabase')
+
+        const db = await this.initialize()
+        const exportedDB: Partial<DatabaseTypeV3> = {}
+
+        try {
+            if (exportOptions.definitions) {
+                try {
+                    console.log('  ➜  ExportableDatabase: definitions')
+
+                    const collection = db.collection<DefinitionsType>(COLLECTION_DEFINITIONS, { timeoutMS: 0 })
+                    const definitions = await collection.findOne({ id: DEFINITIONS_DEFAULT_ID })
+
+                    if (definitions) {
+                        // @ts-ignore
+                        delete definitions._id
+
+                        exportedDB.definitions = definitions
+                    }
+                } catch (error) {
+                    console.error(error)
+                }
+            }
+
+            if (exportOptions.members) {
+                try {
+                    console.log('  ➜  ExportableDatabase: members')
+                    exportedDB.members = []
+
+                    const collection = db.collection<MemberTypeV3>(COLLECTION_MEMBERS, { timeoutMS: 0 })
+                    const allMembers = await collection.find().toArray()
+
+                    for (const member of allMembers) {
+                        if (!member)
+                            continue
+
+                        // @ts-ignore
+                        delete member._id
+
+                        exportedDB.members.push(member)
+                    }
+                } catch (error) {
+                    console.error(error)
+                }
+            }
+
+            if (exportOptions.events) {
+                try {
+                    console.log('  ➜  ExportableDatabase: events')
+                    exportedDB.events = []
+
+                    const collection = db.collection<EventTeamType>(COLLECTION_EVENTS, { timeoutMS: 0 })
+                    const allEventTeams = await collection.find().toArray()
+
+                    for (const eventTeam of allEventTeams) {
+                        if (!eventTeam)
+                            continue
+
+                        // @ts-ignore
+                        delete eventTeam._id
+
+                        exportedDB.events.push(eventTeam)
+                    }
+
+                } catch (error) {
+                    console.error(error)
+                }
+            }
+
+            if (exportOptions.auditLog) {
+                try {
+                    console.log('  ➜  ExportableDatabase: auditLog')
+                    exportedDB.auditLog = []
+
+                    const collection = db.collection<AuditLogTypeV3>(COLLECTION_AUDIT_LOG, { timeoutMS: 0 })
+                    const allAuditLogs = await collection.find().toArray()
+
+                    for (const auditLog of allAuditLogs) {
+                        if (!auditLog)
+                            continue
+
+                        // @ts-ignore
+                        delete auditLog._id
+
+                        exportedDB.auditLog.push(auditLog)
+                    }
+                } catch (error) {
+                    console.error(error)
+                }
+            }
+        } catch (error) {
+            console.error(error)
+        }
+
+        return exportedDB
     }
 
 }

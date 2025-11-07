@@ -144,7 +144,7 @@ export function modifyTeamCount(team: EventTeamType | null, change: number): boo
 
 
 
-export function getGameEventFromString(str: string | null | undefined) {
+export function getGameEventFromString(str: string | null | undefined): GameEvents | null {
     switch (str) {
         case GameEvents.WORLD_TREE:
             return GameEvents.WORLD_TREE
@@ -159,3 +159,33 @@ export function getGameEventFromString(str: string | null | undefined) {
     }
 }
 
+
+/**
+ * Retorna a KEY de um evento do objeto {@link MemberTypeV3}
+ * 
+ * @param gameEvent 
+ * @returns 
+ */
+export function getGameEventField(gameEvent: GameEvents): keyof MemberTypeV3 {
+    switch (gameEvent) {
+        case GameEvents.WORLD_TREE:
+            return 'worldTree'
+
+        case GameEvents.MINES_IN_DUNGEON:
+            return 'minesInDungeon'
+
+        case GameEvents.CLOUD_KINGDOM:
+            return 'cloudKingdom'
+
+        case GameEvents.CASSINO_ON_YACHT:
+            return 'cassinoOnYacht'
+
+        case GameEvents.INFERNO_RALLY:
+            return 'infernoRally'
+
+        default:
+            // Isso garante que o TypeScript saiba que todos os valores GameEvents foram tratados
+            const _exhaustiveCheck: never = gameEvent
+            throw new Error(`Evento invalido: ${_exhaustiveCheck}`)
+    }
+}

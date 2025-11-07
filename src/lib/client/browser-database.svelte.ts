@@ -78,6 +78,7 @@ class BrowserDatabaseImpl implements LocalDatabase {
             minesInDungeon: UNDEFINED_TEAM,
             cloudKingdom: UNDEFINED_TEAM,
             cassinoOnYacht: UNDEFINED_TEAM,
+            infernoRally: UNDEFINED_TEAM
         }
         ReactiveDB.members.push(member)
 

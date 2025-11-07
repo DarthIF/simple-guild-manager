@@ -70,6 +70,7 @@ export function validateMemberTypeV3(member: Partial<MemberTypeV3>): boolean {
         && typeof member.minesInDungeon === 'string'
         && typeof member.cloudKingdom === 'string'
         && typeof member.cassinoOnYacht === 'string'
+        && typeof member.infernoRally === 'string'
 }
 
 export function validateEventTeamType(team: Partial<EventTeamType>) {
@@ -191,6 +192,12 @@ export type MemberEventType = {
      * Se não estiver em um time o valor poderá ser uma string em branco ou {@link UNDEFINED_TEAM}
      */
     cassinoOnYacht: string
+
+    /**
+     * ID do time que o membro está no evento {@link GameEvents.INFERNO_RALLY}.
+     * Se não estiver em um time o valor poderá ser uma string em branco ou {@link UNDEFINED_TEAM}
+     */
+    infernoRally: string
 }
 
 
@@ -293,4 +300,10 @@ type AuditLogDetails_RemoveMemberFromTeam = {} & AuditLogDetails_AddMemberToTeam
 type AuditLogDetails_SetCommissionState = {
     memberId?: string
     state?: number
+}
+
+
+
+export type DatabaseExportOptionsType = {
+    [Key in keyof DatabaseTypeV3]?: boolean
 }

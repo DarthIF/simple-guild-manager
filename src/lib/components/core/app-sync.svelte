@@ -21,13 +21,18 @@
             return;
         }
 
-        if (packet.action !== undefined && packet.data !== undefined) {
-            console.log("Received valid data", packet.action);
+        if (!packet.action) {
+            console.warn("Received invalid action");
+            return;
+        }
+
+        if (packet.data || packet.exported) {
+            console.log(`Received data on [${packet.action}]`);
 
             // @ts-ignore
             ClientSync.syncFromPacket(packet);
-        } else {
-            console.warn("Received invalid data");
         }
+
+        console.warn("Received invalid data");
     });
 </script>

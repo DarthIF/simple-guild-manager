@@ -1,7 +1,7 @@
 import type { DatabaseEditor, DatabaseOperationResult_SetCommissionState, DatabaseOperations } from '$lib/common/database/database-interfaces'
 import type { PacketType } from '$lib/common/packets/type'
 import type { PostAddMemberToTeamType, PostDeleteMemberType, PostDeleteTeamType, PostEditMemberType, PostRemoveMemberFromTeamType, PostResetCommissionCycleType, PostSetCommissionSateType, PostSetGuildNameType, ResponseAddMemberType, ResponseCreateTeamType, ResponseEditMemberType, ResponseSetCommissionSateType } from '$lib/common/database/post-types'
-import { UNDEFINED_TEAM, validateEventTeamType, validateMemberTypeV3, type EventTeamType, type MemberTypeV3 } from '$lib/common/database/constants-and-types'
+import { UNDEFINED_TEAM, validateEventTeamType, validateMemberTypeV3, type DatabaseTypeV3, type EventTeamType, type MemberTypeV3 } from '$lib/common/database/constants-and-types'
 import { Actions, CommissionState, GameEvents } from '$lib/common/database/enums'
 import { isSuccessfulResponse } from '$lib/utils/http-util'
 import { findEventTeamIndex, findMemberByID, findMemberIndexByID, getEventTeam, getEventTeams, getMembers, setMemberTeamId } from '$lib/common/database/utils'
@@ -180,7 +180,13 @@ class ClientDatabaseApi implements DatabaseOperations, DatabaseEditor {
 class ClientSyncImpl {
 
     public syncFromPacket(packet: PacketType) {
-        if (packet.action === undefined || packet.data === undefined)
+        // Sincronizar o banco de dados
+        if (packet.action === Actions.SYNC_ONLY_DATABASE_LOAD)
+            return this.syncDatabaseLoad(packet)
+
+
+        // Sincronizar as outras operações
+        if (!packet.data)
             return
 
         switch (packet.action) {
@@ -211,6 +217,25 @@ class ClientSyncImpl {
             default:
                 return
         }
+    }
+
+    private async syncDatabaseLoad(packet: PacketType) {
+        if (!packet.exported)
+            return
+
+        if (packet.exported.definitions)
+            ReactiveDB.definitions = packet.exported.definitions
+
+        if (packet.exported.members)
+            ReactiveDB.members = packet.exported.members
+
+        if (packet.exported.events)
+            ReactiveDB.events = packet.exported.events
+
+        if (packet.exported.auditLog)
+            ReactiveDB.auditLog = packet.exported.auditLog
+
+        console.log('Banco de dados sincronizado!', packet.exported)
     }
 
 

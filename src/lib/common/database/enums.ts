@@ -18,6 +18,8 @@ export enum Actions {
     COMMISSION_RESET_CYCLE = 'crc',
 
 
+    SYNC_ONLY_DATABASE_LOAD = 'dbl',
+
     SYNC_ONLY_LIST_COMMISSION_MEMBERS = 'lcm',
     SYNC_ONLY_LIST_FREE_MEMBERS_FOR_EVENT = 'lfm',
 }
@@ -26,7 +28,8 @@ export enum GameEvents {
     WORLD_TREE = 'world_tree',
     MINES_IN_DUNGEON = 'mines_in_dungeon',
     CLOUD_KINGDOM = 'cloud_kingdom',
-    CASSINO_ON_YACHT = 'cassino_on_yacht'
+    CASSINO_ON_YACHT = 'cassino_on_yacht',
+    INFERNO_RALLY = 'inferno_rally',
 }
 
 export enum CommissionState {
