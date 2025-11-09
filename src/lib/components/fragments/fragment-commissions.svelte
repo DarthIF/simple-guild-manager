@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { onMount } from "svelte";
     import LayoutGrid, { Cell } from "@smui/layout-grid";
     import SmuiDialogCommission from "../smui/dialogs/smui-dialog-commission.svelte";
     import {
@@ -7,25 +6,35 @@
         type DialogCloseEvent,
     } from "../smui/dialogs/common";
     import SmuiDialogPrompt from "../smui/dialogs/smui-dialog-prompt.svelte";
-    import { fragment_commissions } from "$lib/strings/strings";
-    import type { MemberTypeV3 } from "$lib/common/database/constants-and-types";
-    import type { DatabaseOperations } from "$lib/common/database/database-interfaces";
-    import { CommissionState } from "$lib/common/database/enums";
-    import { confirmWith } from "$lib/strings";
-    import {
-        ReactiveSettings,
-        THEN_CALLBACK_COMPLETE_LOAD,
-    } from "$lib/client/settings.svelte";
-    import { ReactiveDB } from "$lib/client/reactive-db.svelte";
     import SmuiFab from "../smui/smui-fab.svelte";
     import CommissionSelector from "../selector/commission-selector.svelte";
     import CardCommissionMember from "../card-commission-member.svelte";
+    import type { MemberTypeV3 } from "$lib/common/database/constants-and-types";
+    import type {
+        DatabaseOperationResult_SetCommissionState,
+        DatabaseOperations,
+    } from "$lib/common/database/database-interfaces";
+    import { CommissionState } from "$lib/common/database/enums";
+    import { fragment_commissions } from "$lib/strings/strings";
+    import { confirmWith } from "$lib/strings";
+    import { Loading } from "$lib/client/settings.svelte";
+    import { ReactiveDB } from "$lib/client/reactive-db.svelte";
+
+    function CommonOperationListener(
+        result: DatabaseOperationResult_SetCommissionState,
+    ) {
+        Loading.finish(!result.updated);
+    }
 
     function handleCommissionReset() {
-        if (!confirmWith(fragment_commissions.confirm_reset_cycle)) return;
+        if (!confirmWith(fragment_commissions.confirm_reset_cycle)) {
+            return;
+        }
 
-        ReactiveSettings.loading = true;
-        database.resetCommissionCycle().then(THEN_CALLBACK_COMPLETE_LOAD);
+        Loading.start();
+        database.resetCommissionCycle().then((result) => {
+            Loading.finish(!result);
+        });
     }
 
     function handleItemClick(member: MemberTypeV3) {
@@ -34,13 +43,13 @@
 
     function handleDialogListener(action: DialogActions, member: MemberTypeV3) {
         // Ativar o modo de carregamento
-        ReactiveSettings.loading = true;
+        Loading.start();
 
         switch (action) {
             case DialogActions.COMMISSION_CLOSE_TODAY:
                 return database
                     .setCommissionState(member.id, CommissionState.CLOSED, true)
-                    .then(THEN_CALLBACK_COMPLETE_LOAD);
+                    .then(CommonOperationListener);
 
             case DialogActions.COMMISSION_ALREADY_CLOSED:
                 return database
@@ -49,7 +58,7 @@
                         CommissionState.CLOSED,
                         false,
                     )
-                    .then(THEN_CALLBACK_COMPLETE_LOAD);
+                    .then(CommonOperationListener);
 
             case DialogActions.COMMISSION_AVAILABLE:
                 return database
@@ -58,7 +67,7 @@
                         CommissionState.AVAILABLE,
                         true,
                     )
-                    .then(THEN_CALLBACK_COMPLETE_LOAD);
+                    .then(CommonOperationListener);
 
             case DialogActions.COMMISSION_INACTIVE:
                 return database
@@ -67,9 +76,11 @@
                         CommissionState.INACTIVE,
                         true,
                     )
-                    .then(THEN_CALLBACK_COMPLETE_LOAD);
+                    .then(CommonOperationListener);
 
             case DialogActions.COMMISSION_MISSED:
+                alert("Function not implemented on the server!");
+
                 el_dialogPrompt.setValue(member.missed);
                 el_dialogPrompt.open((e: DialogCloseEvent) => {
                     console.log(e.detail.action);
@@ -91,22 +102,22 @@
             .filter((m) => m.state === state)
             .sort((a, b) => b.power - a.power);
     }
-    function listMembersAvailable() {
+    function listAvailable() {
         return reactiveListMembers(CommissionState.AVAILABLE);
     }
-    function listMembersClosed() {
+    function listClosed() {
         return reactiveListMembers(CommissionState.CLOSED);
     }
-    function listMembersInactive() {
+    function listInactive() {
         return reactiveListMembers(CommissionState.INACTIVE);
     }
 
     const GRID_SIZES = { desktop: 4, tablet: 4, phone: 4 };
 
     let selectedTab = $state(CommissionState.AVAILABLE);
-    let availableMembers = $derived.by(listMembersAvailable);
-    let closedMembers = $derived.by(listMembersClosed);
-    let inactiveMembers = $derived.by(listMembersInactive);
+    let availableMembers = $derived.by(listAvailable);
+    let closedMembers = $derived.by(listClosed);
+    let inactiveMembers = $derived.by(listInactive);
     let targetDisplayMembers = $derived.by(() => {
         switch (selectedTab) {
             case CommissionState.AVAILABLE:

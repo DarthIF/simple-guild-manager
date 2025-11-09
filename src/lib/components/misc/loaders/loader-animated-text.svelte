@@ -1,10 +1,4 @@
-<script lang="ts">
-    let { enable = $bindable(true) } = $props();
-</script>
-
-{#if enable}
-    <div class="loader"></div>
-{/if}
+<div class="loader"></div>
 
 <style>
     /* https://css-loaders.com/filling/ */

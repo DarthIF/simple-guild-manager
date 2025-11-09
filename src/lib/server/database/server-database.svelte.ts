@@ -241,7 +241,9 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
             const id = currentUnixTime().toString()
             const member: MemberTypeV3 = {
                 id,
+                server: 0,
                 name,
+                earnings: 0,
                 power,
                 role: Role.MEMBER,
                 offline: 0,
@@ -554,6 +556,8 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
     public async resetCommissionCycle(userName?: string): Promise<boolean> {
         try {
+            fancyLog(TAG, 'Tentando reiniciar o ciclo de comissões...')
+
             const db = await this.initialize()
             const collection = db.collection<MemberTypeV3>(COLLECTION_MEMBERS)
 
@@ -562,8 +566,10 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
             const resultA = await collection.updateMany({ state: CommissionState.AVAILABLE }, RESET_COMMISSION)
             const resultB = await collection.updateMany({ state: CommissionState.CLOSED }, RESET_COMMISSION)
 
-            if (!(resultA.acknowledged && resultB.acknowledged))
+            if (!(resultA.acknowledged && resultB.acknowledged)) {
+                console.warn(`Erro desconhecido durante a operação: resultA=${resultA.acknowledged} resultB=${resultB.acknowledged}`)
                 return false
+            }
 
             // Adicionar ao registro de auditoria de forma assincrônica
             this.addAuditLog(Actions.COMMISSION_RESET_CYCLE, {}, userName)

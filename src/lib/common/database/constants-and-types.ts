@@ -130,9 +130,19 @@ export type MemberTypeV3 = {
     id: string
 
     /**
+     * Servidor do jogador
+     */
+    server: number
+
+    /**
      * Nome de jogador do membro
      */
     name: string
+
+    /**
+     * Ganhos do jogador
+     */
+    earnings: number
 
     /**
      * Poder do jogador

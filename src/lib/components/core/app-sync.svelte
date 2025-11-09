@@ -31,8 +31,9 @@
 
             // @ts-ignore
             ClientSync.syncFromPacket(packet);
+            return;
         }
 
-        console.warn("Received invalid data");
+        console.warn("Received invalid data", packet);
     });
 </script>

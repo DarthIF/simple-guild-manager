@@ -130,9 +130,14 @@ class ClientDatabaseApi implements DatabaseOperations, DatabaseEditor {
 
 
     public async setCommissionState(memberId: string, state: CommissionState, updateTime: boolean): Promise<DatabaseOperationResult_SetCommissionState> {
-        const response = await api(Actions.COMMISSION_SET_STATE, { state, updateTime })
-        if (!isSuccessfulResponse(response))
+        const response = await api(Actions.COMMISSION_SET_STATE, { memberId, state, updateTime })
+
+        console.log(response)
+
+        if (!isSuccessfulResponse(response)) {
+            console.log('sem sucesso')
             return { updated: false }
+        }
 
         // Sincronizar a informação localmente
         const data = await response.json()
@@ -149,6 +154,8 @@ class ClientDatabaseApi implements DatabaseOperations, DatabaseEditor {
     }
 
     public async listCommissionMembers(state: CommissionState): Promise<MemberTypeV3[]> {
+        console.log('listCommissionMembers')
+
         const response = await api(Actions.SYNC_ONLY_LIST_COMMISSION_MEMBERS, { state })
         if (!isSuccessfulResponse(response))
             return []
@@ -156,6 +163,9 @@ class ClientDatabaseApi implements DatabaseOperations, DatabaseEditor {
         // Não deixar a informação salva em cache, o servidor irá 
         // retornar uma array com os ids dos membros
         const membersIDS: string[] = await response.json()
+
+        console.log(membersIDS)
+
         return getMembers(ReactiveDB, ...membersIDS)
     }
 
@@ -167,11 +177,6 @@ class ClientDatabaseApi implements DatabaseOperations, DatabaseEditor {
 
     public exportData(): boolean {
         console.error('MÉTODO NAO IMPLEMENTADO AINDA')
-        return false
-    }
-
-
-    public async downloadDatabase(): Promise<boolean> {
         return false
     }
 
@@ -215,6 +220,7 @@ class ClientSyncImpl {
                 return this.resetCommissionCycle(packet.data)
 
             default:
+                console.warn(`ClientSync: Action[${packet.action}] não foi implementada no lado do cliente`)
                 return
         }
     }
@@ -343,7 +349,7 @@ class ClientSyncImpl {
 
 
     public async setCommissionState(data: ResponseSetCommissionSateType): Promise<DatabaseOperationResult_SetCommissionState> {
-        if (typeof data.memberId !== 'string' || typeof data.state !== 'string' || typeof data.time !== 'number')
+        if (typeof data.memberId !== 'string' || typeof data.state !== 'number' || typeof data.time !== 'number')
             return { updated: false }
 
         const member = findMemberByID(ReactiveDB, data.memberId)

@@ -3,7 +3,7 @@ import { error, fail, redirect, type Actions } from '@sveltejs/kit'
 import bcrypt from 'bcryptjs'
 import { StatusCodes } from 'http-status-codes'
 import { ErrorMessages } from '$lib/common/login/error-messages'
-import * as database from '$lib/server/database/simple-guild-database'
+import { RemoteDatabase } from '$lib/server/database/server-database.svelte'
 
 
 // https://github.com/Michael-Obele/Svelte-MiniApps-sv4/blob/92d451abb5a741a12eba806d31341cd5dc564b89/src/routes/(auth)/login/%2Bpage.server.ts
@@ -37,7 +37,7 @@ export const actions = {
         }
 
         // Encontre um usuário correspondente
-        const user = await database.findUser(username)
+        const user = await RemoteDatabase.findUser(username)
         if (!user) {
             // Retornar um erro 406 com a mensagem de nome de usuário e credenciais
             return fail(StatusCodes.NOT_ACCEPTABLE, { username, message: ErrorMessages.INCORRECT })
@@ -59,7 +59,7 @@ export const actions = {
         }
 
         // Atualizar o campo userAuthToken do usuário com um UUID gerado aleatoriamente
-        const newToken = await database.createSession(username)
+        const newToken = await RemoteDatabase.createSession(username)
         if (!newToken) {
             // Retornar erro 500, Isso realmente pode acontecer?
             return fail(StatusCodes.INTERNAL_SERVER_ERROR, { username, message: ErrorMessages.CREATE_SESSION })

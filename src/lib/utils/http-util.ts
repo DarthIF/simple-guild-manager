@@ -12,9 +12,10 @@ export function isInformationalResponse(response: Response | number) {
 }
 
 export function isSuccessfulResponse(response: Response | number) {
-    const code: number = response instanceof Response ? response.status : response
+    if (response instanceof Response)
+        return response.ok
 
-    return code >= 200 && code <= 299
+    return response >= 200 && response <= 299
 }
 
 export function isRedirectionMessage(response: Response | number) {

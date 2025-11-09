@@ -1,8 +1,7 @@
 import type { PageServerLoad } from './$types'
 import { error, fail, redirect, type Actions } from '@sveltejs/kit'
-import bcrypt from 'bcryptjs'
 import { StatusCodes } from 'http-status-codes'
-import { ErrorMessages } from '$lib/common/login/error-messages' 
+import { ErrorMessages } from '$lib/common/login/error-messages'
 import { RemoteDatabase } from '$lib/server/database/server-database.svelte';
 import { fancyLog } from '$lib/server/util/server-log'
 
@@ -37,9 +36,9 @@ export const actions = {
 
 
         // Verifique se o nome de usuário ou a senha são inválidos ou estão ausentes
-        if (typeof username !== 'string' 
-            || typeof password_1 !== 'string' 
-            || typeof password_2 !== 'string' 
+        if (typeof username !== 'string'
+            || typeof password_1 !== 'string'
+            || typeof password_2 !== 'string'
             || password_1 !== password_2) {
             // Retornar um erro 400 com uma mensagem inválida
             return fail(StatusCodes.BAD_REQUEST, { username, message: ErrorMessages.INVALID })

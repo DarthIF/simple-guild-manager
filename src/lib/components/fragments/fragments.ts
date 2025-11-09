@@ -1,6 +1,6 @@
 import { pushState } from '$app/navigation'
 import type { MemberTypeV3 } from "$lib/common/database/constants-and-types";
-import { extractHSL, hslToHex, getVariableColorInHex } from "$lib/utils/color-util";
+import { getVariableColorInHex } from "$lib/utils/color-util";
 
 
 
@@ -12,11 +12,12 @@ export enum Fragments {
     AUDIT_LOG = 'auditLog',
     SETTINGS = 'settings',
     ABOUT = 'about',
+    PROFILE = 'profile',
 }
 
 export enum FragmentsParams {
     FRAGMENT = 'fragment',
-    EXTRA = 'extra', 
+    EXTRA = 'extra',
 }
 
 
@@ -32,7 +33,7 @@ export function getPlaceholderImageUrl(computedStyles: CSSStyleDeclaration, memb
 export function getPlaceHolderStyle(computedStyles: CSSStyleDeclaration, member: MemberTypeV3, cssVariable: string = '--bg') {
     const cssUrl = getPlaceholderImageUrl(computedStyles, member)
     return `${cssVariable}: ${cssUrl}`
-} 
+}
 
 
 
@@ -51,7 +52,7 @@ export function getFragmentForID(fragmentID: string | null | undefined): Fragmen
 export function getNavigateURL(fragment: Fragments, extra: string | null | undefined = null) {
     if (typeof window === 'undefined')
         return ''
-    
+
     if (!extra)
         extra = ''
 
@@ -69,12 +70,12 @@ export function navigateToFragment(fragment: Fragments, extra: string | null | u
 }
 
 export function navigateToFragmentByHash(hash: string | null | undefined) {
-    if (!hash || hash === '' || hash === '#') 
+    if (!hash || hash === '' || hash === '#')
         return
 
     if (hash.startsWith('#'))
         hash = hash.substring(1)
-    
+
     const split = hash.split("&")
     const fragment = getFragmentForID(split[0])
     const extra = split[1]

@@ -6,6 +6,7 @@ import { ActionResolverBase } from './ar'
 import { Actions } from '$lib/common/database/enums'
 import { send } from '$lib/utils/http-util'
 import { includePacket } from '../packets'
+import { clearMongoID } from '../util/object-cleaner'
 
 
 export class ServerActionResolver extends ActionResolverBase<Response> {
@@ -40,8 +41,11 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
             return send(StatusCodes.BAD_REQUEST)
 
         // Adicionar o membro ao banco de dados
-        const member = await this.db.addMember(data.name, data.power, user?.name)
+        let member = await this.db.addMember(data.name, data.power, user?.name)
         if (member) {
+            // Remover o id do mongodb
+            member = clearMongoID(member)
+
             // Adicionar um pacote pendente se for pertinente
             includePacket(user?.token, Actions.ADD_MEMBER, member)
 
@@ -76,8 +80,11 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
             return send(StatusCodes.BAD_REQUEST)
 
         // Editar o membro
-        const member = await this.db.editMember(data.memberId, data.newName, data.newPower, user?.name)
+        let member = await this.db.editMember(data.memberId, data.newName, data.newPower, user?.name)
         if (member) {
+            // Remover o id do mongodb
+            member = clearMongoID(member)
+
             // Adicionar um pacote pendente se for pertinente
             includePacket(user?.token, Actions.EDIT_MEMBER, member)
 
@@ -95,8 +102,11 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
             return send(StatusCodes.BAD_REQUEST)
 
         // Criar a equipe
-        const team = await this.db.createTeam(data.gameEvent, data.name, user?.name)
+        let team = await this.db.createTeam(data.gameEvent, data.name, user?.name)
         if (team) {
+            // Remover o id do mongodb
+            team = clearMongoID(team)
+
             // Adicionar um pacote pendente se for pertinente
             includePacket(user?.token, Actions.CREATE_TEAM, team)
 

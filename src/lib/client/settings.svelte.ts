@@ -1,4 +1,4 @@
-import { alertWith, getAppropriatedString } from "$lib/strings"
+import { alertWith, type LocalizedString } from "$lib/strings"
 import { errors } from "$lib/strings/strings"
 import { getCurrentSupportedLang, type AppLanguageType, getLangWithCode, getDefaultLang } from "$lib/utils/lang-util"
 
@@ -32,6 +32,8 @@ function isInGithub(): boolean {
     return regex.test(location.hostname)
 }
 
+
+
 /**
  * Função para atualizar o atributo "lang" da pagina `<html lang=''>`
  */
@@ -42,6 +44,10 @@ function updateDocumentLanguage(): void {
     document.documentElement.lang = ReactiveSettings.lang.code
 }
 
+/**
+ * Função para carregar a preferencia salva de idioma do usuário, ou retornar
+ * o idioma padrão se não tiver salvo
+ */
 function loadLocalSettings_Lang(): AppLanguageType {
     if (typeof localStorage === 'undefined')
         return getDefaultLang()
@@ -53,6 +59,10 @@ function loadLocalSettings_Lang(): AppLanguageType {
 
     return getCurrentSupportedLang()
 }
+
+/**
+ * Função para salvar a preferencia de idioma do usuário
+ */
 function saveLocalSettings_Lang() {
     if (typeof localStorage === 'undefined')
         return
@@ -95,6 +105,35 @@ $effect.root(() => {
 
 
 
+function start() {
+    ReactiveSettings.loading = true
+}
+
+function finish(error: boolean = false, message: string | LocalizedString = errors.unknown_error) {
+    if (error && message) {
+        alertWith(message)
+    }
+
+    ReactiveSettings.loading = false
+}
+
+export const Loading = {
+    start,
+    finish,
+}
+
+
+
+
+
+
+
+
+
+
+/**
+ * @deprecated
+ */
 export function THEN_CALLBACK_COMPLETE_LOAD(v: boolean) {
     if (!v) {
         alertWith(errors.unknown_error)
@@ -102,4 +141,4 @@ export function THEN_CALLBACK_COMPLETE_LOAD(v: boolean) {
     }
 
     ReactiveSettings.loading = false
-} 
+}

@@ -13,6 +13,7 @@
     import type { MemberTypeV3 } from "$lib/common/database/constants-and-types";
     import { CommissionState } from "$lib/common/database/enums";
     import { getCommissionStateString } from "$lib/client/utils";
+    import IconButton from "@smui/icon-button";
 
     type CommissionDialogListener = (
         action: DialogActions,
@@ -101,7 +102,17 @@
 
 {/* @ts-ignore */ null}
 <Dialog bind:open={visible} style="user-select: none;">
-    <Title>{currentMember?.name}</Title>
+    <Title>
+        {currentMember?.name}
+
+        <IconButton
+            class="material-symbols-rounded"
+            style="opacity: 0; pointer-events: none;"
+            action="close"
+        >
+            close
+        </IconButton>
+    </Title>
 
     <Content>
         <div>

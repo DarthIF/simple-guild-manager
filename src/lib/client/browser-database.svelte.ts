@@ -65,7 +65,9 @@ class BrowserDatabaseImpl implements LocalDatabase {
         const id = currentUnixTime().toString()
         const member: MemberTypeV3 = {
             id,
+            server: 0,
             name,
+            earnings: 0,
             power,
             role: Role.MEMBER,
             offline: 0,

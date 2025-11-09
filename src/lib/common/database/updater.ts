@@ -23,8 +23,10 @@ export function v0_to_v1(backup: string | null | undefined) {
         if (!v0 || typeof v0 !== 'object')
             return null
 
-        // Converter para o novo formato
-        // O registro de auditoria será ignorado
+        /**
+         * Converter para o novo formato
+         * O registro de auditoria será ignorado
+         */
         const v1: DatabaseJsonType = {
             version: 1,
             userAgent: '💻',
@@ -38,6 +40,16 @@ export function v0_to_v1(backup: string | null | undefined) {
             auditLog: []
         }
 
+
+        /**
+         * Cursor para os ids únicos no banco de dados
+         */
+        let ID_CURSOR = currentUnixTime()
+
+
+        if (navigator && navigator.userAgent)
+            v1.userAgent = navigator.userAgent
+
         if (v0.organization) {
             v1.definitions.guild = v0.organization
         }
@@ -50,8 +62,10 @@ export function v0_to_v1(backup: string | null | undefined) {
 
                 // Incluir o membro na nova versão
                 v1.members.push({
-                    id: member.id || (currentUnixTime() + i).toString(),
+                    id: member.id || (ID_CURSOR++).toString(),
+                    server: 0,
                     name: member.name || '',
+                    earnings: 0,
                     power: member.power || 0,
                     role: Role.MEMBER,
                     offline: 0,
@@ -84,7 +98,7 @@ export function v0_to_v1(backup: string | null | undefined) {
                     if (!team)
                         continue
 
-                    const teamId = team.id || (currentUnixTime() + i).toString()
+                    const teamId = team.id || (ID_CURSOR++).toString()
                     const teamName = team.name || ('Team ' + (i + 1))
 
                     let membersCount = 0

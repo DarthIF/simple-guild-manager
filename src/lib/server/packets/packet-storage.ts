@@ -27,6 +27,8 @@ export function nextPacket(token: string): Nullable<ServerPacketType> {
     if (checkIfHasSendedToAllUsersOnline(packet.sended)) {
         // Remover o pacote dos pendentes pois já foi enviado para todos
         pendent.splice(0, 1)
+
+        fancyLog(TAG, `um pacote pendente foi removido, restam ${pendent.length} pacotes`)
     }
 
     return packet
