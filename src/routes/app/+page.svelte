@@ -14,10 +14,15 @@
         Fragments,
         navigateToFragment,
     } from "$lib/components/fragments/fragments";
+    import { UserInformation } from "$lib/client/user-information.svelte";
 
     onMount(() => {
         card_display = "flex";
         card_animation = "animate__fadeInUp";
+
+        // Salvar as informações
+        UserInformation.name = data.name;
+        UserInformation.icon = data.icon;
     });
 
     let database = $state(ClientDatabase);
@@ -31,7 +36,7 @@
     <WebApp
         bind:database
         title={ReactiveDB.definitions.guild}
-        subtitle="Connected as: {data.name}"
+        subtitle="Connected as: {UserInformation.name}"
         enableProfileButton={true}
         onClickListenerProfileButton={() => {
             navigateToFragment(Fragments.PROFILE);
