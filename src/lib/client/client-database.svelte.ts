@@ -45,7 +45,7 @@ class ClientDatabaseApi implements DatabaseOperations, DatabaseEditor {
     }
 
     public async deleteMember(memberId: string): Promise<boolean> {
-        const response = await api(Actions.ADD_MEMBER, { memberId })
+        const response = await api(Actions.DELETE_MEMBER, { memberId })
         if (!isSuccessfulResponse(response))
             return false
 
