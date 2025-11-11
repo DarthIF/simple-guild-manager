@@ -56,7 +56,8 @@
     }
 
     .header-letter {
-        aspect-ratio: 1 / 1;
+        width: 48px;
+        height: 48px;
 
         display: flex;
         align-items: center;

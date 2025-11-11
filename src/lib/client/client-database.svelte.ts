@@ -6,7 +6,7 @@ import { Actions, CommissionState, GameEvents } from '$lib/common/database/enums
 import { isSuccessfulResponse } from '$lib/utils/http-util'
 import { findEventTeamIndex, findMemberByID, findMemberIndexByID, getEventTeam, getEventTeams, getMembers, setMemberTeamId } from '$lib/common/database/utils'
 import { ReactiveDB } from './reactive-db.svelte'
-import { replaceMember } from './utils'
+import { replaceMember, updateMembers } from './utils'
 
 
 
@@ -121,10 +121,12 @@ class ClientDatabaseApi implements DatabaseOperations, DatabaseEditor {
         if (!isSuccessfulResponse(response))
             return []
 
-        // Não deixar a informação salva em cache, o servidor irá 
-        // retornar uma array com os ids dos membros
-        const membersIDS: string[] = await response.json()
-        return getMembers(ReactiveDB, ...membersIDS)
+        // O servidor irá retornar as instancias atualizadas dos membros 
+        // disponíveis, essa função também irá atualizar as instancias 
+        // dos membros.
+
+        const members: MemberTypeV3[] = await response.json()
+        return updateMembers(...members)
     }
 
 
@@ -282,12 +284,8 @@ class ClientSyncImpl {
         if (validateMemberTypeV3(data) !== true)
             return null
 
-        // @ts-ignore
-        if (replaceMember(data))
-            // @ts-ignore
-            return data
-
-        return null
+        // @ts-ignore 
+        return replaceMember(data)
     }
 
 

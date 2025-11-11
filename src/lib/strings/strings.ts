@@ -48,6 +48,11 @@ export const errors = {
     unknown_error: { en: 'Unknown error', pt: 'Erro desconhecido' },
 
     invalid_name: { en: 'Invalid name', pt: 'Nome invalido' },
+
+    member_update_function_error: {
+        en: 'Add member to ReactiveDB, as no instance of it was found in ReactiveDB.',
+        pt: 'Adicionar membro ao ReactiveDB, pois não foi encontrada instancia dele no ReactiveDB'
+    },
 }
 
 

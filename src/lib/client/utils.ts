@@ -3,7 +3,7 @@ import { getMemberTeamId } from '$lib/common/database/utils'
 import { formatNumberCompact } from '$lib/utils/number-util'
 import { ReactiveDB } from './reactive-db.svelte'
 import { CommissionState, Actions } from "$lib/common/database/enums"
-import { basic, database_strings, fragment_commissions } from "$lib/strings/strings"
+import { basic, database_strings, errors, fragment_commissions } from "$lib/strings/strings"
 import { getAppropriatedString } from "$lib/strings"
 import { Fragments } from "$lib/components/fragments/fragments"
 
@@ -53,12 +53,41 @@ export function getDateOrLastClosedString(state: CommissionState, time: number) 
 
 export function replaceMember(member: MemberTypeV3) {
     const index = ReactiveDB.members.findIndex(m => m.id === member.id)
-
     if (index < 0)
-        return false
+        return null
 
     ReactiveDB.members[index] = member
-    return true
+
+    return member
+}
+
+export function updateMembers(...members: MemberTypeV3[]) {
+    for (let i = 0; i < members.length; i++) {
+        const member = members[i]
+        let updated = false
+
+        for (let j = 0; j < ReactiveDB.members.length; j++) {
+            if (ReactiveDB.members[j].id !== member.id)
+                // Continuar a iteração sobre o ReactiveDB.members
+                continue
+
+            // Atualizar o membro
+            ReactiveDB.members[j] = member
+            updated = true
+
+            // Parar a iteração sobre o ReactiveDB.members
+            break
+        }
+
+        // Adicionar o membro caso não tenha sido atualizado
+        if (!updated) {
+            console.warn(getAppropriatedString(errors.member_update_function_error), member)
+
+            ReactiveDB.members.push(member)
+        }
+    }
+
+    return members
 }
 
 

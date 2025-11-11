@@ -319,9 +319,13 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
             if (!member)
                 return null
 
-            // Salva as informações antigas
+            // Salva as informações antigas para o log
             const oldName = member.name
             const oldPower = member.power
+
+            // Atualizar as informações para o objeto de retorno
+            member.name = newName
+            member.power = newPower
 
             // Atualizar o membro
             const updateResult = await collection.updateOne({ id: memberId }, { $set: { name: newName, power: newPower } })
