@@ -1,4 +1,4 @@
-import { Collection, Db, FindCursor, MongoClient, type WithId } from 'mongodb'
+import { Collection, Db, FindCursor, MongoClient, type MongoClientOptions, type WithId } from 'mongodb'
 import bcrypt from 'bcryptjs'
 import type { DatabaseAuditLog, DatabaseOperationResult_SetCommissionState, DatabaseOperations } from '$lib/common/database/database-interfaces'
 import type { User, UserDatabase } from './user'
@@ -40,6 +40,16 @@ function findMembersOfTeam(db: Db, gameEvent: GameEvents, teamId: string): FindC
     }
 }
 
+function getMongoOptions(): MongoClientOptions {
+    if (process.env.ENABLE_VERCEL_MODE !== 'yes')
+        return {}
+
+    return {
+        appName: 'devrel.vercel.integration',
+        maxIdleTimeMS: 5000
+    }
+}
+
 
 class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAuditLog {
     private mongoURI: string | null = null
@@ -65,9 +75,13 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
             throw new Error('Erro ao iniciar o banco de dados, mongoUri não foi definido.')
 
         try {
-            if (!this.client)
-                this.client = new MongoClient(this.mongoURI)
+            // Criar um cliente
+            if (!this.client) {
+                const options = getMongoOptions()
+                this.client = new MongoClient(this.mongoURI, options)
+            }
 
+            // Acessar o banco de dados
             if (!this.db)
                 this.db = this.client.db(DATABASE_NAME)
 
@@ -740,5 +754,16 @@ export const RemoteDatabase = new RemoteDatabaseImpl()
 
 
 // Adicionar o URL do banco de dados
-const mongoUri = `mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_CLUSTER}`
-RemoteDatabase.setMongoUri(mongoUri)
+if (process.env.ENABLE_VERCEL_MODE === 'yes') {
+    // Url para o vercel
+    if (!process.env.MONGODB_URI)
+        throw new Error('Environment variable MONGODB_URI is not defined')
+
+    RemoteDatabase.setMongoUri(process.env.MONGODB_URI)
+} else {
+    // Url para o modo local
+    if (!process.env.MONGODB_LOCAL_URI)
+        throw new Error('Environment variable MONGODB_LOCAL_URI is not defined')
+
+    RemoteDatabase.setMongoUri(process.env.MONGODB_LOCAL_URI)
+}

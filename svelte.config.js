@@ -1,8 +1,30 @@
-import adapter from '@sveltejs/adapter-static';
-import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+import adapterStatic from '@sveltejs/adapter-static'
+import adapterVercel from '@sveltejs/adapter-vercel'
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte'
+import 'dotenv/config' // Importar as Variáveis de Ambiente
 
-// Importar as Variáveis de Ambiente
-import 'dotenv/config'
+
+/**
+ * Create appropriate svelte adapter for the webapp
+ * 
+ * @returns {import('@sveltejs/kit').Adapter}
+ */
+function createAdapter() {
+	if (process.env.ENABLE_VERCEL_MODE === 'yes') {
+		return adapterStatic({
+			// default options are shown. On some platforms
+			// these options are set automatically — see below
+			pages: 'docs',
+			assets: 'docs',
+			fallback: undefined,
+			precompress: false,
+			strict: true,
+			fallback: '200.html'
+		})
+	}
+
+	return adapterVercel({})
+}
 
 
 /** @type {import('@sveltejs/kit').Config} */
@@ -14,16 +36,7 @@ export default {
 		runes: true
 	},
 	kit: {
-		adapter: adapter({
-			// default options are shown. On some platforms
-			// these options are set automatically — see below
-			pages: 'docs',
-			assets: 'docs',
-			fallback: undefined,
-			precompress: false,
-			strict: true,
-			fallback: '200.html'
-		}),
+		adapter: createAdapter(),
 		prerender: { handleMissingId: 'warn' }
 	}
 };
