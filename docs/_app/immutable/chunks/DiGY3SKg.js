@@ -1,0 +1,1 @@
+import{l as c,m as _,n as o,E as d,o as E,H as T,q as b,t as v,B as y,v as f}from"./DBccA-sF.js";function p(t,i,l=!1){_&&o();var r=new y(t),u=l?d:0;function n(a,s){if(_){const h=E(t)===T;if(a===h){var e=b();v(e),r.anchor=e,f(!1),r.ensure(a,s),f(!0);return}}r.ensure(a,s)}c(()=>{var a=!1;i((s,e=!0)=>{a=!0,n(e,s)}),a||n(!1,null)},u)}export{p as i};
