@@ -1,5 +1,5 @@
 import { snapdom } from '@zumer/snapdom'
-import { ReactiveSettings } from './reactive-settings.svelte'
+import { ReactiveSettings } from '$lib/client/settings.svelte'
 
 
 export async function saveElementAsImage(element: HTMLElement, fileName: string) {

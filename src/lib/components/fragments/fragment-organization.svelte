@@ -16,11 +16,6 @@
     import SmuiSettingsCard from "../smui/cards/smui-settings-card.svelte";
     import SmuiTextField from "../smui/smui-text-field.svelte";
     import {
-        Database,
-        ReactiveData,
-        type MemberType,
-    } from "$lib/utils/reactive-database.svelte";
-    import {
         formatNumberCompact,
         parseCompactNumber,
     } from "$lib/utils/number-util";
@@ -28,6 +23,10 @@
     import { action, fragment_manage } from "$lib/strings/strings";
     import { getPlaceHolderStyle } from "./fragments";
     import { onMount } from "svelte";
+    import type { DatabaseOperations } from "$lib/common/database/database-interfaces";
+    import type { MemberTypeV3 } from "$lib/common/database/constants-and-types";
+    import { ReactiveDB } from "$lib/client/reactive-db.svelte";
+    import { ReactiveSettings } from "$lib/client/settings.svelte";
 
     function saveNewOrgName() {
         const value = editorOrgName.trim();
@@ -36,10 +35,17 @@
             return;
         }
 
-        Database.setOrganizationName(value);
+        ReactiveSettings.loading = true;
+        database.setGuildName(value).then((v) => {
+            if (!v) {
+                alert("Error");
+            }
+
+            ReactiveSettings.loading = false;
+        });
     }
 
-    function addNewMember() {
+    function doAddNewMember() {
         const name = el_dialogMember.getName();
         if (!name) {
             alert("name error");
@@ -54,37 +60,86 @@
         }
 
         // Adicionar no banco de dados
-        Database.addMember(name, powerNum);
+        ReactiveSettings.loading = true;
+        database.addMember(name, powerNum).then((member) => {
+            if (!member) {
+                alert("Error");
+            }
+
+            ReactiveSettings.loading = false;
+        });
+    }
+
+    function doEditMember() {
+        const editMember = el_dialogMember.getEditingMember();
+        if (!editMember) {
+            alert("member error");
+            return;
+        }
+
+        const name = el_dialogMember.getName();
+        if (!name) {
+            alert("name error");
+            return;
+        }
+
+        const power = el_dialogMember.getPower();
+        const powerNum = parseCompactNumber(power);
+        if (isNaN(powerNum)) {
+            alert("power error");
+            return;
+        }
+
+        ReactiveSettings.loading = true;
+        database.editMember(editMember.id, name, powerNum).then((member) => {
+            if (!member) {
+                alert("Error");
+            }
+
+            ReactiveSettings.loading = false;
+        });
+    }
+
+    function doDeleteMember() {
+        const editMember = el_dialogMember.getEditingMember();
+        if (!editMember) {
+            alert("member error");
+            return;
+        }
+
+        ReactiveSettings.loading = true;
+        database.deleteMember(editMember.id).then((v) => {
+            if (!v) {
+                alert("Error");
+            }
+
+            ReactiveSettings.loading = false;
+        });
     }
 
     function dialogMemberCloseHandler(e: CustomEvent<{ action: string }>) {
         const action = e.detail.action;
         const editMode = el_dialogMember.isInEditMode();
-        const editMember = el_dialogMember.getEditingMember();
 
         el_dialogMember.close();
 
         if (action === "accept" && editMode === false) {
-            addNewMember();
+            doAddNewMember();
             return;
         }
 
-        if (action === "accept" && editMode === true && editMember !== null) {
-            const name = el_dialogMember.getName();
-            const power = el_dialogMember.getPower();
-
-            Database.editMember(editMember.id, name, power);
-
+        if (action === "accept" && editMode === true) {
+            doEditMember();
             return;
         }
 
-        if (action === "delete" && editMode === true && editMember !== null) {
-            Database.deleteMemberV2(editMember);
+        if (action === "delete" && editMode === true) {
+            doDeleteMember();
             return;
         }
     }
 
-    function getTitleOfCard(members: MemberType[]): LocalizedString {
+    function getTitleOfCard(members: MemberTypeV3[]): LocalizedString {
         const base = fragment_manage.title_membersList;
         return {
             en: base.en.replace("%s", members.length.toString()),
@@ -97,12 +152,15 @@
     });
 
     const bodyStyle = getComputedStyle(document.body);
-    let editorOrgName = $state(ReactiveData.organization);
+    let editorOrgName = $state(ReactiveDB.definitions.guild);
     let sortedMembers = $derived.by(() => {
-        return [...ReactiveData.members].sort((a, b) => b.power - a.power);
+        return [...ReactiveDB.members].sort((a, b) => b.power - a.power);
     });
 
     let el_dialogMember: SmuiDialogMember;
+
+    type ExportType = { database: DatabaseOperations };
+    let { database = $bindable() }: ExportType = $props();
 </script>
 
 <div class="fragment" id="manageOrg">
@@ -128,7 +186,13 @@
 
     <div class="space-item"></div>
 
-    <SmuiSettingsCard title={getTitleOfCard(ReactiveData.members)}>
+    <SmuiSettingsCard
+        title={getAppropriatedString(
+            fragment_manage.title_membersList,
+            ReactiveDB.members.length.toString(),
+            ReactiveDB.definitions.maxMembers,
+        )}
+    >
         <List class="" twoLine avatarList nonInteractive>
             {#each sortedMembers as member, index}
                 <Item>
@@ -155,7 +219,7 @@
                         </IconButton>
                     </Meta>
                 </Item>
-                {#if index < ReactiveData.members.length - 1}
+                {#if index < ReactiveDB.members.length - 1}
                     <Separator style="margin-left: 72px;" />
                 {/if}
             {/each}

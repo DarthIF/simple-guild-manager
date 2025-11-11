@@ -1,45 +1,60 @@
 <script lang="ts">
-    import {
-        Database,
-        GameEvents,
-        ReactiveData,
-        type TeamType,
-    } from "$lib/utils/reactive-database.svelte";
-    import { onMount } from "svelte";
     import SmuiDialogPrompt from "../smui/dialogs/smui-dialog-prompt.svelte";
     import SmuiFab from "../smui/smui-fab.svelte";
-    import SmuiCardTeam from "../smui/cards/smui-card-team.svelte";
-    import EventSelectorV2 from "../event-selectorV2.svelte";
-    import { action, basic, fragment_teams } from "$lib/strings/strings";
     import Card, { Content } from "@smui/card";
-    import { getAppropriatedString } from "$lib/strings";
     import SmuiDialogConfirm from "../smui/dialogs/smui-dialog-confirm.svelte";
     import SmuiDialogAddMember from "../smui/dialogs/smui-dialog-add-member.svelte";
     import { DialogActions } from "../smui/dialogs/common";
+    import EventSelectorV2 from "../selector/event-selectorV2.svelte";
     import CardTeamV2 from "../card-teamV2.svelte";
+    import {
+        action,
+        basic,
+        errors,
+        fragment_teams,
+    } from "$lib/strings/strings";
+    import { getAppropriatedString } from "$lib/strings";
+    import type { DatabaseOperations } from "$lib/common/database/database-interfaces";
+    import type { EventTeamType } from "$lib/common/database/constants-and-types";
+    import { GameEvents } from "$lib/common/database/enums";
+    import { ReactiveSettings } from "$lib/client/settings.svelte";
+    import { onDestroy, onMount } from "svelte";
+    import { pushState } from "$app/navigation";
+    import { page } from "$app/state";
+    import type { FragmentPageState } from "./fragments";
+    import { getGameEventFromString } from "$lib/common/database/utils";
 
     export function getElementToRender(): HTMLElement {
         return el_cardsGrid;
     }
 
     export function getGameEvent(): GameEvents {
-        return GAME_EVENT;
+        return SELECTED_GAME_EVENT;
     }
 
-    function handleAddMember(gameEvent: GameEvents, team: TeamType) {
+    // ------------------------------------------
+
+    function handleAddMember(gameEvent: GameEvents, team: EventTeamType) {
         el_dialogAddMember.open(gameEvent, team);
     }
 
-    function handleDeleteTeam(gameEvent: GameEvents, team: TeamType) {
+    function handleDeleteTeam(gameEvent: GameEvents, team: EventTeamType) {
         el_dialogConfirm.open(
             {
-                label: fragment_teams.dialog_delete_team,
+                label: action.delete_team,
                 acceptText: action.delete,
             },
             (e) => {
                 // Deletar o time
                 if (e.detail.action === DialogActions.ACCEPT) {
-                    Database.deleteTeam(gameEvent, team);
+                    ReactiveSettings.loading = true;
+                    database.deleteTeam(gameEvent, team.id).then((v) => {
+                        if (!v) {
+                            alert("Delete team error");
+                        }
+
+                        ReactiveSettings.loading = false;
+                    });
                 }
             },
         );
@@ -56,29 +71,59 @@
         const value = el_dialogCreateTeam.getValue();
         if (value.length < 0) {
             el_dialogConfirm.open({
-                title: basic.error,
-                label: fragment_teams.error_invalid_name,
+                title: basic.error_warning,
+                label: errors.invalid_name,
             });
             return;
         }
 
         // Criar o time
-        Database.addTeam(GAME_EVENT, value);
+        ReactiveSettings.loading = true;
+        database.createTeam(SELECTED_GAME_EVENT, value).then((team) => {
+            if (!team) {
+                alert("Create team error");
+            }
+
+            ReactiveSettings.loading = false;
+        });
     }
 
-    // --------------------------------
+    // ------------------------------------------
 
-    let GAME_EVENT: GameEvents = $state(GameEvents.WORLD_TREE);
-    let EVENT_TEAMS: TeamType[] = $derived(Database.getEventTeams(GAME_EVENT));
+    onMount(() => {
+        const state: FragmentPageState = page.state;
+        const gameEvent = getGameEventFromString(state.extra);
+
+        if (gameEvent) {
+            SELECTED_GAME_EVENT = gameEvent;
+        }
+    });
+
+    onDestroy(() => {});
+
+    // ------------------------------------------
+
+    let SELECTED_GAME_EVENT: GameEvents = $state(GameEvents.WORLD_TREE);
+    let EVENT_TEAMS: EventTeamType[] = $state([]);
+
+    $effect(() => {
+        database.listTeams(SELECTED_GAME_EVENT).then((list) => {
+            // Atualizar a lista de times para o evento
+            EVENT_TEAMS = list;
+        });
+    });
 
     let el_cardsGrid: HTMLDivElement;
     let el_dialogCreateTeam: SmuiDialogPrompt;
     let el_dialogConfirm: SmuiDialogConfirm;
     let el_dialogAddMember: SmuiDialogAddMember;
+
+    type ExportType = { database: DatabaseOperations };
+    let { database = $bindable() }: ExportType = $props();
 </script>
 
-<EventSelectorV2 class="event-selector" bind:selected={GAME_EVENT} />
-<div bind:this={el_cardsGrid} id="manageTeams">
+<EventSelectorV2 class="event-selector" bind:selected={SELECTED_GAME_EVENT} />
+<div bind:this={el_cardsGrid}>
     <!-- Nenhuma equipe -->
     {#if EVENT_TEAMS.length < 1}
         <div class="empty-div">
@@ -94,7 +139,8 @@
                 <CardTeamV2
                     {index}
                     {team}
-                    gameEvent={GAME_EVENT}
+                    gameEvent={SELECTED_GAME_EVENT}
+                    {database}
                     onAddMemberClick={handleAddMember}
                     onDeleteTeamClick={handleDeleteTeam}
                 />
@@ -115,7 +161,14 @@
     bind:this={el_dialogCreateTeam}
 />
 <SmuiDialogConfirm bind:this={el_dialogConfirm} />
-<SmuiDialogAddMember bind:this={el_dialogAddMember} />
+<SmuiDialogAddMember
+    bind:this={el_dialogAddMember}
+    bind:database
+    strings={{
+        title: fragment_teams.dialog_add_member,
+        empty: fragment_teams.no_free_members,
+    }}
+/>
 
 <style>
     :global(.event-selector) {

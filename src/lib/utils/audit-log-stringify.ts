@@ -2,6 +2,9 @@ import { getAppropriatedString } from "$lib/strings";
 import { audit_logs } from "$lib/strings/strings";
 import { Actions, Database, getCommissionStateString, type AuditLogType } from "./reactive-database.svelte";
 
+/**
+ * @deprecated
+ */
 export function auditToString(log: AuditLogType): string {
     const member = Database.findMember(log.details.memberId)
     const details = log.details

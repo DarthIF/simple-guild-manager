@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { onMount } from "svelte";
     import Drawer, {
         AppContent,
         Content,
@@ -14,31 +13,37 @@
         Graphic,
         Separator,
         Subheader,
+        Meta,
     } from "@smui/list";
     import SmuiDialogImport from "./dialogs/smui-dialog-import.svelte";
-    import { getAppropriatedString } from "$lib/strings";
-    import { basic } from "$lib/strings/strings";
     import {
-        Database,
-        ReactiveData,
-    } from "$lib/utils/reactive-database.svelte";
+        alertWith,
+        getAppropriatedString,
+        type LocalizedString,
+    } from "$lib/strings";
+    import { basic, database_strings } from "$lib/strings/strings";
     import { DialogActions } from "./dialogs/common";
+    import { ReactiveDB } from "$lib/client/reactive-db.svelte";
+    import type { DatabaseEditor } from "$lib/common/database/database-interfaces";
+    import {
+        ReactiveSettings,
+        THEN_CALLBACK_COMPLETE_LOAD,
+    } from "$lib/client/settings.svelte";
+    import { Fragments, navigateToFragment } from "../fragments/fragments";
 
     export function setActive(value: string) {
         active = value;
         open = false;
-
-        updateOverlay();
     }
 
     export function openDrawer() {
         open = true;
-        updateOverlay();
     }
 
     export function closeDrawer() {
+        // Atualizar a variável, a UI sera
+        // atualizada na função effect
         open = false;
-        updateOverlay();
     }
 
     export function setDialogImportInstance(dialog: SmuiDialogImport) {
@@ -46,7 +51,7 @@
     }
 
     function onClickListenerExportData() {
-        Database.exportData();
+        database.exportData();
     }
 
     function onClickListenerImportData() {
@@ -60,32 +65,60 @@
             const files = ref_dialogImport.getFiles();
             const file = files?.[0];
             if (!file) {
-                const text = getAppropriatedString(
-                    basic.import_data_invalid_type,
-                );
-                alert(text);
+                alertWith(database_strings.import_data_invalid_type);
                 return;
             }
 
-            Database.importData(file);
+            // Importar o arquivo
+            ReactiveSettings.loading = true;
+            database.importData(file).then(THEN_CALLBACK_COMPLETE_LOAD);
         });
     }
 
-    function updateOverlay() {
+    function isActive(fragmentID: string) {
+        return active === fragmentID;
+    }
+
+    let ref_dialogImport: SmuiDialogImport;
+    let el_drawerOverlay: HTMLDivElement;
+
+    $effect(() => {
         if (open) {
             el_drawerOverlay.classList.add("open");
         } else {
             el_drawerOverlay.classList.remove("open");
         }
-    }
-
-    onMount(() => {
-        updateOverlay();
     });
 
-    let ref_dialogImport: SmuiDialogImport;
-    let el_drawerOverlay: HTMLDivElement;
-    let { open = false, active = "" } = $props();
+    type ExportType = {
+        /**
+         * Titulo
+         */
+        title?: string;
+        /**
+         * Subtitulo
+         */
+        subtitle?: string;
+        /**
+         * Abrir ou fechar a drawer
+         */
+        open?: boolean;
+        /**
+         * Item selecionado atualmente
+         */
+        active?: string;
+        /**
+         * Instancia banco de dados usado para exportar ou importar
+         */
+        database: DatabaseEditor;
+    };
+    let {
+        title = $bindable(""),
+        subtitle = $bindable(""),
+        open = $bindable(false),
+        active = $bindable(""),
+        database = $bindable(),
+    }: ExportType = $props();
 </script>
 
 <!--
@@ -93,92 +126,127 @@
     https://sveltematerialui.com/demo/drawer/
 -->
 
+<!-- Modelo de item da Drawer -->
+{#snippet MItem(
+    icon: string,
+    text: string | LocalizedString,
+    activated: boolean,
+    onclick: () => void,
+)}
+    <Item {activated} {onclick}>
+        <Graphic class="material-symbols-rounded" aria-hidden="true">
+            {icon}
+        </Graphic>
+        <Text>
+            {getAppropriatedString(text)}
+        </Text>
+    </Item>
+{/snippet}
+
+<!-- Drawer -->
 <Drawer style="user-select: none;" variant="modal" fixed={false} {open}>
     <Header>
-        <Title>{ReactiveData.organization}</Title>
-        <Subtitle>{getAppropriatedString(basic.subtitle)}</Subtitle>
+        <Title>{title}</Title>
+        <Subtitle>{subtitle}</Subtitle>
     </Header>
     <Content>
         <List>
             <Separator />
 
-            <Item
-                href="#manageOrg"
-                activated={active === "#manageOrg"}
-                onclick={closeDrawer}
-            >
-                <Graphic class="material-symbols-rounded" aria-hidden="true">
-                    settings
-                </Graphic>
-                <Text>{getAppropriatedString(basic.manage_org)}</Text>
-            </Item>
-            <Item
-                href="#manageTeams"
-                activated={active === "#manageTeams"}
-                onclick={closeDrawer}
-            >
-                <Graphic class="material-symbols-rounded" aria-hidden="true">
-                    diversity_3
-                </Graphic>
-                <Text>{getAppropriatedString(basic.teams)}</Text>
-            </Item>
-            <Item
-                href="#manageCommissions"
-                activated={active === "#manageCommissions"}
-                onclick={closeDrawer}
-            >
-                <Graphic class="material-symbols-rounded" aria-hidden="true">
-                    sports_martial_arts
-                </Graphic>
-                <Text>{getAppropriatedString(basic.commissions)}</Text>
-            </Item>
-            <Item
-                href="#auditLog"
-                activated={active === "#auditLog"}
-                onclick={closeDrawer}
-            >
-                <Graphic class="material-symbols-rounded" aria-hidden="true">
-                    history
-                </Graphic>
-                <Text>{getAppropriatedString(basic.audit_log)}</Text>
-            </Item>
+            {@render MItem(
+                "home",
+                basic.home,
+                isActive(Fragments.UNDEFINED),
+                () => {
+                    closeDrawer();
+                    navigateToFragment(Fragments.UNDEFINED);
+                },
+            )}
+            {@render MItem(
+                "empty_dashboard",
+                basic.manage_org,
+                isActive(Fragments.MANAGE_ORGANIZATION),
+                () => {
+                    closeDrawer();
+                    navigateToFragment(Fragments.MANAGE_ORGANIZATION);
+                },
+            )}
+            {@render MItem(
+                "diversity_3",
+                basic.teams,
+                isActive(Fragments.MANAGE_TEAMS),
+                () => {
+                    closeDrawer();
+                    navigateToFragment(Fragments.MANAGE_TEAMS);
+                },
+            )}
+            {@render MItem(
+                "sports_martial_arts",
+                basic.commissions,
+                isActive(Fragments.COMMISSIONS),
+                () => {
+                    closeDrawer();
+                    navigateToFragment(Fragments.COMMISSIONS);
+                },
+            )}
+            {@render MItem(
+                "history",
+                basic.audit_log,
+                isActive(Fragments.AUDIT_LOG),
+                () => {
+                    closeDrawer();
+                    navigateToFragment(Fragments.AUDIT_LOG);
+                },
+            )}
 
             <Separator />
             <Subheader tag="h6">
                 {getAppropriatedString(basic.category_database)}
             </Subheader>
 
-            <Item onclick={onClickListenerExportData}>
-                <Graphic class="material-symbols-rounded" aria-hidden="true">
-                    save
-                </Graphic>
-                <Text>
-                    {getAppropriatedString(basic.export_data)}
-                </Text>
-            </Item>
-            <Item onclick={onClickListenerImportData}>
-                <Graphic class="material-symbols-rounded" aria-hidden="true">
-                    upload_file
-                </Graphic>
-                <Text>
-                    {getAppropriatedString(basic.import_data)}
-                </Text>
-            </Item>
+            {@render MItem(
+                "save",
+                basic.export_data,
+                false,
+                onClickListenerExportData,
+            )}
+            {@render MItem(
+                "upload_file",
+                basic.import_data,
+                false,
+                onClickListenerImportData,
+            )}
 
             <Separator />
             <Subheader tag="h6">Simple Guild Manager</Subheader>
-            <Item
-                onclick={() => {
-                    window.open(
-                        "https://github.com/DarthIF/simple-guild-manager",
-                    );
-                }}
-            >
-                <Graphic class="material-symbols-rounded" aria-hidden="true">
-                    folder_data
-                </Graphic>
-                <Text>Source code</Text>
-            </Item>
+
+            {@render MItem(
+                "settings",
+                basic.settings,
+                isActive(Fragments.SETTINGS),
+                () => {
+                    closeDrawer();
+                    navigateToFragment(Fragments.SETTINGS);
+                },
+            )}
+            {@render MItem(
+                "info",
+                basic.about,
+                isActive(Fragments.ABOUT),
+                () => {
+                    closeDrawer();
+                    navigateToFragment(Fragments.ABOUT);
+                },
+            )}
+
+            <Separator />
+
+            {@render MItem("folder_data", basic.source_code, false, () => {
+                window.open(
+                    "https://github.com/DarthIF/simple-guild-manager",
+                    "_blank",
+                );
+            })}
         </List>
     </Content>
 </Drawer>

@@ -1,7 +1,9 @@
 {
     "cSpell.words": [
+        "Millis",
         "smui",
         "snapdom",
         "zumer"
-    ]
+    ],
+    "typescript.experimental.useTsgo": true
 }

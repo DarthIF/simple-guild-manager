@@ -75,3 +75,16 @@ export function extractHSL(hslString: string): HslReference {
 
     return { h, s, l }
 }
+
+
+
+export function getVariableColorInHex(computedStyles: CSSStyleDeclaration, variable: string) {
+    const value = computedStyles.getPropertyValue(variable).trim()
+    if (value.startsWith('#'))
+        return value.substring(1)
+
+    if (value.startsWith('hsl'))
+        return hslToHex(extractHSL(value), false)
+
+    return '#000000'
+}

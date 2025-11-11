@@ -8,35 +8,43 @@
         SecondaryText,
     } from "@smui/list";
     import IconButton from "@smui/icon-button";
-    import { getAppropriatedString } from "$lib/strings";
-    import { dialog_add_member } from "$lib/strings/strings";
-    import {
-        Database,
-        GameEvents,
-        type MemberType,
-        type TeamType,
-    } from "$lib/utils/reactive-database.svelte";
+    import type {
+        EventTeamType,
+        MemberTypeV3,
+    } from "$lib/common/database/constants-and-types";
+    import type { DatabaseOperations } from "$lib/common/database/database-interfaces";
     import { formatNumberCompact } from "$lib/utils/number-util";
+    import { GameEvents } from "$lib/common/database/enums";
+    import { getAppropriatedString, type LocalizedString } from "$lib/strings";
+    import { basic } from "$lib/strings/strings";
+    import { Loading } from "$lib/client/settings.svelte";
 
-    export function open(gameEvent: GameEvents, team: TeamType) {
-        freeMembers = Database.listFreeMembers(gameEvent).sort((a, b) => {
+    export async function open(gameEvent: GameEvents, team: EventTeamType) {
+        Loading.start();
+
+        const list = await database.listFreeMembersForEvent(gameEvent);
+        freeMembers = list.sort((a, b) => {
             return b.power - a.power;
         });
 
         targetEvent = gameEvent;
         targetTeam = team;
 
+        Loading.finish();
+
         visible = true;
     }
 
     export function close() {
         visible = false;
+
+        // Limpar as variáveis
+        freeMembers = [];
         targetEvent = null;
         targetTeam = null;
-        freeMembers = [];
     }
 
-    function addMemberToTeam(member: MemberType) {
+    function addMemberToTeam(member: MemberTypeV3) {
         if (!targetEvent || !targetTeam) {
             console.error("Erro ao adicionar o membro a equipe", {
                 member,
@@ -46,22 +54,40 @@
             return;
         }
 
-        Database.addMemberToTeamV2(targetEvent, targetTeam.id, member.id);
-        close();
+        Loading.start();
+        database
+            .addMemberToTeam(targetEvent, targetTeam.id, member.id)
+            .then((success) => Loading.finish(!success))
+            .finally(close);
     }
 
     let visible: boolean = $state(false);
-    let freeMembers: MemberType[] = $state([]);
+    let freeMembers: MemberTypeV3[] = $state([]);
     let targetEvent: GameEvents | null = $state(null);
-    let targetTeam: TeamType | null = $state(null);
+    let targetTeam: EventTeamType | null = $state(null);
 
-    let {} = $props();
+    type ExportType = {
+        database: DatabaseOperations;
+        strings: {
+            title: string | LocalizedString;
+            empty: string | LocalizedString;
+        };
+    };
+    let { database = $bindable(), strings }: ExportType = $props();
 </script>
 
 {/* @ts-ignore */ null}
 <Dialog bind:open={visible} style="user-select: none;">
     <Title>
-        {getAppropriatedString(dialog_add_member.title, targetTeam?.name)}
+        {getAppropriatedString(strings.title, targetTeam?.name)}
+
+        <IconButton
+            class="material-symbols-rounded"
+            style="opacity: 0; pointer-events: none;"
+            action="close"
+        >
+            close
+        </IconButton>
     </Title>
     <Content>
         <List twoLine nonInteractive>
@@ -69,9 +95,7 @@
                 <Item>
                     <Text>
                         <PrimaryText>
-                            {getAppropriatedString(
-                                dialog_add_member.no_free_members,
-                            )}
+                            {getAppropriatedString(strings.empty)}
                         </PrimaryText>
                     </Text>
                 </Item>
@@ -83,7 +107,10 @@
                                 {member.name}
                             </PrimaryText>
                             <SecondaryText>
-                                Power: {formatNumberCompact(member.power)}
+                                {getAppropriatedString(
+                                    basic.power,
+                                    formatNumberCompact(member.power),
+                                )}
                             </SecondaryText>
                         </Text>
                         <Meta>
@@ -102,5 +129,3 @@
         </List>
     </Content>
 </Dialog>
-
-<style></style>

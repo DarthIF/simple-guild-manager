@@ -1,0 +1,95 @@
+import type { EventTeamType, MemberTypeV3 } from "./constants-and-types"
+import type { CommissionState, GameEvents } from "./enums"
+
+export type PostTypes = {}
+    & PostSetGuildNameType
+    & PostAddMemberType
+    & PostDeleteMemberType
+    & PostEditMemberType
+    & PostCreateTeamType
+    & PostDeleteTeamType
+    & PostAddMemberToTeamType
+    & PostRemoveMemberFromTeamType
+    & PostSetCommissionSateType
+    & PostResetCommissionCycleType
+    & PostSyncOnlyListCommissionMembersType
+
+
+export type PostSetGuildNameType = {
+    newName?: string
+}
+
+
+
+export type PostAddMemberType = {
+    name?: string
+    power?: number
+}
+
+export type PostDeleteMemberType = {
+    memberId?: string
+}
+
+export type PostEditMemberType = {
+    memberId?: string
+    newName?: string
+    newPower?: number
+}
+
+
+
+export type PostCreateTeamType = {
+    gameEvent?: GameEvents
+    name?: string
+}
+
+export type PostDeleteTeamType = {
+    gameEvent?: GameEvents
+    teamId?: string
+}
+
+export type PostAddMemberToTeamType = {
+    gameEvent?: GameEvents
+    teamId?: string
+    memberId?: string
+}
+
+export type PostRemoveMemberFromTeamType = PostAddMemberToTeamType
+
+
+
+export type PostSetCommissionSateType = {
+    memberId?: string
+    state?: CommissionState
+    updateTime?: boolean
+}
+
+export type PostResetCommissionCycleType = {}
+
+
+
+export type PostSyncOnlyListCommissionMembersType = {
+    state?: CommissionState
+}
+
+export type PostSyncOnlyListFreeMembersForEvent = {
+    gameEvent?: GameEvents
+}
+
+
+
+//  ---------------------------------------------
+
+
+
+export type ResponseAddMemberType = Partial<MemberTypeV3>
+
+export type ResponseEditMemberType = Partial<MemberTypeV3>
+
+export type ResponseCreateTeamType = Partial<EventTeamType>
+
+export type ResponseSetCommissionSateType = {
+    memberId?: string
+    state?: CommissionState
+    time?: number
+}

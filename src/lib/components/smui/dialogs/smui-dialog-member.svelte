@@ -6,11 +6,11 @@
         InitialFocus,
     } from "@smui/dialog";
     import Button, { Label } from "@smui/button";
-    import Textfield from "@smui/textfield";
-    import type { MemberType } from "$lib/utils/reactive-database.svelte";
+    import Textfield from "@smui/textfield"; 
     import type { OnDialogClosedListener } from "./common";
+    import type { MemberTypeV3 } from "$lib/common/database/constants-and-types";
 
-    export function open(edit: MemberType | null = null) {
+    export function open(edit: MemberTypeV3 | null = null) {
         if (edit != null) {
             editMember = edit;
 
@@ -38,7 +38,7 @@
         return valuePower.trim() || "0";
     }
 
-    export function getEditingMember(): MemberType | null {
+    export function getEditingMember(): MemberTypeV3 | null {
         return editMember;
     }
 
@@ -50,7 +50,7 @@
         onDialogClosed = event;
     }
 
-    let editMember: MemberType | null = $state(null);
+    let editMember: MemberTypeV3 | null = $state(null);
     let isEditMode: boolean = $derived(editMember !== null);
 
     let visible: boolean = $state(false);

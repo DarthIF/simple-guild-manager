@@ -1,33 +1,31 @@
 <script lang="ts">
+    import IconButton from "@smui/icon-button";
     import { getAppropriatedString } from "$lib/strings";
-    import { component_card_team } from "$lib/strings/strings";
     import { getColorListItemForIndex } from "$lib/utils/color-list";
     import { formatNumberCompact } from "$lib/utils/number-util";
+    import type { DatabaseOperations } from "$lib/common/database/database-interfaces";
+    import type {
+        EventTeamType,
+        MemberTypeV3,
+    } from "$lib/common/database/constants-and-types";
     import {
-        calculateTeamPowerToDisplay,
-        Database,
-        type GameEvents,
-        type MemberType,
-        type TeamType,
-    } from "$lib/utils/reactive-database.svelte";
-    import { ReactiveSettings } from "$lib/utils/reactive-settings.svelte";
-    import IconButton from "@smui/icon-button";
-    import { onMount } from "svelte";
+        ReactiveSettings,
+        THEN_CALLBACK_COMPLETE_LOAD,
+    } from "$lib/client/settings.svelte";
+    import { ReactiveDB } from "$lib/client/reactive-db.svelte";
+    import { GameEvents } from "$lib/common/database/enums";
+    import { calculateTeamPowerCompact } from "$lib/client/utils";
+    import { getMembersOfTeam } from "$lib/common/database/utils";
+    import { fragment_teams } from "$lib/strings/strings";
 
-    type ExportType = {
-        index?: number;
-        team: TeamType;
-        gameEvent: GameEvents;
-        onAddMemberClick?: (gameEvent: GameEvents, team: TeamType) => void;
-        onDeleteTeamClick?: (gameEvent: GameEvents, team: TeamType) => void;
-    };
-
-    function onClick_RemoveMember(member: MemberType | undefined) {
+    function onClick_RemoveMember(member: MemberTypeV3 | undefined) {
         if (!member) return;
-        Database.removeMemberFromTeamV2(gameEvent, team.id, member.id);
-    }
 
-    onMount(() => {});
+        ReactiveSettings.loading = true;
+        database
+            .removeMemberFromTeam(gameEvent, team.id, member.id)
+            .then(THEN_CALLBACK_COMPLETE_LOAD);
+    }
 
     $effect(() => {
         if (!el_card) return;
@@ -40,10 +38,22 @@
 
     let el_card: HTMLDivElement | undefined = $state(undefined);
 
+    type ExportType = {
+        index?: number;
+        team: EventTeamType;
+        gameEvent: GameEvents;
+        database: DatabaseOperations;
+        onAddMemberClick?: (gameEvent: GameEvents, team: EventTeamType) => void;
+        onDeleteTeamClick?: (
+            gameEvent: GameEvents,
+            team: EventTeamType,
+        ) => void;
+    };
     let {
         index = 0,
         team,
         gameEvent,
+        database,
         onAddMemberClick = undefined,
         onDeleteTeamClick = undefined,
     }: ExportType = $props();
@@ -59,8 +69,8 @@
                     {team?.name}
                 </span>
                 <span>
-                    {getAppropriatedString(component_card_team.total_power)}
-                    {calculateTeamPowerToDisplay(team)}
+                    {getAppropriatedString(fragment_teams.total_power)}
+                    {calculateTeamPowerCompact(team)}
                 </span>
             </div>
 
@@ -69,7 +79,7 @@
                 <!-- Botões para gerenciar o time -->
                 {#if !ReactiveSettings.screenShotMode}
                     <!-- Botão para adicionar um membro -->
-                    {#if team.members.length < 4}
+                    {#if team.count < team.size}
                         <IconButton
                             class="material-symbols-rounded"
                             onclick={() => {
@@ -98,7 +108,7 @@
 
         <!-- Lista -->
         <ul class="card-list">
-            {#each team.members.map(Database.findMember) as member, index}
+            {#each getMembersOfTeam(ReactiveDB, gameEvent, team.id) as member, index}
                 <li class="card-list-item">
                     <div class="two-lines-text">
                         <span>{member?.name}</span>
