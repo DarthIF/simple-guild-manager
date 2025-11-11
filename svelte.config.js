@@ -10,20 +10,22 @@ import 'dotenv/config' // Importar as Variáveis de Ambiente
  * @returns {import('@sveltejs/kit').Adapter}
  */
 function createAdapter() {
+	// Adaptador para o Vercel
 	if (process.env.ENABLE_VERCEL_MODE === 'yes') {
-		return adapterStatic({
-			// default options are shown. On some platforms
-			// these options are set automatically — see below
-			pages: 'docs',
-			assets: 'docs',
-			fallback: undefined,
-			precompress: false,
-			strict: true,
-			fallback: '200.html'
-		})
+		return adapterVercel({})
 	}
 
-	return adapterVercel({})
+	// Adapter para o modo estático
+	return adapterStatic({
+		// default options are shown. On some platforms
+		// these options are set automatically — see below
+		pages: 'docs',
+		assets: 'docs',
+		fallback: undefined,
+		precompress: false,
+		strict: true,
+		fallback: '200.html'
+	})
 }
 
 
