@@ -1,8 +1,13 @@
+body {
+    background: #68355d;
+}
+
 main {
     --color: white;
     --color-inverse: black;
     --border-color: rgba(255, 255, 255, 0.2);
 
+    width: auto;
     height: auto;
     min-height: 100vh;
     position: relative;
@@ -13,6 +18,14 @@ main {
 
     overflow-y: auto;
 }
+
+.main-interact-block {
+    width: 100vw !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+}
+
 
 
 
@@ -27,8 +40,6 @@ div.background {
     background-size: cover;
     background-position: center;
 }
-
-
 
 
 .card {

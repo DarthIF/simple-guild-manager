@@ -5,8 +5,13 @@
     import { getLocalizedErrorMessage } from "$lib/common/login/error-messages";
     import "$lib/components/css/login-styles.css";
     import "animate.css";
+    import type { Undefinable } from "$lib/utils/types";
 
     onMount(() => {
+        el_card?.addEventListener("animationend", () => {
+            el_main?.classList.remove("main-interact-block");
+        });
+
         if (data.ENABLE_USER_REGISTRATION !== true) {
             location.assign("/error");
         }
@@ -16,13 +21,19 @@
     let password2 = $state("");
     let equalsPassword = $derived(password1 === password2);
 
+    let el_main: Undefinable<HTMLElement> = $state();
+    let el_card: Undefinable<HTMLDivElement> = $state();
+
     let { data, form }: PageProps = $props();
 </script>
 
 {#if data.ENABLE_USER_REGISTRATION}
-    <main>
+    <main bind:this={el_main}>
         <div class="background"></div>
-        <div class="card register-card animate__animated animate__fadeInUp">
+        <div
+            bind:this={el_card}
+            class="card register-card animate__animated animate__fadeInUp"
+        >
             <form action="?/register" method="POST" use:enhance>
                 <h1>Register</h1>
 
