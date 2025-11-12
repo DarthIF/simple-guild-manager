@@ -9,6 +9,8 @@
 // 100.000.000.000 -> 100B
 // 1.000.000.000.000 -> 1T
 
+import type { NullableU } from "./types"
+
 
 export function parseCompactNumber(numberString: string): number {
     // Preparar a string
@@ -90,4 +92,13 @@ export function padLeftZeros(num: number, zeros: number = 2): string {
         num = 0
 
     return num.toString().padStart(zeros, '0')
+}
+
+
+export function tryParseInt(str: NullableU<string>, fallback = 0) {
+    if (typeof str !== 'string')
+        return fallback
+
+    const result = Number.parseInt(str.trim())
+    return !Number.isNaN(result) ? result : fallback
 }

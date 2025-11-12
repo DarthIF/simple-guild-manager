@@ -7,6 +7,7 @@ import { Actions, CommissionState, GameEvents, Role } from '$lib/common/database
 import { currentUnixTime } from '$lib/utils/time-util'
 import { forEachGameEvent, getGameEventField, getMemberTeamId, isUndefinedTeamID, setMemberTeamId } from '$lib/common/database/utils'
 import { fancyLog } from '../util/server-log'
+import { tryParseInt } from '$lib/utils/number-util'
 
 
 const TAG = 'ServerDatabase'
@@ -106,7 +107,7 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
     public async createUser(username: string, password: string): Promise<boolean> {
         try {
-            const saltRounds = process.env.BCRYPT_SALT_ROUNDS || 10
+            const saltRounds = tryParseInt(process.env.BCRYPT_SALT_ROUNDS, 10)
             const db = await this.initialize()
             const collection = db.collection<User>(COLLECTION_USERS)
             const passwordHash = await bcrypt.hash(password, saltRounds)
@@ -132,14 +133,18 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
     public async findUser(name: string | null | undefined): Promise<User | null> {
         fancyLog(TAG, `Procurando pelo nome de usuário [${name}]`)
 
-        if (typeof name !== 'string')
+        if (typeof name !== 'string') {
+            fancyLog(TAG, 'O nome de usuário não é uma string')
             return null
+        }
 
         try {
             const db = await this.initialize()
             const collection = db.collection<User>(COLLECTION_USERS)
 
             const find = await collection.findOne({ name })
+
+            fancyLog(TAG, 'Resultado da busca', find?.name)
 
             return find
         } catch (e) {

@@ -2,11 +2,14 @@
     import type { PageProps } from "./$types";
     import { enhance } from "$app/forms";
     import { onMount } from "svelte";
+    import { getLocalizedErrorMessage } from "$lib/common/login/error-messages";
     import "$lib/components/css/login-styles.css";
+    import "animate.css";
 
     onMount(() => {
-        if (data.ENABLE_USER_REGISTRATION) return;
-        location.assign("/error");
+        if (data.ENABLE_USER_REGISTRATION !== true) {
+            location.assign("/error");
+        }
     });
 
     let password1 = $state("");
@@ -19,7 +22,7 @@
 {#if data.ENABLE_USER_REGISTRATION}
     <main>
         <div class="background"></div>
-        <div class="card register-card">
+        <div class="card register-card animate__animated animate__fadeInUp">
             <form action="?/register" method="POST" use:enhance>
                 <h1>Register</h1>
 
@@ -59,6 +62,15 @@
                     <button type="button" class="btn password-warm" disabled>
                         The password must be the same
                     </button>
+                {/if}
+
+                <!-- Mensagem de erro -->
+                {#if form?.message}
+                    <div
+                        class="error-message animate__animated animate__shakeX"
+                    >
+                        {getLocalizedErrorMessage(form.message)}
+                    </div>
                 {/if}
 
                 <div class="register-link">
