@@ -210,6 +210,11 @@ export type MemberEventType = {
     infernoRally: string
 }
 
+export type MemberGuildType = {
+    guild: string
+    tag: string
+}
+
 
 
 export type EventTeamType = {

@@ -2,10 +2,10 @@
     import type { PageProps } from "./$types";
     import { enhance } from "$app/forms";
     import { onMount } from "svelte";
+    import type { Undefinable } from "$lib/utils/types";
     import { getLocalizedErrorMessage } from "$lib/common/login/error-messages";
     import "$lib/components/css/login-styles.css";
     import "animate.css";
-    import type { Undefinable } from "$lib/utils/types";
 
     onMount(() => {
         el_card?.addEventListener("animationend", () => {

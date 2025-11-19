@@ -6,6 +6,8 @@ export interface User {
 
     // Personalização
     icon: string
+
+    characters: number[]
 }
 
 export interface UserDatabase {

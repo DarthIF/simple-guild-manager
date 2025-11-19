@@ -111,6 +111,10 @@
     }: ExportType = $props();
 </script>
 
+<svelte:head>
+    <title>{title}</title>
+</svelte:head>
+
 <main class="app-container">
     <SmuiToolbar
         {title}

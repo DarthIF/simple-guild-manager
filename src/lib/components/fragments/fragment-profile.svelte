@@ -1,11 +1,46 @@
 <script lang="ts">
+    import { onMount } from "svelte";
     import Card, { Content } from "@smui/card";
     import List, { Graphic, Item, Separator, Text } from "@smui/list";
+    import Menu from "@smui/menu";
+    import CharacterDisplayIcon from "../misc/character-display-icon.svelte";
+    import CharacterDisplayName from "../misc/character-display-name.svelte";
     import { UserInformation } from "$lib/client/user-information.svelte";
+    import type { MemberTypeV3 } from "$lib/common/database/constants-and-types";
+    import { CommissionState, Role } from "$lib/common/database/enums";
+    import type { Nullable } from "$lib/utils/types";
+    import CharacterListItem from "../misc/character-list-item.svelte";
 
     function comingSoon() {
         alert("Coming soon...");
     }
+
+    onMount(() => {
+        for (let index = 0; index < 10; index++) {
+            characterList.push({
+                id: index.toString(),
+                server: 115,
+                name: "Testing " + index,
+                earnings: 30000,
+                power: 1000,
+                role: Role.MEMBER,
+                offline: 0,
+
+                state: CommissionState.AVAILABLE,
+                time: 0,
+                missed: 0,
+
+                worldTree: "",
+                minesInDungeon: "",
+                cloudKingdom: "",
+                cassinoOnYacht: "",
+                infernoRally: "",
+            });
+        }
+    });
+
+    let menu: Nullable<Menu> = $state(null);
+    let characterList: MemberTypeV3[] = $state([]);
 </script>
 
 <div class="fragment">
@@ -15,12 +50,12 @@
             {UserInformation.name}
         </h5>
 
-        <Card>
+        <Card style="width: 100%;">
             <Content component={List}>
                 <Item onclick={comingSoon}>
-                    <Graphic class="material-symbols-rounded"
-                        >add_photo_alternate</Graphic
-                    >
+                    <Graphic class="material-symbols-rounded">
+                        add_photo_alternate
+                    </Graphic>
                     <Text>Mudar foto</Text>
                 </Item>
 
@@ -29,22 +64,23 @@
                     <Graphic class="material-symbols-rounded">person</Graphic>
                     <Text>Associar personagem</Text>
                 </Item>
-                <Item onclick={comingSoon}>
-                    <Graphic class="material-symbols-rounded">swords</Graphic>
-                    <Text>Atualizar poder</Text>
-                </Item>
-                <Item onclick={comingSoon}>
-                    <Graphic class="material-symbols-rounded"
-                        >currency_bitcoin</Graphic
-                    >
-                    <Text>Atualizar ganhos</Text>
-                </Item>
+            </Content>
+        </Card>
 
-                <Separator />
-                <Item onclick={comingSoon}>
-                    <Graphic class="material-symbols-rounded">groups</Graphic>
-                    <Text>Definir membros de time</Text>
-                </Item>
+        <Card style="width: 100%; margin-top: 16px;">
+            <Content>
+                <h5>Personagens</h5>
+                <List>
+                    {#if characterList.length > 0}
+                        {#each characterList as character}
+                            <CharacterListItem {character} />
+                        {/each}
+                    {:else}
+                        <Item>
+                            <Text>Sem person associado</Text>
+                        </Item>
+                    {/if}
+                </List>
             </Content>
         </Card>
     </div>
@@ -56,6 +92,7 @@
     }
 
     .content {
+        width: 320px;
         height: auto;
         padding: 2rem 0;
 
