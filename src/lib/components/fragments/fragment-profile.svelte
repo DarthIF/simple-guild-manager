@@ -2,14 +2,11 @@
     import { onMount } from "svelte";
     import Card, { Content } from "@smui/card";
     import List, { Graphic, Item, Separator, Text } from "@smui/list";
-    import Menu from "@smui/menu";
-    import CharacterDisplayIcon from "../misc/character-display-icon.svelte";
-    import CharacterDisplayName from "../misc/character-display-name.svelte";
     import { UserInformation } from "$lib/client/user-information.svelte";
     import type { MemberTypeV3 } from "$lib/common/database/constants-and-types";
     import { CommissionState, Role } from "$lib/common/database/enums";
-    import type { Nullable } from "$lib/utils/types";
     import CharacterListItem from "../misc/character-list-item.svelte";
+    import IconButton, { Icon } from "@smui/icon-button";
 
     function comingSoon() {
         alert("Coming soon...");
@@ -39,31 +36,35 @@
         }
     });
 
-    let menu: Nullable<Menu> = $state(null);
     let characterList: MemberTypeV3[] = $state([]);
 </script>
 
 <div class="fragment">
-    <div class="content">
-        <img class="profile-image" src="/favicon.svg" alt="" />
-        <h5>
-            {UserInformation.name}
-        </h5>
-
+    <div class="fragment-content">
         <Card style="width: 100%;">
-            <Content component={List}>
-                <Item onclick={comingSoon}>
-                    <Graphic class="material-symbols-rounded">
-                        add_photo_alternate
-                    </Graphic>
-                    <Text>Mudar foto</Text>
-                </Item>
+            <Content class="profile-card-content">
+                <img
+                    class="profile-image"
+                    src="/favicon.svg"
+                    alt={UserInformation.icon}
+                />
 
-                <Separator />
-                <Item onclick={comingSoon}>
-                    <Graphic class="material-symbols-rounded">person</Graphic>
-                    <Text>Associar personagem</Text>
-                </Item>
+                <div class="profile-card-details">
+                    <h5>
+                        {UserInformation.name}
+                    </h5>
+
+                    <div class="profile-card-buttons">
+                        <IconButton>
+                            <Icon class="material-symbols-rounded">
+                                add_photo_alternate
+                            </Icon>
+                        </IconButton>
+                        <IconButton>
+                            <Icon class="material-symbols-rounded">person</Icon>
+                        </IconButton>
+                    </div>
+                </div>
             </Content>
         </Card>
 
@@ -91,7 +92,7 @@
         user-select: none;
     }
 
-    .content {
+    .fragment-content {
         width: 320px;
         height: auto;
         padding: 2rem 0;
@@ -101,15 +102,36 @@
         align-items: center;
     }
 
+    :global(.profile-card-content) {
+        display: flex;
+        flex-direction: row;
+    }
+
     .profile-image {
         width: 120px;
         height: 120px;
+
         border-radius: 50%;
+
         background: var(--mdc-theme-secondary);
         object-fit: cover;
     }
-    .profile-image + h5 {
-        margin-top: 0.5rem;
-        margin-bottom: 1rem;
+
+    .profile-card-details {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .profile-card-buttons {
+        display: flex;
+        flex-direction: row;
+        align-items: end;
+        justify-content: end;
+        flex-grow: 1;
+    }
+
+    .profile-card-details h5 {
+        margin-left: 1rem;
     }
 </style>

@@ -1,4 +1,7 @@
 <script lang="ts">
+    import { onDestroy, onMount } from "svelte";
+    import { pushState } from "$app/navigation";
+    import { page } from "$app/state";
     import SmuiDialogPrompt from "../smui/dialogs/smui-dialog-prompt.svelte";
     import SmuiFab from "../smui/smui-fab.svelte";
     import Card, { Content } from "@smui/card";
@@ -14,15 +17,12 @@
         fragment_teams,
     } from "$lib/strings/strings";
     import { getAppropriatedString } from "$lib/strings";
+    import type { FragmentPageState } from "./fragments";
     import type { DatabaseOperations } from "$lib/common/database/database-interfaces";
     import type { EventTeamType } from "$lib/common/database/constants-and-types";
     import { GameEvents } from "$lib/common/database/enums";
-    import { ReactiveSettings } from "$lib/client/settings.svelte";
-    import { onDestroy, onMount } from "svelte";
-    import { pushState } from "$app/navigation";
-    import { page } from "$app/state";
-    import type { FragmentPageState } from "./fragments";
     import { getGameEventFromString } from "$lib/common/database/utils";
+    import { ReactiveSettings } from "$lib/client/settings.svelte";
 
     export function getElementToRender(): HTMLElement {
         return el_cardsGrid;

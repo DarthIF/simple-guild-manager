@@ -512,8 +512,6 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
             // Atualizar as informações do time 
             const resultB = await collectionEvents.updateOne({ id: teamId }, { $inc: { count: -1 } })
-
-            fancyLog(TAG, 'removeMemberFromTeam', resultA, resultB)
                 
             if (!(resultA.acknowledged && resultB.acknowledged)) {
                 return false 

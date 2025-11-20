@@ -42,7 +42,7 @@
 		"@types/file-saver": "^2.0.7",
 		"@types/luxon": "^3.7.1",
 		"@types/node": "^24.3.0",
-		"@zumer/snapdom": "^1.9.9",
+		"@zumer/snapdom": "^2.0.0",
 		"animate.css": "^4.1.1",
 		"bcryptjs": "^3.0.2",
 		"dotenv": "^17.2.1",

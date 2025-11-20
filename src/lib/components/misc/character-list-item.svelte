@@ -62,9 +62,9 @@
                 <Text>Atualizar poder</Text>
             </Item>
             <Item onclick={comingSoon}>
-                <Graphic class="material-symbols-rounded"
-                    >currency_bitcoin</Graphic
-                >
+                <Graphic class="material-symbols-rounded">
+                    currency_bitcoin
+                </Graphic>
                 <Text>Atualizar ganhos</Text>
             </Item>
 

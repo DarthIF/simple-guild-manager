@@ -27,6 +27,14 @@
             .then(THEN_CALLBACK_COMPLETE_LOAD);
     }
 
+    function isLeaderMember(
+        team: EventTeamType,
+        member: MemberTypeV3,
+    ): boolean {
+        return false;
+    }
+
+    let el_card: HTMLDivElement | undefined = $state(undefined);
     $effect(() => {
         if (!el_card) return;
 
@@ -35,8 +43,6 @@
         el_card.style.setProperty("--card-background", color.surface);
         el_card.style.setProperty("--card-text", color.text_primary);
     });
-
-    let el_card: HTMLDivElement | undefined = $state(undefined);
 
     type ExportType = {
         index?: number;
@@ -115,7 +121,13 @@
                         <span>{formatNumberCompact(member?.power || 0)}</span>
                     </div>
 
-                    {#if !ReactiveSettings.screenShotMode}
+                    {#if ReactiveSettings.screenShotMode}
+                        {#if isLeaderMember(team, member)}
+                            <IconButton class="material-symbols-rounded">
+                                star
+                            </IconButton>
+                        {/if}
+                    {:else}
                         <IconButton
                             class="material-symbols-rounded"
                             onclick={() => onClick_RemoveMember(member)}

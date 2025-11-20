@@ -24,7 +24,8 @@ async function sendDatabase(connection: Connection, token: string) {
     const exportedDB = await RemoteDatabase.createExportableDatabase({
         definitions: true,
         members: true,
-        events: true
+        events: true,
+        auditLog: true,
     })
 
     const packet: PacketType = {
