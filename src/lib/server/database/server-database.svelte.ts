@@ -119,7 +119,10 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
                 token: crypto.randomUUID(),
 
                 // Personalização
-                icon: ''
+                icon: '',
+
+                // Personagens
+                characters: []
             })
 
             return result.acknowledged
@@ -501,22 +504,20 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
             // Verificar o membro
             const member = await collectionMembers.findOne({ id: memberId })
             if (!member)
-                return false
+                return false             
 
-            // Verificar a equipe
-            const team = await collectionEvents.findOne({ id: teamId })
-            if (!team || team.count >= team.size)
-                return false
+            // Atualizar as informações do membro para o evento
+            const updateField = getGameEventField(gameEvent) 
+            const resultA = await collectionMembers.updateOne({ id: memberId }, { $set: { [updateField]: UNDEFINED_TEAM } })
 
-            // Definir o novo time em que o membro está para esse evento
-            setMemberTeamId(member, gameEvent, UNDEFINED_TEAM)
+            // Atualizar as informações do time 
+            const resultB = await collectionEvents.updateOne({ id: teamId }, { $inc: { count: -1 } })
 
-            // Atualizar as informações do membro e do time 
-            const resultA = await collectionMembers.updateOne({ id: memberId }, { $set: member })
-            const resultB = await collectionEvents.updateOne({ id: team.id }, { $inc: { count: -1 } })
-
-            if (!(resultA.acknowledged && resultB.acknowledged))
-                return false
+            fancyLog(TAG, 'removeMemberFromTeam', resultA, resultB)
+                
+            if (!(resultA.acknowledged && resultB.acknowledged)) {
+                return false 
+            }
 
             // Adicionar ao registro de auditoria de forma assincrônica
             this.addAuditLog(Actions.REMOVE_MEMBER_FROM_TEAM, { gameEvent, teamId, memberId }, userName)
