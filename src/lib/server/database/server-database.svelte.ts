@@ -1,7 +1,7 @@
 import { Collection, Db, FindCursor, MongoClient, type MongoClientOptions, type WithId } from 'mongodb'
 import bcrypt from 'bcryptjs'
 import type { DatabaseAuditLog, DatabaseOperationResult_SetCommissionState, DatabaseOperations } from '$lib/common/database/database-interfaces'
-import type { User, UserDatabase } from './user'
+import type { CreateSessionResult, FindUserResult, UserDatabase, UserV2 } from './user'
 import { DEFINITIONS_DEFAULT_ID, UNDEFINED_TEAM, type DefinitionsType, type MemberTypeV3, type EventTeamType, type AuditLogTypeV3, type AuditLogDetailsV3, type DatabaseTypeV3, type DatabaseExportOptionsType } from '$lib/common/database/constants-and-types'
 import { Actions, CommissionState, GameEvents, Role } from '$lib/common/database/enums'
 import { currentUnixTime } from '$lib/utils/time-util'
@@ -109,7 +109,7 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
         try {
             const saltRounds = tryParseInt(process.env.BCRYPT_SALT_ROUNDS, 10)
             const db = await this.initialize()
-            const collection = db.collection<User>(COLLECTION_USERS)
+            const collection = db.collection<UserV2>(COLLECTION_USERS)
             const passwordHash = await bcrypt.hash(password, saltRounds)
 
             const result = await collection.insertOne({
@@ -122,7 +122,11 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
                 icon: '',
 
                 // Personagens
-                characters: []
+                characters: [],
+
+                // Administração
+                admin: false,
+                permissions: []
             })
 
             return result.acknowledged
@@ -133,80 +137,85 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
         return false
     }
 
-    public async findUser(name: string | null | undefined): Promise<User | null> {
+    public async findUser(name: string | null | undefined): Promise<FindUserResult> {
         fancyLog(TAG, `Procurando pelo nome de usuário [${name}]`)
 
         if (typeof name !== 'string') {
             fancyLog(TAG, 'O nome de usuário não é uma string')
-            return null
+            return { user: null, databaseError: false }
         }
 
         try {
             const db = await this.initialize()
-            const collection = db.collection<User>(COLLECTION_USERS)
+            const collection = db.collection<UserV2>(COLLECTION_USERS)
 
             const find = await collection.findOne({ name })
 
             fancyLog(TAG, 'Resultado da busca', find?.name)
 
-            return find
+            return { user: find, databaseError: false }
         } catch (e) {
             fancyLog(TAG, 'Erro inesperado: ', e)
-        }
 
-        return null
+            return { user: null, databaseError: true }
+        }
     }
 
-    public async fundUserByToken(token: string | null | undefined): Promise<User | null> {
+    public async fundUserByToken(token: string | null | undefined): Promise<FindUserResult> {
         fancyLog(TAG, `Procurando pelo token de usuário [${token}]`)
 
         if (typeof token !== 'string')
-            return null
+            return { user: null, databaseError: false }
 
         try {
             const db = await this.initialize()
-            const collection = db.collection<User>(COLLECTION_USERS)
+            const collection = db.collection<UserV2>(COLLECTION_USERS)
 
             const find = await collection.findOne({ token })
 
-            return find
+            return { user: find, databaseError: false }
         } catch (e) {
             fancyLog(TAG, 'Erro inesperado: ', e)
+            return { user: null, databaseError: true }
         }
-
-        return null
     }
 
-    public async createSession(name: string): Promise<string | null> {
+    public async createSession(name: string): Promise<CreateSessionResult> {
         try {
             const db = await this.initialize()
-            const collection = db.collection<User>(COLLECTION_USERS)
+            const collection = db.collection<UserV2>(COLLECTION_USERS)
             const newToken: string = crypto.randomUUID()
 
             const result = await collection.updateOne({ name }, { $set: { token: newToken } })
 
-            return result.acknowledged ? newToken : null
+            return {
+                token: newToken,
+                success: result.acknowledged,
+                databaseError: false
+            }
         } catch (e) {
             fancyLog(TAG, 'Erro inesperado: ', e)
+
+            return {
+                token: '',
+                success: false,
+                databaseError: true,
+            }
         }
-
-        return null
-
     }
 
-    public async findSession(token: string): Promise<User | null> {
+    public async findSession(token: string): Promise<FindUserResult> {
         try {
             const db = await this.initialize()
-            const collection = db.collection<User>(COLLECTION_USERS)
+            const collection = db.collection<UserV2>(COLLECTION_USERS)
 
             const find = await collection.findOne({ token })
 
-            return find
+            return { user: find, databaseError: false }
         } catch (e) {
             fancyLog(TAG, 'Erro inesperado: ', e)
+            return { user: null, databaseError: true }
         }
-
-        return null
     }
 
 
@@ -504,17 +513,17 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
             // Verificar o membro
             const member = await collectionMembers.findOne({ id: memberId })
             if (!member)
-                return false             
+                return false
 
             // Atualizar as informações do membro para o evento
-            const updateField = getGameEventField(gameEvent) 
+            const updateField = getGameEventField(gameEvent)
             const resultA = await collectionMembers.updateOne({ id: memberId }, { $set: { [updateField]: UNDEFINED_TEAM } })
 
             // Atualizar as informações do time 
             const resultB = await collectionEvents.updateOne({ id: teamId }, { $inc: { count: -1 } })
-                
+
             if (!(resultA.acknowledged && resultB.acknowledged)) {
-                return false 
+                return false
             }
 
             // Adicionar ao registro de auditoria de forma assincrônica

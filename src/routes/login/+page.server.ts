@@ -37,16 +37,20 @@ export const actions = {
         }
 
         // Encontre um usuário correspondente
-        const user = await RemoteDatabase.findUser(username)
-        if (!user) {
-            // Retornar um erro 406 com a mensagem de nome de usuário e credenciais
+        const findResult = await RemoteDatabase.findUser(username)
+        if (!findResult.user) {
+            // Retornar um erro 500, pois aconteceu algo com o banco de dados
+            if (findResult.databaseError)
+                return fail(StatusCodes.INTERNAL_SERVER_ERROR, { username, message: ErrorMessages.DATABASE_ACCESS_ERROR })
+
+            // Retornar um erro 406 com a mensagem de nome de Usuário ou senha invalido
             return fail(StatusCodes.NOT_ACCEPTABLE, { username, message: ErrorMessages.INCORRECT })
         }
 
         // Verifique se o usuário possui um hash de senha
-        if (user.hash) {
+        if (findResult.user.hash) {
             // Compare a senha fornecida com o hash da senha do usuário
-            const userPassword = bcrypt.compareSync(password, user.hash)
+            const userPassword = bcrypt.compareSync(password, findResult.user.hash)
 
             // Verifique se a senha está incorreta
             if (!userPassword) {
@@ -59,13 +63,13 @@ export const actions = {
         }
 
         // Atualizar o campo userAuthToken do usuário com um UUID gerado aleatoriamente
-        const newToken = await RemoteDatabase.createSession(username)
-        if (!newToken) {
+        const createdSession = await RemoteDatabase.createSession(username)
+        if (!createdSession.success) {
             // Retornar erro 500, Isso realmente pode acontecer?
             return fail(StatusCodes.INTERNAL_SERVER_ERROR, { username, message: ErrorMessages.CREATE_SESSION })
         }
 
-        cookies.set('session', newToken, {
+        cookies.set('session', createdSession.token, {
             path: '/',
             httpOnly: true,
             sameSite: 'strict',
@@ -73,7 +77,7 @@ export const actions = {
             maxAge: 60 * 60 * 24 * 31 // set to 1 month
         })
 
-        console.log('Usuário(a) autenticado: ', username, newToken)
+        console.log('Usuário(a) autenticado: ', username, createdSession.token)
 
         // Redirecionar para o aplicativo logado
         return redirect(StatusCodes.SEE_OTHER, '/app')

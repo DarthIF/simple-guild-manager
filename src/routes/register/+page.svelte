@@ -1,30 +1,28 @@
 <script lang="ts">
-    import type { PageProps } from "./$types";
-    import { enhance } from "$app/forms";
-    import { onMount } from "svelte";
-    import type { Undefinable } from "$lib/utils/types";
-    import { getLocalizedErrorMessage } from "$lib/common/login/error-messages";
-    import "$lib/components/css/login-styles.css";
-    import "animate.css";
+    import type { PageProps } from './$types'
+    import { enhance } from '$app/forms'
+    import { onMount } from 'svelte'
+    import type { Undefinable } from '$lib/utils/types'
+    import { getLocalizedErrorMessage } from '$lib/common/login/error-messages'
 
     onMount(() => {
-        el_card?.addEventListener("animationend", () => {
-            el_main?.classList.remove("main-interact-block");
-        });
+        el_card?.addEventListener('animationend', () => {
+            el_main?.classList.remove('main-interact-block')
+        })
 
         if (data.ENABLE_USER_REGISTRATION !== true) {
-            location.assign("/error");
+            location.assign('/error')
         }
-    });
+    })
 
-    let password1 = $state("");
-    let password2 = $state("");
-    let equalsPassword = $derived(password1 === password2);
+    let password1 = $state('')
+    let password2 = $state('')
+    let equalsPassword = $derived(password1 === password2)
 
-    let el_main: Undefinable<HTMLElement> = $state();
-    let el_card: Undefinable<HTMLDivElement> = $state();
+    let el_main: Undefinable<HTMLElement> = $state()
+    let el_card: Undefinable<HTMLDivElement> = $state()
 
-    let { data, form }: PageProps = $props();
+    let { data, form }: PageProps = $props()
 </script>
 
 {#if data.ENABLE_USER_REGISTRATION}
@@ -95,6 +93,9 @@
 {/if}
 
 <style>
+    @import '$lib/components/css/login-styles.css';
+    @import 'animate.css';
+
     .password-warm {
         --color: #f44336;
         --color-inverse: #ffcdd2;

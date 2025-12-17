@@ -27,6 +27,8 @@
     import type { MemberTypeV3 } from "$lib/common/database/constants-and-types";
     import { ReactiveDB } from "$lib/client/reactive-db.svelte";
     import { ReactiveSettings } from "$lib/client/settings.svelte";
+    import LayoutResponsiveSingleColumn from "../layouts/layout-responsive-single-column.svelte";
+    import SmuiDialogManage from "../smui/dialogs/smui-dialog-manage.svelte";
 
     function saveNewOrgName() {
         const value = editorOrgName.trim();
@@ -157,13 +159,14 @@
         return [...ReactiveDB.members].sort((a, b) => b.power - a.power);
     });
 
+    let el_dialogManage: SmuiDialogManage;
     let el_dialogMember: SmuiDialogMember;
 
     type ExportType = { database: DatabaseOperations };
     let { database = $bindable() }: ExportType = $props();
 </script>
 
-<div class="fragment" id="manageOrg">
+<LayoutResponsiveSingleColumn>
     <SmuiSettingsCard title={fragment_manage.title_changeOrgName}>
         <Content>
             <SmuiTextField
@@ -225,14 +228,26 @@
             {/each}
         </List>
     </SmuiSettingsCard>
-</div>
+</LayoutResponsiveSingleColumn>
 
 <SmuiFab
-    icon="add"
+    icon="note_stack_add"
     onClick={() => {
-        el_dialogMember.open();
+        el_dialogManage.open();
+        // el_dialogMember.open();
     }}
 />
+
+<!-- Diálogos -->
+<SmuiDialogManage
+    bind:this={el_dialogManage}
+    onClickAddMember={() => {
+        el_dialogManage.close();
+        el_dialogMember.open();
+    }}
+    onClickSync={() => {}}
+/>
+
 <SmuiDialogMember bind:this={el_dialogMember} />
 
 <style>
@@ -246,27 +261,5 @@
 
     .space-item {
         margin-top: 16px;
-    }
-
-    /* Default styles for larger screens (e.g., desktops) */
-    .fragment {
-        width: 600px;
-        margin: auto;
-        padding: 16px;
-        padding-bottom: 96px;
-    }
-
-    /* Styles for tablets */
-    @media screen and (max-width: 1023px) {
-        .fragment {
-            width: 520px;
-        }
-    }
-
-    /* Styles for smartphones */
-    @media screen and (max-width: 767px) {
-        .fragment {
-            width: auto;
-        }
     }
 </style>

@@ -1,21 +1,19 @@
 <script lang="ts">
-    import type { PageProps } from "./$types";
-    import { enhance } from "$app/forms";
-    import { onMount } from "svelte";
-    import { getLocalizedErrorMessage } from "$lib/common/login/error-messages";
-    import "$lib/components/css/login-styles.css";
-    import "animate.css";
+    import type { PageProps } from './$types'
+    import { enhance } from '$app/forms'
+    import { onMount } from 'svelte'
+    import { getLocalizedErrorMessage } from '$lib/common/login/error-messages'
 
     onMount(() => {
-        el_card.addEventListener("animationend", () => {
-            el_main.classList.remove("main-interact-block");
-        });
-    });
+        el_card.addEventListener('animationend', () => {
+            el_main.classList.remove('main-interact-block')
+        })
+    })
 
-    let el_main: HTMLElement;
-    let el_card: HTMLDivElement;
+    let el_main: HTMLElement
+    let el_card: HTMLDivElement
 
-    let { data, form }: PageProps = $props();
+    let { data, form }: PageProps = $props()
 </script>
 
 <main bind:this={el_main} class="main-interact-block">
@@ -64,4 +62,6 @@
 </main>
 
 <style>
+    @import '$lib/components/css/login-styles.css';
+    @import 'animate.css';
 </style>

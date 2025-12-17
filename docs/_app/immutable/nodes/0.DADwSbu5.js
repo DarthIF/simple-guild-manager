@@ -1,0 +1,1 @@
+import{L as a}from"../chunks/CM4v2CPp.js";const e=!0,o=!0,r=async()=>({}),t=Object.freeze(Object.defineProperty({__proto__:null,load:r,prerender:e,ssr:o},Symbol.toStringTag,{value:"Module"}));export{a as component,t as universal};

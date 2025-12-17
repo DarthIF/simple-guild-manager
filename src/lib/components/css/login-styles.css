@@ -32,8 +32,8 @@ div.background {
     bottom: 0;
     right: 0;
 
-    background: linear-gradient(to right top, #9c4ea9, #a054ad, #a55ab0, #a960b4, #ad66b8, #b16bbb, #b471be, #b876c1, #bd7cc4, #c282c8, #c689cb, #cb8fcf);
-    background: url(https://i.ibb.co/S70BBrtt/a-chosen-soul-unsplash.jpg) no-repeat;
+    background-image: url(https://i.ibb.co/S70BBrtt/a-chosen-soul-unsplash.jpg), linear-gradient(to right top, #9c4ea9, #a054ad, #a55ab0, #a960b4, #ad66b8, #b16bbb, #b471be, #b876c1, #bd7cc4, #c282c8, #c689cb, #cb8fcf);
+    background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
 }

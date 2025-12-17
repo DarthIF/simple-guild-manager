@@ -1,12 +1,12 @@
 <script lang="ts">
-    import "$lib/components/css/glitch.css";
+    import '$lib/components/css/glitch.css'
 </script>
 
 <!-- From Uiverse.io by Smit-Prajapati -->
 <!-- https://uiverse.io/Smit-Prajapati/great-bat-98 -->
 <a href="https://github.com/DarthIF/simple-guild-manager" target="_blank">
     <div class="shiny-slot shiny-card">
-        <div class="card">
+        <div class="card-about">
             <div
                 class="top-section"
                 style="background-image: url(https://github.com/DarthIF.png);"
@@ -45,7 +45,7 @@
         text-decoration: none;
     }
 
-    .card {
+    .card-about {
         z-index: 1;
         width: 230px;
         position: relative;
@@ -89,7 +89,7 @@
     }
 
     .top-section .border::before {
-        content: "";
+        content: '';
         position: absolute;
         width: 16px;
         height: 16px;
@@ -101,7 +101,7 @@
     }
 
     .top-section::before {
-        content: "";
+        content: '';
         position: absolute;
         top: 32px;
         left: 0;
@@ -194,7 +194,7 @@
     }
 
     @property --angle {
-        syntax: "<angle>";
+        syntax: '<angle>';
         initial-value: 0deg;
         inherits: false;
     }
@@ -205,7 +205,7 @@
 
     .shiny-slot::after,
     .shiny-slot::before {
-        content: "";
+        content: '';
         position: absolute;
 
         height: 100%;

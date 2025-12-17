@@ -42,7 +42,7 @@
         <Graphic>
             <CharacterDisplayIcon name={character.name} />
         </Graphic>
-        <Text>
+        <Text style="margin-left: -16px;">
             <CharacterDisplayName
                 server={character.server}
                 tag="TAG"
@@ -62,9 +62,9 @@
                 <Text>Atualizar poder</Text>
             </Item>
             <Item onclick={comingSoon}>
-                <Graphic class="material-symbols-rounded">
-                    currency_bitcoin
-                </Graphic>
+                <Graphic class="material-symbols-rounded"
+                    >currency_bitcoin</Graphic
+                >
                 <Text>Atualizar ganhos</Text>
             </Item>
 

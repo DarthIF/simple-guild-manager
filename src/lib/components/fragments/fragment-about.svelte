@@ -8,7 +8,7 @@
     </div>
 
     <div class="footer">
-        <span>Simple Guild Manager | Version: 0.0.1</span>
+        <span>Simple Guild Manager | Version: 0.0.2</span>
         <span>Created with 💚💛💙</span>
     </div>
 </div>

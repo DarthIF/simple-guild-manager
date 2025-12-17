@@ -30,6 +30,9 @@ export const basic = {
     information: { en: 'Information', pt: 'Informação' },
 
     you: { en: 'You', pt: 'Você' },
+
+    user: { en: 'User', pt: 'Usuário' },
+    members: { en: 'Members', pt: 'Membros' }
 }
 
 export const action = {
@@ -217,6 +220,10 @@ export const login_strings = {
         en: 'User already exists.',
         pt: 'Usuário já existe.'
     },
+    database_access_error: {
+        en: 'Error connecting to the external server.',
+        pt: 'Erro ao conectar-se ao servidor externo.'
+    }
 }
 
 

@@ -49,7 +49,7 @@ function updateDocumentLanguage(): void {
  * o idioma padrão se não tiver salvo
  */
 function loadLocalSettings_Lang(): AppLanguageType {
-    if (typeof localStorage === 'undefined')
+    if (typeof localStorage === 'undefined' || typeof localStorage.getItem === 'undefined')
         return getDefaultLang()
 
     const value = localStorage.getItem(KEY_LOCAL_STORAGE_LANG)

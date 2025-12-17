@@ -1,1 +1,0 @@
-import{L as a}from"../chunks/DrU9DBKT.js";const e=!1,o=!1,r=async()=>({}),t=Object.freeze(Object.defineProperty({__proto__:null,load:r,prerender:e,ssr:o},Symbol.toStringTag,{value:"Module"}));export{a as component,t as universal};

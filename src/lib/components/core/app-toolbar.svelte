@@ -1,6 +1,9 @@
 <script lang="ts">
     import TopAppBar, { Row, Section, Title } from "@smui/top-app-bar";
     import IconButton from "@smui/icon-button";
+    import Tooltip, { Wrapper } from "@smui/tooltip";
+    import { getAppropriatedString } from "$lib/strings";
+    import { basic } from "$lib/strings/strings";
 
     type ToolbarType = {
         title?: string;
@@ -42,9 +45,13 @@
 >
     <Row>
         <Section>
-            <IconButton class="material-symbols-rounded" onclick={onClickDrawer}
-                >menu
+            <IconButton
+                class="material-symbols-rounded"
+                onclick={onClickDrawer}
+            >
+                menu
             </IconButton>
+
             <Title>{title}</Title>
         </Section>
         <Section align="end" toolbar>
@@ -59,13 +66,16 @@
             {/if}
 
             {#if showProfileButton}
-                <IconButton
-                    class="material-symbols-rounded"
-                    aria-label=""
-                    onclick={onClickProfileButton}
-                >
-                    account_circle
-                </IconButton>
+                <Wrapper>
+                    <IconButton
+                        class="material-symbols-rounded"
+                        aria-label=""
+                        onclick={onClickProfileButton}
+                    >
+                        account_circle
+                    </IconButton>
+                    <Tooltip>{getAppropriatedString(basic.user)}</Tooltip>
+                </Wrapper>
             {/if}
         </Section>
     </Row>

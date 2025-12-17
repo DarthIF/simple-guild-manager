@@ -8,6 +8,7 @@ export enum ErrorMessages {
     CREATE_USER = 2,
     CREATE_SESSION = 3,
     USER_ALREADY_EXISTS = 4,
+    DATABASE_ACCESS_ERROR = 5
 }
 
 export function getLocalizedErrorMessage(error: NullableU<ErrorMessages>) {
@@ -26,6 +27,9 @@ export function getLocalizedErrorMessage(error: NullableU<ErrorMessages>) {
 
         case ErrorMessages.USER_ALREADY_EXISTS:
             return getAppropriatedString(login_strings.user_already_exists)
+
+        case ErrorMessages.DATABASE_ACCESS_ERROR:
+            return getAppropriatedString(login_strings.database_access_error)
 
         default:
             return 'undefined'

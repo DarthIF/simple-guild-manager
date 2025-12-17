@@ -2,11 +2,13 @@
     import { onMount } from "svelte";
     import Card, { Content } from "@smui/card";
     import List, { Graphic, Item, Separator, Text } from "@smui/list";
+    import Tooltip, { Wrapper } from "@smui/tooltip";
+    import IconButton, { Icon } from "@smui/icon-button";
+    import CharacterListItem from "../misc/character-list-item.svelte";
     import { UserInformation } from "$lib/client/user-information.svelte";
     import type { MemberTypeV3 } from "$lib/common/database/constants-and-types";
     import { CommissionState, Role } from "$lib/common/database/enums";
-    import CharacterListItem from "../misc/character-list-item.svelte";
-    import IconButton, { Icon } from "@smui/icon-button";
+    import LayoutResponsiveSingleColumn from "../layouts/layout-responsive-single-column.svelte";
 
     function comingSoon() {
         alert("Coming soon...");
@@ -39,7 +41,7 @@
     let characterList: MemberTypeV3[] = $state([]);
 </script>
 
-<div class="fragment">
+<LayoutResponsiveSingleColumn>
     <div class="fragment-content">
         <Card style="width: 100%;">
             <Content class="profile-card-content">
@@ -55,14 +57,23 @@
                     </h5>
 
                     <div class="profile-card-buttons">
-                        <IconButton>
-                            <Icon class="material-symbols-rounded">
-                                add_photo_alternate
-                            </Icon>
-                        </IconButton>
-                        <IconButton>
-                            <Icon class="material-symbols-rounded">person</Icon>
-                        </IconButton>
+                        <Wrapper>
+                            <IconButton onclick={comingSoon}>
+                                <Icon class="material-symbols-rounded">
+                                    add_photo_alternate
+                                </Icon>
+                            </IconButton>
+                            <Tooltip unbounded>Mudar foto</Tooltip>
+                        </Wrapper>
+
+                        <Wrapper>
+                            <IconButton onclick={comingSoon}>
+                                <Icon class="material-symbols-rounded">
+                                    person
+                                </Icon>
+                            </IconButton>
+                            <Tooltip unbounded>Associar personagem</Tooltip>
+                        </Wrapper>
                     </div>
                 </div>
             </Content>
@@ -85,15 +96,11 @@
             </Content>
         </Card>
     </div>
-</div>
+</LayoutResponsiveSingleColumn>
 
 <style>
-    .fragment {
-        user-select: none;
-    }
-
     .fragment-content {
-        width: 320px;
+        width: 100%;
         height: auto;
         padding: 2rem 0;
 

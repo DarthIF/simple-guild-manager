@@ -2,30 +2,16 @@
     import Button, { Label } from "@smui/button";
     import Dialog, { Title, Content, Actions } from "@smui/dialog";
     import InputFile from "$lib/components/misc/input-file.svelte";
-    import type { OnDialogClosedListener } from "./common";
     import { getAppropriatedString } from "$lib/strings";
     import { action, basic } from "$lib/strings/strings";
-
-    export function open(event: OnDialogClosedListener) {
-        onDialogClosed = event;
-        visible = true;
-    }
-
-    export function close() {
-        visible = false;
-        onDialogClosed = undefined;
-    }
-
-    export function getFiles(): FileList | null {
-        return files;
-    }
+    import type { OnDialogClosedListener } from "./common";
+    import type { Undefinable } from "$lib/utils/types";
 
     let visible: boolean = $state(false);
     let files: FileList | null = $state(null);
-    let onDialogClosed: OnDialogClosedListener | undefined = $state(undefined);
+    let onDialogClosed: Undefinable<OnDialogClosedListener> = $state(undefined);
 </script>
 
-{/* @ts-ignore */ null}
 <Dialog
     bind:open={visible}
     style="user-select: none;"
@@ -33,14 +19,12 @@
 >
     <Title>{getAppropriatedString(basic.import_data)}</Title>
     <Content>
-        <div class="dialog-content">
-            <InputFile
-                id="file-upload"
-                icon="file_json"
-                accept=".json"
-                bind:files
-            />
-        </div>
+        <InputFile
+            id="file-upload"
+            icon="file_json"
+            accept=".json"
+            bind:files
+        />
     </Content>
     <Actions>
         <Button action="cancel">
@@ -60,15 +44,5 @@
 
         display: flex;
         flex-direction: column;
-    }
-
-    :global(.dialog-content > * ~ *) {
-        margin-top: 8px;
-    }
-
-    @media (min-width: 600px) {
-        .dialog-content {
-            margin: 0;
-        }
     }
 </style>
