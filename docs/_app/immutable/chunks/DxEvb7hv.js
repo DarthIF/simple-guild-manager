@@ -1,1 +1,0 @@
-import{toCanvas as r}from"./DPSy_BHO.js";async function s(i,t){let a=await r(i,t),e=new Image;return e.src=a.toDataURL(`image/${t.format}`,t.quality),await e.decode(),e.style.width=`${a.width/t.dpr}px`,e.style.height=`${a.height/t.dpr}px`,e}export{s as rasterize};

@@ -20,6 +20,8 @@
         card_display = "flex";
         card_animation = "animate__fadeInUp";
 
+        console.log(data)
+
         // Salvar as informações
         UserInformation.name = data.name;
         UserInformation.icon = data.icon;

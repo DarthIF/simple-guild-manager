@@ -1,0 +1,1 @@
+import{toCanvas as l}from"./C3ewkYF6.js";async function m(o,e){let n=e.type;if(n==="svg"){let t=decodeURIComponent(o.split(",")[1]);return new Blob([t],{type:"image/svg+xml"})}let a=await l(o,e);return new Promise(t=>a.toBlob(i=>t(i),`image/${n}`,e.quality))}export{m as toBlob};

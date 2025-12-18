@@ -11,7 +11,7 @@ import 'dotenv/config' // Importar as Variáveis de Ambiente
  */
 function createAdapter() {
 	// Adaptador para o Vercel
-	if (process.env.ENABLE_VERCEL_MODE === 'yes') {
+	if (!process.env.FORCE_STATIC && process.env.ENABLE_VERCEL_MODE === 'yes') {
 		return adapterVercel({})
 	}
 
