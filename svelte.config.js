@@ -40,5 +40,10 @@ export default {
 	kit: {
 		adapter: createAdapter(),
 		prerender: { handleMissingId: 'warn' }
+	},
+	onwarn: (warning, handler) => {
+		if (warning.code === 'css_unused_selector')
+			return;
+		handler(warning);
 	}
 };
