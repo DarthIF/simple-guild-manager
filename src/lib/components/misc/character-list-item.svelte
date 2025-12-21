@@ -5,6 +5,13 @@
     import { Anchor } from "@smui/menu-surface";
     import CharacterDisplayIcon from "./character-display-icon.svelte";
     import CharacterDisplayName from "./character-display-name.svelte";
+    import { wait } from "$lib/utils/misc";
+
+    export async function openMenu() {
+        if (menu.isOpen()) return;
+
+        menu.setOpen(true);
+    }
 
     function comingSoon() {
         alert("Coming soon...");
@@ -34,11 +41,7 @@
     }}
     bind:this={anchor}
 >
-    <Item
-        onclick={() => {
-            menu.setOpen(!menu.isOpen());
-        }}
-    >
+    <Item onclick={openMenu}>
         <Graphic>
             <CharacterDisplayIcon name={character.name} />
         </Graphic>

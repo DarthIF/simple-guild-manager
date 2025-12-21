@@ -77,7 +77,7 @@
         // Atualizar a ui da pagina
         return fragment;
     });
-    let enableGenerateImageButton: boolean = $derived.by(() => {
+    let showGenerateImageButton: boolean = $derived.by(() => {
         // Deixar visível o botão de gerar a imagem somente
         // no fragmento de equipes
         return currentFragment === Fragments.MANAGE_TEAMS;
@@ -95,18 +95,33 @@
 
     type ExportType = {
         database: DatabaseOperations & DatabaseEditor;
+
         title?: string;
         subtitle?: string;
-        enableProfileButton?: boolean;
-        onClickListenerProfileButton?: () => void;
+
+        showProfileButton?: boolean;
+
+        logged?: boolean;
+
+        onClickMenuLogin?: () => void;
+        onClickMenuLogout?: () => void;
+        onClickMenuProfile?: () => void;
+
         children?: any;
     };
     let {
         database = $bindable(),
+
         title = $bindable(""),
         subtitle = $bindable(""),
-        enableProfileButton = false,
-        onClickListenerProfileButton = undefined,
+
+        showProfileButton = false,
+        logged = false,
+
+        onClickMenuLogin = undefined,
+        onClickMenuLogout = undefined,
+        onClickMenuProfile = undefined,
+
         children,
     }: ExportType = $props();
 </script>
@@ -118,11 +133,14 @@
 <main class="app-container">
     <SmuiToolbar
         {title}
-        showGenerateImageButton={enableGenerateImageButton}
-        showProfileButton={enableProfileButton}
+        {showGenerateImageButton}
+        {showProfileButton}
         onClickDrawer={onClickToolbar_DrawerMenu}
         onClickGenerateImage={onClickToolbar_GenerateImage}
-        onClickProfileButton={onClickListenerProfileButton}
+        {logged}
+        {onClickMenuLogin}
+        {onClickMenuLogout}
+        {onClickMenuProfile}
     />
     <SmuiDrawer
         bind:title

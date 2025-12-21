@@ -2,10 +2,23 @@
     import TopAppBar, { Row, Section, Title } from "@smui/top-app-bar";
     import IconButton from "@smui/icon-button";
     import Tooltip, { Wrapper } from "@smui/tooltip";
+    import List, { Graphic, Item, Separator, Text } from "@smui/list";
+    import Menu from "@smui/menu";
+    import { Anchor } from "@smui/menu-surface";
+    import type { Undefinable } from "$lib/utils/types";
     import { getAppropriatedString } from "$lib/strings";
     import { basic } from "$lib/strings/strings";
 
-    type ToolbarType = {
+    export async function openMenu() {
+        if (menu?.isOpen()) return;
+        menu?.setOpen(true);
+    }
+
+    let menu: Undefinable<Menu> = $state();
+    let anchor: Undefinable<HTMLDivElement> = $state();
+    let anchorClasses: { [k: string]: boolean } = $state({});
+
+    type ExportType = {
         title?: string;
 
         prominent?: boolean;
@@ -15,11 +28,15 @@
         showGenerateImageButton?: boolean;
         showProfileButton?: boolean;
 
+        logged?: boolean;
+
         onClickDrawer?: () => void;
         onClickGenerateImage?: () => void;
-        onClickProfileButton?: () => void;
-    };
 
+        onClickMenuLogin?: () => void;
+        onClickMenuLogout?: () => void;
+        onClickMenuProfile?: () => void;
+    };
     let {
         title = "",
 
@@ -30,10 +47,15 @@
         showGenerateImageButton = false,
         showProfileButton = false,
 
+        logged = false,
+
         onClickDrawer = undefined,
         onClickGenerateImage = undefined,
-        onClickProfileButton = undefined,
-    }: ToolbarType = $props();
+
+        onClickMenuLogin = undefined,
+        onClickMenuLogout = undefined,
+        onClickMenuProfile = undefined,
+    }: ExportType = $props();
 </script>
 
 <TopAppBar
@@ -66,16 +88,64 @@
             {/if}
 
             {#if showProfileButton}
-                <Wrapper>
+                <!-- Ancora do menu popup -->
+                <div
+                    class={Object.keys(anchorClasses).join(" ")}
+                    use:Anchor={{
+                        addClass: (className) => {
+                            if (!anchorClasses[className]) {
+                                anchorClasses[className] = true;
+                            }
+                        },
+                        removeClass: (className) => {
+                            if (anchorClasses[className]) {
+                                delete anchorClasses[className];
+                            }
+                        },
+                    }}
+                    bind:this={anchor}
+                >
+                    <!-- Botão do usuário -->
                     <IconButton
                         class="material-symbols-rounded"
                         aria-label=""
-                        onclick={onClickProfileButton}
+                        onclick={openMenu}
                     >
                         account_circle
                     </IconButton>
-                    <Tooltip>{getAppropriatedString(basic.user)}</Tooltip>
-                </Wrapper>
+
+                    <!-- Menu popup -->
+                    <Menu
+                        bind:this={menu}
+                        anchor={false}
+                        anchorElement={anchor}
+                        anchorCorner="BOTTOM_LEFT"
+                    >
+                        <List>
+                            {#if logged}
+                                <Item onclick={onClickMenuLogin}>
+                                    <Graphic class="material-symbols-rounded">
+                                        person
+                                    </Graphic>
+                                    <Text>Perfil</Text>
+                                </Item>
+                                <Item onclick={onClickMenuLogout}>
+                                    <Graphic class="material-symbols-rounded">
+                                        logout
+                                    </Graphic>
+                                    <Text>Logout</Text>
+                                </Item>
+                            {:else}
+                                <Item onclick={onClickMenuLogin}>
+                                    <Graphic class="material-symbols-rounded">
+                                        login
+                                    </Graphic>
+                                    <Text>Login</Text>
+                                </Item>
+                            {/if}
+                        </List>
+                    </Menu>
+                </div>
             {/if}
         </Section>
     </Row>

@@ -3,13 +3,13 @@
     import WebApp from "$lib/components/core/web-app.svelte";
     import WebAppWindow from "$lib/components/core/web-app-window.svelte";
     import Card, { Content } from "@smui/card";
+    import type { Nullable } from "$lib/utils/types";
+    import LoaderLayoutFullPage from "$lib/components/misc/loaders/loader-layout-full-page.svelte";
     import { BrowserDatabase } from "$lib/client/browser-database.svelte";
     import { ReactiveSettings } from "$lib/client/settings.svelte";
     import { getAppropriatedString } from "$lib/strings";
     import { basic, fragment_home } from "$lib/strings/strings";
     import { ReactiveDB } from "$lib/client/reactive-db.svelte";
-    import type { Nullable } from "$lib/utils/types";
-    import LoaderLayoutFullPage from "$lib/components/misc/loaders/loader-layout-full-page.svelte";
 
     onMount(() => {
         ReactiveSettings.loading = true;
@@ -39,8 +39,9 @@
         bind:database
         title={ReactiveDB.definitions.guild}
         subtitle={getAppropriatedString(basic.subtitle)}
-        enableProfileButton={ReactiveSettings.isGithubPages === false}
-        onClickListenerProfileButton={() => {
+        showProfileButton={ReactiveSettings.isGithubPages === false}
+        logged={false}
+        onClickMenuLogin={() => {
             location.assign("/login");
         }}
     >

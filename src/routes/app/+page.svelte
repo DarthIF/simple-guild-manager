@@ -9,18 +9,18 @@
     import { ClientDatabase } from "$lib/client/client-database.svelte";
     import { ReactiveDB } from "$lib/client/reactive-db.svelte";
     import AppSync from "$lib/components/core/app-sync.svelte";
-    import "animate.css";
     import {
         Fragments,
         navigateToFragment,
     } from "$lib/components/fragments/fragments";
     import { UserInformation } from "$lib/client/user-information.svelte";
+    import "animate.css";
 
     onMount(() => {
         card_display = "flex";
         card_animation = "animate__fadeInUp";
 
-        console.log(data)
+        console.log(data);
 
         // Salvar as informações
         UserInformation.name = data.name;
@@ -39,9 +39,13 @@
         bind:database
         title={ReactiveDB.definitions.guild}
         subtitle="Connected as: {UserInformation.name}"
-        enableProfileButton={true}
-        onClickListenerProfileButton={() => {
+        showProfileButton={true}
+        logged={true}
+        onClickMenuProfile={() => {
             navigateToFragment(Fragments.PROFILE);
+        }}
+        onClickMenuLogout={() => {
+            location.assign("/logout");
         }}
     >
         <Card
