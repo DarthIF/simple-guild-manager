@@ -1,13 +1,14 @@
 import { Collection, Db, FindCursor, MongoClient, type MongoClientOptions, type WithId } from 'mongodb'
 import bcrypt from 'bcryptjs'
 import type { DatabaseAuditLog, DatabaseOperationResult_SetCommissionState, DatabaseOperations } from '$lib/common/database/database-interfaces'
-import type { CreateSessionResult, FindUserResult, UserDatabase, UserV2 } from './user'
+import type { CreateSessionResult, UserDatabase, UserV2 } from './user'
 import { DEFINITIONS_DEFAULT_ID, UNDEFINED_TEAM, type DefinitionsType, type MemberTypeV3, type EventTeamType, type AuditLogTypeV3, type AuditLogDetailsV3, type DatabaseTypeV3, type DatabaseExportOptionsType } from '$lib/common/database/constants-and-types'
 import { Actions, CommissionState, GameEvents, Role } from '$lib/common/database/enums'
 import { currentUnixTime } from '$lib/utils/time-util'
 import { forEachGameEvent, getGameEventField, getMemberTeamId, isUndefinedTeamID, setMemberTeamId } from '$lib/common/database/utils'
 import { fancyLog } from '../util/server-log'
 import { tryParseInt } from '$lib/utils/number-util'
+import { FindResult } from '$lib/utils/database/find-result'
 
 
 const TAG = 'ServerDatabase'
@@ -137,12 +138,12 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
         return false
     }
 
-    public async findUser(name: string | null | undefined): Promise<FindUserResult> {
+    public async findUser(name: string | null | undefined): Promise<FindResult<UserV2>> {
         fancyLog(TAG, `Procurando pelo nome de usuário [${name}]`)
 
         if (typeof name !== 'string') {
             fancyLog(TAG, 'O nome de usuário não é uma string')
-            return { user: null, databaseError: false }
+            return new FindResult<UserV2>(null, FindResult.STATUS_ERROR_FUNCTION_PARAMS)
         }
 
         try {
@@ -153,19 +154,18 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
             fancyLog(TAG, 'Resultado da busca', find?.name)
 
-            return { user: find, databaseError: false }
+            return new FindResult<UserV2>(find, FindResult.STATUS_OK)
         } catch (e) {
             fancyLog(TAG, 'Erro inesperado: ', e)
-
-            return { user: null, databaseError: true }
+            return new FindResult<UserV2>(null, FindResult.STATUS_ERROR_DATABASE)
         }
     }
 
-    public async fundUserByToken(token: string | null | undefined): Promise<FindUserResult> {
+    public async fundUserByToken(token: string | null | undefined): Promise<FindResult<UserV2>> {
         fancyLog(TAG, `Procurando pelo token de usuário [${token}]`)
 
         if (typeof token !== 'string')
-            return { user: null, databaseError: false }
+            return new FindResult<UserV2>(null, FindResult.STATUS_ERROR_FUNCTION_PARAMS)
 
         try {
             const db = await this.initialize()
@@ -173,10 +173,10 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
 
             const find = await collection.findOne({ token })
 
-            return { user: find, databaseError: false }
+            return new FindResult<UserV2>(find, FindResult.STATUS_OK)
         } catch (e) {
             fancyLog(TAG, 'Erro inesperado: ', e)
-            return { user: null, databaseError: true }
+            return new FindResult<UserV2>(null, FindResult.STATUS_ERROR_DATABASE)
         }
     }
 
@@ -204,17 +204,17 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
         }
     }
 
-    public async findSession(token: string): Promise<FindUserResult> {
+    public async findSession(token: string): Promise<FindResult<UserV2>> {
         try {
             const db = await this.initialize()
             const collection = db.collection<UserV2>(COLLECTION_USERS)
 
             const find = await collection.findOne({ token })
 
-            return { user: find, databaseError: false }
+            return new FindResult<UserV2>(find, FindResult.STATUS_OK)
         } catch (e) {
             fancyLog(TAG, 'Erro inesperado: ', e)
-            return { user: null, databaseError: true }
+            return new FindResult<UserV2>(null, FindResult.STATUS_ERROR_DATABASE)
         }
     }
 

@@ -1,3 +1,6 @@
+import type { FindResult } from "$lib/utils/database/find-result"
+
+
 /**
  * @deprecated
  */
@@ -70,14 +73,14 @@ export interface UserDatabase {
      * 
      * @param name 
      */
-    findUser(name: string | null | undefined): Promise<FindUserResult>
+    findUser(name: string | null | undefined): Promise<FindResult<UserV2>>
 
     /**
      * Função para encontrar um usuário pelo token de seção
      * 
      * @param token 
      */
-    fundUserByToken(token: string | null | undefined): Promise<FindUserResult>
+    fundUserByToken(token: string | null | undefined): Promise<FindResult<UserV2>>
 
     /**
      * Cria um novo token de seção para o usuário
@@ -91,17 +94,12 @@ export interface UserDatabase {
      * 
      * @param token 
      */
-    findSession(token: string): Promise<FindUserResult>
+    findSession(token: string): Promise<FindResult<UserV2>>
 
 }
 
 export interface CreateSessionResult {
     token: string
     success: boolean
-    databaseError: boolean
-}
-
-export interface FindUserResult {
-    user: UserV2|null
     databaseError: boolean
 }

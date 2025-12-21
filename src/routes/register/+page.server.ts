@@ -48,7 +48,7 @@ export const actions = {
 
         // Encontre um usuário correspondente
         const existingUser = await RemoteDatabase.findUser(username)
-        if (existingUser) {
+        if (existingUser.exists) {
             fancyLog(TAG, `O usuário [${username}] já está registrado!`)
 
             // Retornar um erro 409 com a mensagem de que o usuário ja existe

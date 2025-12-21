@@ -4,9 +4,13 @@ import bcrypt from 'bcryptjs'
 import { StatusCodes } from 'http-status-codes'
 import { ErrorMessages } from '$lib/common/login/error-messages'
 import { RemoteDatabase } from '$lib/server/database/server-database.svelte'
-
+import { FindResult } from '$lib/utils/database/find-result'
+import { fancyLog } from '$lib/server/util/server-log'
 
 // https://github.com/Michael-Obele/Svelte-MiniApps-sv4/blob/92d451abb5a741a12eba806d31341cd5dc564b89/src/routes/(auth)/login/%2Bpage.server.ts
+
+
+const TAG = '/login+page.server'
 
 
 export const load = (async (event) => {
@@ -36,21 +40,26 @@ export const actions = {
             return fail(StatusCodes.BAD_REQUEST, { username, message: ErrorMessages.INVALID })
         }
 
+        fancyLog(TAG, 'Tentativa de login para ➜', username)
+
         // Encontre um usuário correspondente
-        const findResult = await RemoteDatabase.findUser(username)
-        if (!findResult.user) {
+        const find = await RemoteDatabase.findUser(username)
+
+        if (!find.value) {
             // Retornar um erro 500, pois aconteceu algo com o banco de dados
-            if (findResult.databaseError)
+            if (find.status === FindResult.STATUS_ERROR_DATABASE)
                 return fail(StatusCodes.INTERNAL_SERVER_ERROR, { username, message: ErrorMessages.DATABASE_ACCESS_ERROR })
 
             // Retornar um erro 406 com a mensagem de nome de Usuário ou senha invalido
             return fail(StatusCodes.NOT_ACCEPTABLE, { username, message: ErrorMessages.INCORRECT })
         }
 
+        fancyLog(TAG, 'Verificando hash da senha ➜', username)
+
         // Verifique se o usuário possui um hash de senha
-        if (findResult.user.hash) {
+        if (find.value.hash) {
             // Compare a senha fornecida com o hash da senha do usuário
-            const userPassword = bcrypt.compareSync(password, findResult.user.hash)
+            const userPassword = bcrypt.compareSync(password, find.value.hash)
 
             // Verifique se a senha está incorreta
             if (!userPassword) {
@@ -74,10 +83,10 @@ export const actions = {
             httpOnly: true,
             sameSite: 'strict',
             secure: process.env.NODE_ENV === 'production',
-            maxAge: 60 * 60 * 24 * 31 // set to 1 month
+            maxAge: 60 * 60 * 24 * 31 // Definir 1 mes de validade
         })
 
-        console.log('Usuário(a) autenticado: ', username, createdSession.token)
+        fancyLog(TAG, 'Usuário(a) autenticado ➜', username, createdSession.token, process.env.NODE_ENV)
 
         // Redirecionar para o aplicativo logado
         return redirect(StatusCodes.SEE_OTHER, '/app')

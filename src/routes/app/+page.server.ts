@@ -9,8 +9,9 @@ export const load = (async ({ cookies }) => {
         // Usuário sem um token de seção, redireciona-lo para o login
         redirect(303, '/login')
 
+    // Validar a seção
     const result = await RemoteDatabase.findSession(session)
-    if (!result.user) {
+    if (!result.value) {
         // Apagar o cookie invalido
         cookies.delete('session', { path: '/' })
 
@@ -19,8 +20,8 @@ export const load = (async ({ cookies }) => {
     }
 
     return {
-        name: result.user.name,
-        icon: result.user.icon,
+        name: result.value.name,
+        icon: result.value.icon,
         token: session
     }
 }) satisfies PageServerLoad
