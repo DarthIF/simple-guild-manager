@@ -1,6 +1,6 @@
 import type { DatabaseTypeV3, EventTeamType, MemberTypeV3 } from './constants-and-types'
 import { UNDEFINED_TEAM, } from './constants-and-types'
-import { GameEvents } from './enums'
+import { CommissionState, GameEvents, Role } from './enums'
 
 
 
@@ -187,5 +187,29 @@ export function getGameEventField(gameEvent: GameEvents): keyof MemberTypeV3 {
             // Isso garante que o TypeScript saiba que todos os valores GameEvents foram tratados
             const _exhaustiveCheck: never = gameEvent
             throw new Error(`Evento invalido: ${_exhaustiveCheck}`)
+    }
+}
+
+
+
+export function instantiateEmptyMember(): MemberTypeV3 {
+    return {
+        id: 'empty',
+        server: 0,
+        name: 'Empty member',
+        earnings: 0,
+        power: 0,
+        role: Role.MEMBER,
+        offline: 0,
+
+        state: CommissionState.AVAILABLE,
+        time: 0,
+        missed: 0,
+
+        worldTree: '',
+        minesInDungeon: '',
+        cloudKingdom: '',
+        cassinoOnYacht: '',
+        infernoRally: '',
     }
 }

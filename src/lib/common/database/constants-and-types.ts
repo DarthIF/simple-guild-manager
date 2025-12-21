@@ -123,6 +123,21 @@ export type DefinitionsType = {
 
 
 
+export type MemberTypeV4 = {
+    /**
+     * Tag do membro, vazio utiliza a da guilda
+     */
+    tag: string
+
+    /**
+     * Guilda
+     */
+    guild: string
+}
+
+/**
+ * 
+ */
 export type MemberTypeV3 = {
     /**
      * Id único do membro

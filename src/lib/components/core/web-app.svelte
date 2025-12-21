@@ -41,6 +41,18 @@
         });
     }
 
+    function onClickMenu__Login() {
+        location.assign("/login");
+    }
+
+    function onClickMenu__Logout() {
+        location.assign("/logout");
+    }
+
+    function onClickMenu__Profile() {
+        navigateToFragment(Fragments.PROFILE);
+    }
+
     // ------------------------------------------
 
     onMount(async () => {
@@ -118,10 +130,6 @@
         showProfileButton = false,
         logged = false,
 
-        onClickMenuLogin = undefined,
-        onClickMenuLogout = undefined,
-        onClickMenuProfile = undefined,
-
         children,
     }: ExportType = $props();
 </script>
@@ -138,9 +146,9 @@
         onClickDrawer={onClickToolbar_DrawerMenu}
         onClickGenerateImage={onClickToolbar_GenerateImage}
         {logged}
-        {onClickMenuLogin}
-        {onClickMenuLogout}
-        {onClickMenuProfile}
+        onClickMenuLogin={onClickMenu__Login}
+        onClickMenuLogout={onClickMenu__Logout}
+        onClickMenuProfile={onClickMenu__Profile}
     />
     <SmuiDrawer
         bind:title

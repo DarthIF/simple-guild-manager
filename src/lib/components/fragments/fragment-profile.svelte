@@ -9,6 +9,7 @@
     import type { MemberTypeV3 } from "$lib/common/database/constants-and-types";
     import { CommissionState, Role } from "$lib/common/database/enums";
     import LayoutResponsiveSingleColumn from "../layouts/layout-responsive-single-column.svelte";
+    import { instantiateEmptyMember } from "$lib/common/database/utils";
 
     function comingSoon() {
         alert("Coming soon...");
@@ -16,25 +17,13 @@
 
     onMount(() => {
         for (let index = 0; index < 10; index++) {
-            characterList.push({
-                id: index.toString(),
-                server: 115,
-                name: "Testing " + index,
-                earnings: 30000,
-                power: 1000,
-                role: Role.MEMBER,
-                offline: 0,
+            const member = instantiateEmptyMember();
+            member.server = 115;
+            member.name = "Testing " + index;
+            member.earnings = Math.random() * 1000000;
+            member.power = Math.random() * 1000000;
 
-                state: CommissionState.AVAILABLE,
-                time: 0,
-                missed: 0,
-
-                worldTree: "",
-                minesInDungeon: "",
-                cloudKingdom: "",
-                cassinoOnYacht: "",
-                infernoRally: "",
-            });
+            characterList.push(member);
         }
     });
 

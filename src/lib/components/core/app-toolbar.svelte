@@ -123,12 +123,14 @@
                     >
                         <List>
                             {#if logged}
-                                <Item onclick={onClickMenuLogin}>
+                                <!-- Abrir o fragmento do perfil -->
+                                <Item onclick={onClickMenuProfile}>
                                     <Graphic class="material-symbols-rounded">
                                         person
                                     </Graphic>
                                     <Text>Perfil</Text>
                                 </Item>
+                                <!-- Ir para a pagina de logout -->
                                 <Item onclick={onClickMenuLogout}>
                                     <Graphic class="material-symbols-rounded">
                                         logout
@@ -136,6 +138,7 @@
                                     <Text>Logout</Text>
                                 </Item>
                             {:else}
+                                <!-- Ir para a pagina de login -->
                                 <Item onclick={onClickMenuLogin}>
                                     <Graphic class="material-symbols-rounded">
                                         login
