@@ -1,5 +1,8 @@
 <script lang="ts">
     import IconButton from "@smui/icon-button";
+    import List, { Graphic, Item, Separator, Text } from "@smui/list";
+    import Menu from "@smui/menu";
+    import { Anchor } from "@smui/menu-surface";
     import { getAppropriatedString } from "$lib/strings";
     import { getColorListItemForIndex } from "$lib/utils/color-list";
     import { formatNumberCompact } from "$lib/utils/number-util";
@@ -15,8 +18,32 @@
     import { ReactiveDB } from "$lib/client/reactive-db.svelte";
     import { GameEvents } from "$lib/common/database/enums";
     import { calculateTeamPowerCompact } from "$lib/client/utils";
-    import { getMembersOfTeam } from "$lib/common/database/utils";
+    import {
+        getMembersOfTeam,
+        isMemberLeaderOf,
+    } from "$lib/common/database/utils";
     import { fragment_teams } from "$lib/strings/strings";
+    import type { CardTeamCallback } from "./card-teamV2-types";
+    import type { Undefinable } from "$lib/utils/types";
+
+    // MENU POPUP -------------------------------
+
+    export async function openMenu() {
+        if (menu?.isOpen()) return;
+        menu?.setOpen(true);
+    }
+
+    let menu: Undefinable<Menu> = $state();
+    let anchor: Undefinable<HTMLDivElement> = $state();
+    let anchorClasses: { [k: string]: boolean } = $state({});
+
+    // ------------------------------------------
+
+    function doCallback(callback?: CardTeamCallback) {
+        if (callback && gameEvent) {
+            callback(gameEvent, team);
+        }
+    }
 
     function onClick_RemoveMember(member: MemberTypeV3 | undefined) {
         if (!member) return;
@@ -25,13 +52,6 @@
         database
             .removeMemberFromTeam(gameEvent, team.id, member.id)
             .then(THEN_CALLBACK_COMPLETE_LOAD);
-    }
-
-    function isLeaderMember(
-        team: EventTeamType,
-        member: MemberTypeV3,
-    ): boolean {
-        return false;
     }
 
     let el_card: HTMLDivElement | undefined = $state(undefined);
@@ -49,11 +69,10 @@
         team: EventTeamType;
         gameEvent: GameEvents;
         database: DatabaseOperations;
-        onAddMemberClick?: (gameEvent: GameEvents, team: EventTeamType) => void;
-        onDeleteTeamClick?: (
-            gameEvent: GameEvents,
-            team: EventTeamType,
-        ) => void;
+        onAddMemberClick?: CardTeamCallback;
+        onSetLeaderClick?: CardTeamCallback;
+        onEditTeamNameClick?: CardTeamCallback;
+        onDeleteTeamClick?: CardTeamCallback;
     };
     let {
         index = 0,
@@ -61,6 +80,8 @@
         gameEvent,
         database,
         onAddMemberClick = undefined,
+        onSetLeaderClick = undefined,
+        onEditTeamNameClick = undefined,
         onDeleteTeamClick = undefined,
     }: ExportType = $props();
 </script>
@@ -82,32 +103,115 @@
 
             <!-- Ações -->
             <div class="card-header-actions">
-                <!-- Botões para gerenciar o time -->
-                {#if !ReactiveSettings.screenShotMode}
-                    <!-- Botão para adicionar um membro -->
-                    {#if team.count < team.size}
+                {#if false}
+                    <!-- Botões para gerenciar o time -->
+                    {#if !ReactiveSettings.screenShotMode}
+                        <!-- Botão para adicionar um membro -->
+                        {#if team.count < team.size}
+                            <IconButton
+                                class="material-symbols-rounded"
+                                onclick={() => {
+                                    if (gameEvent && onAddMemberClick) {
+                                        onAddMemberClick(gameEvent, team);
+                                    }
+                                }}
+                            >
+                                person_add
+                            </IconButton>
+                        {/if}
+                        <!-- Botão para apagar o time -->
                         <IconButton
                             class="material-symbols-rounded"
                             onclick={() => {
-                                if (gameEvent && onAddMemberClick) {
-                                    onAddMemberClick(gameEvent, team);
+                                if (gameEvent && onDeleteTeamClick) {
+                                    onDeleteTeamClick(gameEvent, team);
                                 }
                             }}
                         >
-                            person_add
+                            delete
                         </IconButton>
                     {/if}
-                    <!-- Botão para apagar o time -->
-                    <IconButton
-                        class="material-symbols-rounded"
-                        onclick={() => {
-                            if (gameEvent && onDeleteTeamClick) {
-                                onDeleteTeamClick(gameEvent, team);
-                            }
+                {/if}
+
+                <!-- Ancora do menu popup -->
+                {#if !ReactiveSettings.screenShotMode}
+                    <div
+                        class={Object.keys(anchorClasses).join(" ")}
+                        use:Anchor={{
+                            addClass: (className) => {
+                                if (!anchorClasses[className]) {
+                                    anchorClasses[className] = true;
+                                }
+                            },
+                            removeClass: (className) => {
+                                if (anchorClasses[className]) {
+                                    delete anchorClasses[className];
+                                }
+                            },
                         }}
+                        bind:this={anchor}
                     >
-                        delete
-                    </IconButton>
+                        <!-- Botão para abrir o menu -->
+                        <IconButton
+                            class="material-symbols-rounded"
+                            aria-label=""
+                            onclick={openMenu}
+                        >
+                            more_vert
+                        </IconButton>
+
+                        <!-- Menu para gerenciar a equipe -->
+                        <Menu
+                            bind:this={menu}
+                            anchor={false}
+                            anchorElement={anchor}
+                            anchorCorner="BOTTOM_LEFT"
+                            anchorMargin={{
+                                top: 0,
+                                bottom: -16,
+                                left: 0,
+                                right: 0,
+                            }}
+                        >
+                            <List>
+                                <Item
+                                    onclick={() => doCallback(onAddMemberClick)}
+                                >
+                                    <Graphic class="material-symbols-rounded">
+                                        person_add
+                                    </Graphic>
+                                    <Text>Adicionar</Text>
+                                </Item>
+                                <Item
+                                    onclick={() => doCallback(onSetLeaderClick)}
+                                >
+                                    <Graphic class="material-symbols-rounded">
+                                        star
+                                    </Graphic>
+                                    <Text>Líder</Text>
+                                </Item>
+                                <Item
+                                    onclick={() =>
+                                        doCallback(onEditTeamNameClick)}
+                                >
+                                    <Graphic class="material-symbols-rounded">
+                                        edit
+                                    </Graphic>
+                                    <Text>Renomear</Text>
+                                </Item>
+                                <Separator />
+                                <Item
+                                    onclick={() =>
+                                        doCallback(onDeleteTeamClick)}
+                                >
+                                    <Graphic class="material-symbols-rounded">
+                                        delete
+                                    </Graphic>
+                                    <Text>Apagar equipe</Text>
+                                </Item>
+                            </List>
+                        </Menu>
+                    </div>
                 {/if}
             </div>
         </div>
@@ -122,7 +226,7 @@
                     </div>
 
                     {#if ReactiveSettings.screenShotMode}
-                        {#if isLeaderMember(team, member)}
+                        {#if isMemberLeaderOf(member, team)}
                             <IconButton class="material-symbols-rounded">
                                 star
                             </IconButton>

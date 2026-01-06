@@ -99,6 +99,13 @@ export function setMemberTeamId(member: MemberTypeV3, gameEvent: GameEvents, tea
     }
 }
 
+export function isMemberLeaderOf(member: MemberTypeV3, team: EventTeamType): boolean {
+    if (!team.leader)
+        return false
+    
+    return team.leader === member.id
+}
+
 
 
 export function findMemberByID(database: DatabaseTypeV3, memberId: string): MemberTypeV3 | null {

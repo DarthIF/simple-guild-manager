@@ -124,16 +124,7 @@ export type DefinitionsType = {
 
 
 export type MemberTypeV4 = {
-    /**
-     * Tag do membro, vazio utiliza a da guilda
-     */
-    tag: string
-
-    /**
-     * Guilda
-     */
-    guild: string
-}
+} & MemberTypeV3 & MemberGuildType
 
 /**
  * 
@@ -226,8 +217,15 @@ export type MemberEventType = {
 }
 
 export type MemberGuildType = {
-    guild: string
+    /**
+    * Tag do membro, vazio utiliza a da guilda
+    */
     tag: string
+
+    /**
+     * Guilda
+     */
+    guild: string
 }
 
 
@@ -257,6 +255,11 @@ export type EventTeamType = {
      * Tamanho limite da equipe
      */
     size: number
+
+    /**
+     * ID do líder da equipe, se houver
+     */
+    leader?: string
 }
 
 

@@ -21,8 +21,13 @@
     import type { DatabaseOperations } from "$lib/common/database/database-interfaces";
     import type { EventTeamType } from "$lib/common/database/constants-and-types";
     import { GameEvents } from "$lib/common/database/enums";
-    import { getGameEventFromString } from "$lib/common/database/utils";
+    import {
+        getGameEventFromString,
+        getMembersOfTeam,
+    } from "$lib/common/database/utils";
     import { ReactiveSettings } from "$lib/client/settings.svelte";
+    import DialogPickMember from "../dialogs/dialog-pick-member.svelte";
+    import { ReactiveDB } from "$lib/client/reactive-db.svelte";
 
     export function getElementToRender(): HTMLElement {
         return el_cardsGrid;
@@ -37,6 +42,21 @@
     function handleAddMember(gameEvent: GameEvents, team: EventTeamType) {
         el_dialogAddMember.open(gameEvent, team);
     }
+
+    function handleSetLeader(gameEvent: GameEvents, team: EventTeamType) {
+        // Eu estou com preguiça e isso vai me atrapalhar depois
+
+        el_dialogPickMember.open(
+            async () => {
+                return getMembersOfTeam(ReactiveDB, gameEvent, team.id);
+            },
+            (member) => {
+                team.leader = member.id
+            },
+        );
+    }
+
+    function handleEditTeamName(gameEvent: GameEvents, team: EventTeamType) {}
 
     function handleDeleteTeam(gameEvent: GameEvents, team: EventTeamType) {
         el_dialogConfirm.open(
@@ -88,6 +108,10 @@
         });
     }
 
+    function showDialogCreateTeam() {
+        el_dialogCreateTeam.open(onDialogClosed);
+    }
+
     // ------------------------------------------
 
     onMount(() => {
@@ -98,8 +122,6 @@
             SELECTED_GAME_EVENT = gameEvent;
         }
     });
-
-    onDestroy(() => {});
 
     // ------------------------------------------
 
@@ -117,6 +139,7 @@
     let el_dialogCreateTeam: SmuiDialogPrompt;
     let el_dialogConfirm: SmuiDialogConfirm;
     let el_dialogAddMember: SmuiDialogAddMember;
+    let el_dialogPickMember: DialogPickMember;
 
     type ExportType = { database: DatabaseOperations };
     let { database = $bindable() }: ExportType = $props();
@@ -142,6 +165,8 @@
                     gameEvent={SELECTED_GAME_EVENT}
                     {database}
                     onAddMemberClick={handleAddMember}
+                    onSetLeaderClick={handleSetLeader}
+                    onEditTeamNameClick={handleEditTeamName}
                     onDeleteTeamClick={handleDeleteTeam}
                 />
             {/each}
@@ -149,12 +174,7 @@
     {/if}
 </div>
 
-<SmuiFab
-    icon="add"
-    onClick={() => {
-        el_dialogCreateTeam.open(onDialogClosed);
-    }}
-/>
+<SmuiFab icon="add" onClick={showDialogCreateTeam} />
 <SmuiDialogPrompt
     title={fragment_teams.dialog_new_team}
     label={fragment_teams.dialog_team_name}
@@ -168,6 +188,11 @@
         title: fragment_teams.dialog_add_member,
         empty: fragment_teams.no_free_members,
     }}
+/>
+<DialogPickMember
+    bind:this={el_dialogPickMember}
+    title="Selecione o líder"
+    emptyListText="Sem membros na equipe"
 />
 
 <style>
