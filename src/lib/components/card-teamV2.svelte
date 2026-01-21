@@ -17,7 +17,6 @@
     } from "$lib/client/settings.svelte";
     import { ReactiveDB } from "$lib/client/reactive-db.svelte";
     import { GameEvents } from "$lib/common/database/enums";
-    import { calculateTeamPowerCompact } from "$lib/client/utils";
     import {
         getMembersOfTeam,
         isMemberLeaderOf,
@@ -25,6 +24,7 @@
     import { fragment_teams } from "$lib/strings/strings";
     import type { CardTeamCallback } from "./card-teamV2-types";
     import type { Undefinable } from "$lib/utils/types";
+    import { TeamUtils } from "$lib/common/database/utils2";
 
     // MENU POPUP -------------------------------
 
@@ -97,7 +97,7 @@
                 </span>
                 <span>
                     {getAppropriatedString(fragment_teams.total_power)}
-                    {calculateTeamPowerCompact(team)}
+                    {TeamUtils.calculatePowerCompact(ReactiveDB, team)}
                 </span>
             </div>
 

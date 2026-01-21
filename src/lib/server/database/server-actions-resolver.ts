@@ -1,6 +1,6 @@
 import { StatusCodes } from 'http-status-codes'
 import type { PostAddMemberToTeamType, PostAddMemberType, PostCreateTeamType, PostDeleteMemberType, PostDeleteTeamType, PostEditMemberType, PostRemoveMemberFromTeamType, PostResetCommissionCycleType, PostSetCommissionSateType, PostSetGuildNameType, PostSyncOnlyListCommissionMembersType, PostSyncOnlyListFreeMembersForEvent, PostTypes, ResponseSetCommissionSateType } from '$lib/common/database/post-types'
-import type { Nullable } from '$lib/utils/types'
+import type { NullableU } from '$lib/utils/types'
 import type { UserV2 } from './user'
 import { ActionResolverBase } from './ar'
 import { Actions } from '$lib/common/database/enums'
@@ -16,7 +16,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
     }
 
 
-    public async setGuildName(user: Nullable<UserV2>, data: PostSetGuildNameType): Promise<Response> {
+    public async setGuildName(user: NullableU<UserV2>, data: PostSetGuildNameType): Promise<Response> {
         // Validar os tipos antes
         if (typeof data.newName !== 'string')
             return send(StatusCodes.BAD_REQUEST)
@@ -35,7 +35,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
     }
 
 
-    public async addMember(user: Nullable<UserV2>, data: PostAddMemberType): Promise<Response> {
+    public async addMember(user: NullableU<UserV2>, data: PostAddMemberType): Promise<Response> {
         // Validar os tipos antes
         if (typeof data.name !== 'string' || typeof data.power !== 'number')
             return send(StatusCodes.BAD_REQUEST)
@@ -56,7 +56,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
         return send(StatusCodes.INTERNAL_SERVER_ERROR)
     }
 
-    public async deleteMember(user: Nullable<UserV2>, data: PostDeleteMemberType): Promise<Response> {
+    public async deleteMember(user: NullableU<UserV2>, data: PostDeleteMemberType): Promise<Response> {
         // Validar os tipos antes
         if (typeof data.memberId !== 'string')
             return send(StatusCodes.BAD_REQUEST)
@@ -74,7 +74,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
         return send(StatusCodes.INTERNAL_SERVER_ERROR)
     }
 
-    public async editMember(user: Nullable<UserV2>, data: PostEditMemberType): Promise<Response> {
+    public async editMember(user: NullableU<UserV2>, data: PostEditMemberType): Promise<Response> {
         // Validar os tipos antes
         if (typeof data.memberId !== 'string' || typeof data.newName !== 'string' || typeof data.newPower !== 'number')
             return send(StatusCodes.BAD_REQUEST)
@@ -96,7 +96,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
     }
 
 
-    public async createTeam(user: Nullable<UserV2>, data: PostCreateTeamType): Promise<Response> {
+    public async createTeam(user: NullableU<UserV2>, data: PostCreateTeamType): Promise<Response> {
         // Validar os tipos antes
         if (typeof data.gameEvent !== 'string' || typeof data.name !== 'string')
             return send(StatusCodes.BAD_REQUEST)
@@ -117,7 +117,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
         return send(StatusCodes.INTERNAL_SERVER_ERROR)
     }
 
-    public async deleteTeam(user: Nullable<UserV2>, data: PostDeleteTeamType): Promise<Response> {
+    public async deleteTeam(user: NullableU<UserV2>, data: PostDeleteTeamType): Promise<Response> {
         // Validar os tipos antes
         if (typeof data.gameEvent !== 'string' || typeof data.teamId !== 'string')
             return send(StatusCodes.BAD_REQUEST)
@@ -135,7 +135,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
         return send(StatusCodes.INTERNAL_SERVER_ERROR)
     }
 
-    public async addMemberToTeam(user: Nullable<UserV2>, data: PostAddMemberToTeamType): Promise<Response> {
+    public async addMemberToTeam(user: NullableU<UserV2>, data: PostAddMemberToTeamType): Promise<Response> {
         // Validar os tipos antes
         if (typeof data.gameEvent !== 'string' || typeof data.teamId !== 'string' || typeof data.memberId !== 'string')
             return send(StatusCodes.BAD_REQUEST)
@@ -153,7 +153,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
         return send(StatusCodes.INTERNAL_SERVER_ERROR)
     }
 
-    public async removeMemberFromTeam(user: Nullable<UserV2>, data: PostRemoveMemberFromTeamType): Promise<Response> {
+    public async removeMemberFromTeam(user: NullableU<UserV2>, data: PostRemoveMemberFromTeamType): Promise<Response> {
         // Validar os tipos antes
         if (typeof data.gameEvent !== 'string' || typeof data.teamId !== 'string' || typeof data.memberId !== 'string')
             return send(StatusCodes.BAD_REQUEST)
@@ -173,7 +173,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
     }
 
 
-    public async setCommissionState(user: Nullable<UserV2>, data: PostSetCommissionSateType): Promise<Response> {
+    public async setCommissionState(user: NullableU<UserV2>, data: PostSetCommissionSateType): Promise<Response> {
         // Validar os tipos antes
         if (typeof data.memberId !== 'string' || typeof data.state !== 'number' || typeof data.updateTime !== 'boolean')
             return send(StatusCodes.BAD_REQUEST)
@@ -197,7 +197,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
         return send(StatusCodes.INTERNAL_SERVER_ERROR)
     }
 
-    public async resetCommissionCycle(user: Nullable<UserV2>, data: PostResetCommissionCycleType): Promise<Response> {
+    public async resetCommissionCycle(user: NullableU<UserV2>, data: PostResetCommissionCycleType): Promise<Response> {
         const reset = await this.db.resetCommissionCycle(user?.name)
         if (reset) {
             // Adicionar um pacote pendente se for pertinente
@@ -211,7 +211,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
     }
 
 
-    public async syncListCommissionMembers(user: Nullable<UserV2>, data: PostSyncOnlyListCommissionMembersType): Promise<Response> {
+    public async syncListCommissionMembers(user: NullableU<UserV2>, data: PostSyncOnlyListCommissionMembersType): Promise<Response> {
         // Validar os tipos antes
         if (typeof data.state !== 'number')
             return send(StatusCodes.BAD_REQUEST)
@@ -225,7 +225,7 @@ export class ServerActionResolver extends ActionResolverBase<Response> {
         return send(StatusCodes.OK, members)
     }
 
-    public async syncListFreeMembersForEvent(user: Nullable<UserV2>, data: PostSyncOnlyListFreeMembersForEvent): Promise<Response> {
+    public async syncListFreeMembersForEvent(user: NullableU<UserV2>, data: PostSyncOnlyListFreeMembersForEvent): Promise<Response> {
         // Validar os tipos antes
         if (typeof data.gameEvent !== 'string')
             return send(StatusCodes.BAD_REQUEST)

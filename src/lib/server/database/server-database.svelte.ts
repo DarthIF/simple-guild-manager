@@ -5,10 +5,10 @@ import type { CreateSessionResult, UserDatabase, UserV2 } from './user'
 import { DEFINITIONS_DEFAULT_ID, UNDEFINED_TEAM, type DefinitionsType, type MemberTypeV3, type EventTeamType, type AuditLogTypeV3, type AuditLogDetailsV3, type DatabaseTypeV3, type DatabaseExportOptionsType } from '$lib/common/database/constants-and-types'
 import { Actions, CommissionState, GameEvents, Role } from '$lib/common/database/enums'
 import { currentUnixTime } from '$lib/utils/time-util'
-import { forEachGameEvent, getGameEventField, getMemberTeamId, isUndefinedTeamID, setMemberTeamId } from '$lib/common/database/utils'
 import { fancyLog } from '../util/server-log'
 import { tryParseInt } from '$lib/utils/number-util'
 import { FindResult } from '$lib/utils/database/find-result'
+import { TeamUtils } from '$lib/common/database/utils2'
 
 
 const TAG = 'ServerDatabase'
@@ -318,11 +318,11 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
                 return false
 
             // Remover o membro das equipes
-            await forEachGameEvent(async (gameEvent) => {
-                const teamId = getMemberTeamId(member, gameEvent)
+            await TeamUtils.forEach(async (gameEvent) => {
+                const teamId = TeamUtils.getMemberTeamId(member, gameEvent)
 
                 // Verificar se é uma equipe indefinida
-                if (isUndefinedTeamID(teamId))
+                if (TeamUtils.isUndefinedID(teamId))
                     return
 
                 // Atualizar as equipes
@@ -425,7 +425,7 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
             const collectionEvents = db.collection<EventTeamType>(COLLECTION_EVENTS)
 
             // Atualizar os membros no banco de dados
-            const updateField = getGameEventField(gameEvent)
+            const updateField = TeamUtils.getGameEventObjectField(gameEvent)
             await collectionMembers.updateMany(
                 { [updateField]: teamId },
                 { $set: { [updateField]: UNDEFINED_TEAM } }
@@ -484,7 +484,7 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
                 return false
 
             // Definir o novo time em que o membro está para esse evento
-            setMemberTeamId(member, gameEvent, teamId)
+            TeamUtils.setMemberTeamId(member, gameEvent, teamId)
 
             // Atualizar as informações do membro e do time
             const resultA = await collectionMembers.updateOne({ id: memberId }, { $set: member })
@@ -516,7 +516,7 @@ class RemoteDatabaseImpl implements UserDatabase, DatabaseOperations, DatabaseAu
                 return false
 
             // Atualizar as informações do membro para o evento
-            const updateField = getGameEventField(gameEvent)
+            const updateField = TeamUtils.getGameEventObjectField(gameEvent)
             const resultA = await collectionMembers.updateOne({ id: memberId }, { $set: { [updateField]: UNDEFINED_TEAM } })
 
             // Atualizar as informações do time 

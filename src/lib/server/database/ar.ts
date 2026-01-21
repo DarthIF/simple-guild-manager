@@ -1,4 +1,4 @@
-import type { Nullable } from '$lib/utils/types'
+import type { Nullable, NullableU } from '$lib/utils/types'
 import type { PostSetGuildNameType, PostAddMemberType, PostDeleteMemberType, PostEditMemberType, PostCreateTeamType, PostDeleteTeamType, PostAddMemberToTeamType, PostRemoveMemberFromTeamType, PostSetCommissionSateType, PostResetCommissionCycleType, PostSyncOnlyListCommissionMembersType, PostSyncOnlyListFreeMembersForEvent, PostTypes } from '$lib/common/database/post-types'
 import type { UserV2 } from './user'
 import type { DatabaseOperations } from '$lib/common/database/database-interfaces'
@@ -7,29 +7,29 @@ import { Actions } from '$lib/common/database/enums'
 
 export interface ActionResolver<T> {
 
-    resolve(action: Actions, user: Nullable<UserV2>, data: PostTypes): Promise<T>
+    resolve(action: Actions, user: NullableU<UserV2>, data: PostTypes): Promise<T>
 
 
-    setGuildName(user: Nullable<UserV2>, data: PostSetGuildNameType): Promise<T>
+    setGuildName(user: NullableU<UserV2>, data: PostSetGuildNameType): Promise<T>
 
 
-    addMember(user: Nullable<UserV2>, data: PostAddMemberType): Promise<T>
-    deleteMember(user: Nullable<UserV2>, data: PostDeleteMemberType): Promise<T>
-    editMember(user: Nullable<UserV2>, data: PostEditMemberType): Promise<T>
+    addMember(user: NullableU<UserV2>, data: PostAddMemberType): Promise<T>
+    deleteMember(user: NullableU<UserV2>, data: PostDeleteMemberType): Promise<T>
+    editMember(user: NullableU<UserV2>, data: PostEditMemberType): Promise<T>
 
 
-    createTeam(user: Nullable<UserV2>, data: PostCreateTeamType): Promise<T>
-    deleteTeam(user: Nullable<UserV2>, data: PostDeleteTeamType): Promise<T>
-    addMemberToTeam(user: Nullable<UserV2>, data: PostAddMemberToTeamType): Promise<T>
-    removeMemberFromTeam(user: Nullable<UserV2>, data: PostRemoveMemberFromTeamType): Promise<T>
+    createTeam(user: NullableU<UserV2>, data: PostCreateTeamType): Promise<T>
+    deleteTeam(user: NullableU<UserV2>, data: PostDeleteTeamType): Promise<T>
+    addMemberToTeam(user: NullableU<UserV2>, data: PostAddMemberToTeamType): Promise<T>
+    removeMemberFromTeam(user: NullableU<UserV2>, data: PostRemoveMemberFromTeamType): Promise<T>
 
 
-    setCommissionState(user: Nullable<UserV2>, data: PostSetCommissionSateType): Promise<T>
-    resetCommissionCycle(user: Nullable<UserV2>, data: PostResetCommissionCycleType): Promise<T>
+    setCommissionState(user: NullableU<UserV2>, data: PostSetCommissionSateType): Promise<T>
+    resetCommissionCycle(user: NullableU<UserV2>, data: PostResetCommissionCycleType): Promise<T>
 
 
-    syncListCommissionMembers(user: Nullable<UserV2>, data: PostSyncOnlyListCommissionMembersType): Promise<T>
-    syncListFreeMembersForEvent(user: Nullable<UserV2>, data: PostSyncOnlyListFreeMembersForEvent): Promise<T>
+    syncListCommissionMembers(user: NullableU<UserV2>, data: PostSyncOnlyListCommissionMembersType): Promise<T>
+    syncListFreeMembersForEvent(user: NullableU<UserV2>, data: PostSyncOnlyListFreeMembersForEvent): Promise<T>
 
 }
 
@@ -41,7 +41,7 @@ export abstract class ActionResolverBase<T> implements ActionResolver<T> {
     }
 
 
-    public resolve(action: Actions, user: Nullable<UserV2>, data: PostTypes): Promise<T> {
+    public resolve(action: Actions, user: NullableU<UserV2>, data: PostTypes): Promise<T> {
         switch (action) {
             case Actions.SET_GUILD_NAME:
                 return this.setGuildName(user, data)
@@ -86,32 +86,32 @@ export abstract class ActionResolverBase<T> implements ActionResolver<T> {
 
 
 
-    abstract setGuildName(user: Nullable<UserV2>, data: PostSetGuildNameType): Promise<T>
+    abstract setGuildName(user: NullableU<UserV2>, data: PostSetGuildNameType): Promise<T>
 
 
-    abstract addMember(user: Nullable<UserV2>, data: PostAddMemberType): Promise<T>
+    abstract addMember(user: NullableU<UserV2>, data: PostAddMemberType): Promise<T>
 
-    abstract deleteMember(user: Nullable<UserV2>, data: PostDeleteMemberType): Promise<T>
+    abstract deleteMember(user: NullableU<UserV2>, data: PostDeleteMemberType): Promise<T>
 
-    abstract editMember(user: Nullable<UserV2>, data: PostEditMemberType): Promise<T>
-
-
-    abstract createTeam(user: Nullable<UserV2>, data: PostCreateTeamType): Promise<T>
-
-    abstract deleteTeam(user: Nullable<UserV2>, data: PostDeleteTeamType): Promise<T>
-
-    abstract addMemberToTeam(user: Nullable<UserV2>, data: PostAddMemberToTeamType): Promise<T>
-
-    abstract removeMemberFromTeam(user: Nullable<UserV2>, data: PostRemoveMemberFromTeamType): Promise<T>
+    abstract editMember(user: NullableU<UserV2>, data: PostEditMemberType): Promise<T>
 
 
-    abstract setCommissionState(user: Nullable<UserV2>, data: PostSetCommissionSateType): Promise<T>
+    abstract createTeam(user: NullableU<UserV2>, data: PostCreateTeamType): Promise<T>
 
-    abstract resetCommissionCycle(user: Nullable<UserV2>, data: PostResetCommissionCycleType): Promise<T>
+    abstract deleteTeam(user: NullableU<UserV2>, data: PostDeleteTeamType): Promise<T>
+
+    abstract addMemberToTeam(user: NullableU<UserV2>, data: PostAddMemberToTeamType): Promise<T>
+
+    abstract removeMemberFromTeam(user: NullableU<UserV2>, data: PostRemoveMemberFromTeamType): Promise<T>
 
 
-    abstract syncListCommissionMembers(user: Nullable<UserV2>, data: PostSyncOnlyListCommissionMembersType): Promise<T>
+    abstract setCommissionState(user: NullableU<UserV2>, data: PostSetCommissionSateType): Promise<T>
 
-    abstract syncListFreeMembersForEvent(user: Nullable<UserV2>, data: PostSyncOnlyListFreeMembersForEvent): Promise<T>
+    abstract resetCommissionCycle(user: NullableU<UserV2>, data: PostResetCommissionCycleType): Promise<T>
+
+
+    abstract syncListCommissionMembers(user: NullableU<UserV2>, data: PostSyncOnlyListCommissionMembersType): Promise<T>
+
+    abstract syncListFreeMembersForEvent(user: NullableU<UserV2>, data: PostSyncOnlyListFreeMembersForEvent): Promise<T>
 
 }

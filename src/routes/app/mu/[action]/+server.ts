@@ -35,5 +35,5 @@ export const POST = (async ({ request, cookies, params }) => {
     fancyLog(TAG, `[${token}] post content ➜  `, data)
 
     const action = parseActions(params.action)
-    return await actionResolver.resolve(action, user.user, data)
+    return await actionResolver.resolve(action, user.value, data)
 }) satisfies RequestHandler

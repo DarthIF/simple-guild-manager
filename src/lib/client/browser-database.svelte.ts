@@ -1,13 +1,13 @@
 import type { DatabaseOperationResult_SetCommissionState, LocalDatabase } from '$lib/common/database/database-interfaces'
 import { UNDEFINED_TEAM, validadeDatabaseJson, type MemberTypeV3, type DatabaseJsonType, type AuditLogDetailsV3, type EventTeamType } from '$lib/common/database/constants-and-types'
 import { Actions, CommissionState, GameEvents, Role } from '$lib/common/database/enums'
-import { findMemberByID, getMemberTeam, modifyTeamCount, setMemberTeamId, getMemberTeamId, isUndefinedTeamID, findMemberIndexByID, getEventTeams, findEventTeamIndex, getEventTeam } from '$lib/common/database/utils'
 import { currentUnixTime } from '$lib/utils/time-util'
 import { createDefaultData, ReactiveDB } from './reactive-db.svelte'
 import { downloadJsonFile, readFileAsString } from '$lib/utils/file-utils'
 import { getAppropriatedString } from '$lib/strings'
 import { database_strings } from '$lib/strings/strings'
 import { LOCAL_STORAGE_KEY_V1, updateOldVersions } from '$lib/common/database/updater'
+import { MemberUtils, TeamUtils } from '$lib/common/database/utils2'
 
 
 class BrowserDatabaseImpl implements LocalDatabase {
@@ -91,17 +91,17 @@ class BrowserDatabaseImpl implements LocalDatabase {
     }
 
     public async deleteMember(memberId: string): Promise<boolean> {
-        const index = findMemberIndexByID(ReactiveDB, memberId)
+        const index = MemberUtils.findIndex(ReactiveDB, memberId)
         if (index < 0)
             return false
 
         const member = ReactiveDB.members[index]
 
         // Primeiro atualizar os times que o membro estava
-        modifyTeamCount(getMemberTeam(ReactiveDB, member, GameEvents.WORLD_TREE), -1)
-        modifyTeamCount(getMemberTeam(ReactiveDB, member, GameEvents.MINES_IN_DUNGEON), -1)
-        modifyTeamCount(getMemberTeam(ReactiveDB, member, GameEvents.CLOUD_KINGDOM), -1)
-        modifyTeamCount(getMemberTeam(ReactiveDB, member, GameEvents.CASSINO_ON_YACHT), -1)
+        TeamUtils.modifyCountOfMemberTeam(ReactiveDB, member, GameEvents.WORLD_TREE, -1)
+        TeamUtils.modifyCountOfMemberTeam(ReactiveDB, member, GameEvents.MINES_IN_DUNGEON, -1)
+        TeamUtils.modifyCountOfMemberTeam(ReactiveDB, member, GameEvents.CLOUD_KINGDOM, -1)
+        TeamUtils.modifyCountOfMemberTeam(ReactiveDB, member, GameEvents.CASSINO_ON_YACHT, -1)
 
         // Remover o membro do banco de dados
         ReactiveDB.members.splice(index, 1)
@@ -113,7 +113,7 @@ class BrowserDatabaseImpl implements LocalDatabase {
     }
 
     public async editMember(memberId: string, newName: string, newPower: number): Promise<MemberTypeV3 | null> {
-        const member = findMemberByID(ReactiveDB, memberId)
+        const member = MemberUtils.find(ReactiveDB, memberId)
         if (!member)
             return null
 
@@ -132,7 +132,7 @@ class BrowserDatabaseImpl implements LocalDatabase {
     }
 
     public async findMember(memberId: string): Promise<MemberTypeV3 | null> {
-        const member = findMemberByID(ReactiveDB, memberId)
+        const member = MemberUtils.find(ReactiveDB, memberId)
         return member ? member : null
     }
 
@@ -161,8 +161,7 @@ class BrowserDatabaseImpl implements LocalDatabase {
     }
 
     public async deleteTeam(gameEvent: GameEvents, teamId: string): Promise<boolean> {
-        const index = findEventTeamIndex(ReactiveDB, gameEvent, teamId)
-
+        const index = TeamUtils.findIndex(ReactiveDB, gameEvent, teamId)
         if (index < 0)
             return false
 
@@ -176,12 +175,12 @@ class BrowserDatabaseImpl implements LocalDatabase {
     }
 
     public async listTeams(gameEvent: GameEvents): Promise<EventTeamType[]> {
-        return getEventTeams(ReactiveDB, gameEvent)
+        return TeamUtils.getAll(ReactiveDB, gameEvent)
     }
 
     public async addMemberToTeam(gameEvent: GameEvents, teamId: string, memberId: string): Promise<boolean> {
-        const team = getEventTeam(ReactiveDB, gameEvent, teamId)
-        const member = findMemberByID(ReactiveDB, memberId)
+        const team = TeamUtils.get(ReactiveDB, gameEvent, teamId)
+        const member = MemberUtils.find(ReactiveDB, memberId)
 
         // Membro ou equipe inválidos
         if (!team || !member)
@@ -193,7 +192,7 @@ class BrowserDatabaseImpl implements LocalDatabase {
 
         // Atualizar a informação
         team.count++
-        setMemberTeamId(member, gameEvent, teamId)
+        TeamUtils.setMemberTeamId(member, gameEvent, teamId)
 
         // Adicionar ao registro de auditoria, salvamento automático
         await this.addAuditLog(Actions.ADD_MEMBER_TO_TEAM, { gameEvent, teamId, memberId })
@@ -202,15 +201,15 @@ class BrowserDatabaseImpl implements LocalDatabase {
     }
 
     public async removeMemberFromTeam(gameEvent: GameEvents, teamId: string, memberId: string, userName?: string): Promise<boolean> {
-        const team = getEventTeam(ReactiveDB, gameEvent, teamId)
-        const member = findMemberByID(ReactiveDB, memberId)
+        const team = TeamUtils.get(ReactiveDB, gameEvent, teamId)
+        const member = MemberUtils.find(ReactiveDB, memberId)
 
         // O membro não foi encontrado???
         if (!member)
             return false
 
         // Remover o membro do time
-        setMemberTeamId(member, gameEvent, UNDEFINED_TEAM)
+        TeamUtils.setMemberTeamId(member, gameEvent, UNDEFINED_TEAM)
 
         // Reduzir a quantia de membros do time
         if (team)
@@ -226,10 +225,10 @@ class BrowserDatabaseImpl implements LocalDatabase {
         const freeMembers = new Array<MemberTypeV3>()
 
         for (const member of ReactiveDB.members) {
-            const teamId = getMemberTeamId(member, gameEvent)
+            const teamId = TeamUtils.getMemberTeamId(member, gameEvent)
 
             // Verificar se o membro está em uma equipe
-            if (isUndefinedTeamID(teamId) === true)
+            if (TeamUtils.isUndefinedID(teamId) === true)
                 freeMembers.push(member)
         }
 
@@ -239,7 +238,7 @@ class BrowserDatabaseImpl implements LocalDatabase {
 
 
     public async setCommissionState(memberId: string, state: CommissionState, updateTime: boolean): Promise<DatabaseOperationResult_SetCommissionState> {
-        const member = findMemberByID(ReactiveDB, memberId)
+        const member = MemberUtils.find(ReactiveDB, memberId)
         if (!member)
             return { updated: false }
 

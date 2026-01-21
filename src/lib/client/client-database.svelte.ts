@@ -4,9 +4,8 @@ import type { PostAddMemberToTeamType, PostDeleteMemberType, PostDeleteTeamType,
 import { UNDEFINED_TEAM, validateEventTeamType, validateMemberTypeV3, type DatabaseTypeV3, type EventTeamType, type MemberTypeV3 } from '$lib/common/database/constants-and-types'
 import { Actions, CommissionState, GameEvents } from '$lib/common/database/enums'
 import { isSuccessfulResponse } from '$lib/utils/http-util'
-import { findEventTeamIndex, findMemberByID, findMemberIndexByID, getEventTeam, getEventTeams, getMembers, setMemberTeamId } from '$lib/common/database/utils'
 import { ReactiveDB } from './reactive-db.svelte'
-import { replaceMember, updateMembers } from './utils'
+import { MemberUtils, TeamUtils } from '$lib/common/database/utils2'
 
 
 
@@ -66,7 +65,7 @@ class ClientDatabaseApi implements DatabaseOperations, DatabaseEditor {
 
     public async findMember(memberId: string): Promise<MemberTypeV3 | null> {
         // Executado localmente
-        const member = findMemberByID(ReactiveDB, memberId)
+        const member = MemberUtils.find(ReactiveDB, memberId)
         return member ? member : null
     }
 
@@ -93,7 +92,7 @@ class ClientDatabaseApi implements DatabaseOperations, DatabaseEditor {
     }
 
     public async listTeams(gameEvent: GameEvents): Promise<EventTeamType[]> {
-        return getEventTeams(ReactiveDB, gameEvent)
+        return TeamUtils.getAll(ReactiveDB, gameEvent)
     }
 
     public async addMemberToTeam(gameEvent: GameEvents, teamId: string, memberId: string): Promise<boolean> {
@@ -126,7 +125,7 @@ class ClientDatabaseApi implements DatabaseOperations, DatabaseEditor {
         // dos membros.
 
         const members: MemberTypeV3[] = await response.json()
-        return updateMembers(...members)
+        return MemberUtils.updateAll(ReactiveDB, ...members)
     }
 
 
@@ -168,7 +167,7 @@ class ClientDatabaseApi implements DatabaseOperations, DatabaseEditor {
 
         console.log(membersIDS)
 
-        return getMembers(ReactiveDB, ...membersIDS)
+        return MemberUtils.getList(ReactiveDB, ...membersIDS)
     }
 
 
@@ -262,18 +261,16 @@ class ClientSyncImpl {
         if (validateMemberTypeV3(data) !== true)
             return null
 
-        // @ts-ignore
-        ReactiveDB.members.push(data)
+        ReactiveDB.members.push(data as MemberTypeV3)
 
-        // @ts-ignore
-        return data
+        return data as MemberTypeV3
     }
 
     public async deleteMember(data: PostDeleteMemberType): Promise<boolean> {
         if (typeof data.memberId !== 'string')
             return false
 
-        const memberIndex = findMemberIndexByID(ReactiveDB, data.memberId)
+        const memberIndex = MemberUtils.findIndex(ReactiveDB, data.memberId)
         if (memberIndex > -1)
             ReactiveDB.members.splice(memberIndex, 1) // Remover o membro
 
@@ -284,8 +281,7 @@ class ClientSyncImpl {
         if (validateMemberTypeV3(data) !== true)
             return null
 
-        // @ts-ignore 
-        return replaceMember(data)
+        return MemberUtils.replaceSelf(ReactiveDB, data as MemberTypeV3)
     }
 
 
@@ -293,18 +289,16 @@ class ClientSyncImpl {
         if (validateEventTeamType(data) !== true)
             return null
 
-        // @ts-ignore
-        ReactiveDB.events.push(data)
+        ReactiveDB.events.push(data as EventTeamType)
 
-        // @ts-ignore
-        return data
+        return data as EventTeamType
     }
 
     public async deleteTeam(data: PostDeleteTeamType): Promise<boolean> {
         if (typeof data.gameEvent !== 'string' || typeof data.teamId !== 'string')
             return false
 
-        const index = findEventTeamIndex(ReactiveDB, data.gameEvent, data.teamId)
+        const index = TeamUtils.findIndex(ReactiveDB, data.gameEvent, data.teamId)
         if (index < 0)
             // Retornar true porque nesse contexto o time foi removido no servidor
             // porem no cliente não existia, isso realmente pode acontecer????
@@ -319,11 +313,11 @@ class ClientSyncImpl {
         if (typeof data.gameEvent !== 'string' || typeof data.teamId !== 'string' || typeof data.memberId !== 'string')
             return false
 
-        const member = findMemberByID(ReactiveDB, data.memberId)
+        const member = MemberUtils.find(ReactiveDB, data.memberId)
         if (member)
-            setMemberTeamId(member, data.gameEvent, data.teamId)
+            TeamUtils.setMemberTeamId(member, data.gameEvent, data.teamId)
 
-        const team = getEventTeam(ReactiveDB, data.gameEvent, data.teamId)
+        const team = TeamUtils.get(ReactiveDB, data.gameEvent, data.teamId)
         if (team)
             team.count += 1
 
@@ -334,11 +328,11 @@ class ClientSyncImpl {
         if (typeof data.gameEvent !== 'string' || typeof data.teamId !== 'string' || typeof data.memberId !== 'string')
             return false
 
-        const member = findMemberByID(ReactiveDB, data.memberId)
+        const member = MemberUtils.find(ReactiveDB, data.memberId)
         if (member)
-            setMemberTeamId(member, data.gameEvent, UNDEFINED_TEAM)
+            TeamUtils.setMemberTeamId(member, data.gameEvent, UNDEFINED_TEAM)
 
-        const team = getEventTeam(ReactiveDB, data.gameEvent, data.teamId)
+        const team = TeamUtils.get(ReactiveDB, data.gameEvent, data.teamId)
         if (team)
             team.count -= 1
 
@@ -350,7 +344,7 @@ class ClientSyncImpl {
         if (typeof data.memberId !== 'string' || typeof data.state !== 'number' || typeof data.time !== 'number')
             return { updated: false }
 
-        const member = findMemberByID(ReactiveDB, data.memberId)
+        const member = MemberUtils.find(ReactiveDB, data.memberId)
         if (member) {
             member.state = data.state
             member.time = data.time
