@@ -22,6 +22,8 @@
     import FragmentSettings from "$lib/components/fragments/fragment-settings.svelte";
     import FragmentAbout from "$lib/components/fragments/fragment-about.svelte";
     import FragmentProfile from "../fragments/fragment-profile.svelte";
+    import FragmentOnline from "../fragments/fragment-online.svelte";
+    import FragmentCommissionV2 from "../fragments/fragment-commission-v2.svelte";
 
     function onClickToolbar_DrawerMenu() {
         el_smuiDrawer.openDrawer();
@@ -173,10 +175,14 @@
             />
         {:else if currentFragment === Fragments.COMMISSIONS}
             <!-- Comissões -->
-            <FragmentCommissions bind:database />
+            <!-- <FragmentCommissions bind:database /> -->
+            <FragmentCommissionV2 />
         {:else if currentFragment === Fragments.AUDIT_LOG}
             <!-- Registro de auditoria -->
             <FragmentAuditLog bind:this={el_fragmentAuditLog} />
+        {:else if currentFragment === Fragments.ONLINE}
+            <!-- Online -->
+            <FragmentOnline />
         {:else if currentFragment === Fragments.SETTINGS}
             <!-- Configurações -->
             <FragmentSettings />

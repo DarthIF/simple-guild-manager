@@ -13,6 +13,7 @@ export enum Fragments {
     SETTINGS = 'settings',
     ABOUT = 'about',
     PROFILE = 'profile',
+    ONLINE = 'online'
 }
 
 export enum FragmentsParams {

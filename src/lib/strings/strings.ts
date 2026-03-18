@@ -32,7 +32,9 @@ export const basic = {
     you: { en: 'You', pt: 'Você' },
 
     user: { en: 'User', pt: 'Usuário' },
-    members: { en: 'Members', pt: 'Membros' }
+    members: { en: 'Members', pt: 'Membros' },
+
+    online: { en: 'Online', pt: 'On-line' }
 }
 
 export const action = {

@@ -1,4 +1,4 @@
-import type { Actions, CommissionState, GameEvents, Role } from "./enums"
+import { CommissionState, type Actions, type GameEvents, Role } from "./enums"
 
 
 
@@ -6,7 +6,7 @@ export const DEFINITIONS_DEFAULT_ID = 'default'
 
 export const UNDEFINED_TEAM = '@undefined_team'
 
-export const DATA_STRUCTURE_TEMPLATE: DatabaseJsonType = {
+export const DATABASE_STRUCTURE_TEMPLATE: DatabaseJsonType = {
     version: 1,
     userAgent: '💻',
     definitions: {
@@ -104,6 +104,9 @@ export type DatabaseJsonType = {
 
 
 
+/**
+ * @deprecated
+ */
 export type DefinitionsType = {
     /**
      * O valor deverá ser sempre {@link DEFINITIONS_DEFAULT_ID}
@@ -123,11 +126,8 @@ export type DefinitionsType = {
 
 
 
-export type MemberTypeV4 = {
-} & MemberTypeV3 & MemberGuildType
-
 /**
- * 
+ * @deprecated
  */
 export type MemberTypeV3 = {
     /**
@@ -218,12 +218,12 @@ export type MemberEventType = {
 
 export type MemberGuildType = {
     /**
-    * Tag do membro, vazio utiliza a da guilda
+    * Tag do membro, caso seja uma string vazia utiliza a tag padrão de sua guilda
     */
     tag: string
 
     /**
-     * Guilda
+     * Id da Guilda do jogador
      */
     guild: string
 }

@@ -78,6 +78,13 @@
         return active === fragmentID;
     }
 
+    function createFuncCloseAndGoto(fragment: Fragments) {
+        return () => {
+            closeDrawer();
+            navigateToFragment(fragment);
+        };
+    }
+
     let ref_dialogImport: SmuiDialogImport;
     let el_drawerOverlay: HTMLDivElement;
 
@@ -156,46 +163,31 @@
                 "home",
                 basic.home,
                 isActive(Fragments.UNDEFINED),
-                () => {
-                    closeDrawer();
-                    navigateToFragment(Fragments.UNDEFINED);
-                },
+                createFuncCloseAndGoto(Fragments.UNDEFINED),
             )}
             {@render MItem(
                 "empty_dashboard",
                 basic.manage_org,
                 isActive(Fragments.MANAGE_ORGANIZATION),
-                () => {
-                    closeDrawer();
-                    navigateToFragment(Fragments.MANAGE_ORGANIZATION);
-                },
+                createFuncCloseAndGoto(Fragments.MANAGE_ORGANIZATION),
             )}
             {@render MItem(
                 "diversity_3",
                 basic.teams,
                 isActive(Fragments.MANAGE_TEAMS),
-                () => {
-                    closeDrawer();
-                    navigateToFragment(Fragments.MANAGE_TEAMS);
-                },
+                createFuncCloseAndGoto(Fragments.MANAGE_TEAMS),
             )}
             {@render MItem(
                 "sports_martial_arts",
                 basic.commissions,
                 isActive(Fragments.COMMISSIONS),
-                () => {
-                    closeDrawer();
-                    navigateToFragment(Fragments.COMMISSIONS);
-                },
+                createFuncCloseAndGoto(Fragments.COMMISSIONS),
             )}
             {@render MItem(
                 "history",
                 basic.audit_log,
                 isActive(Fragments.AUDIT_LOG),
-                () => {
-                    closeDrawer();
-                    navigateToFragment(Fragments.AUDIT_LOG);
-                },
+                createFuncCloseAndGoto(Fragments.AUDIT_LOG),
             )}
 
             <Separator />
@@ -220,22 +212,22 @@
             <Subheader tag="h6">Simple Guild Manager</Subheader>
 
             {@render MItem(
+                "sentiment_calm",
+                basic.online,
+                isActive(Fragments.ONLINE),
+                createFuncCloseAndGoto(Fragments.ONLINE),
+            )}
+            {@render MItem(
                 "settings",
                 basic.settings,
                 isActive(Fragments.SETTINGS),
-                () => {
-                    closeDrawer();
-                    navigateToFragment(Fragments.SETTINGS);
-                },
+                createFuncCloseAndGoto(Fragments.SETTINGS),
             )}
             {@render MItem(
                 "info",
                 basic.about,
                 isActive(Fragments.ABOUT),
-                () => {
-                    closeDrawer();
-                    navigateToFragment(Fragments.ABOUT);
-                },
+                createFuncCloseAndGoto(Fragments.ABOUT),
             )}
 
             <Separator />

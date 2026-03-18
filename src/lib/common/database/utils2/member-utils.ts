@@ -1,6 +1,7 @@
 import type { Nullable } from '$lib/utils/types'
-import type { DatabaseTypeV3, MemberTypeV3 } from '../constants-and-types'
-import { Role, CommissionState } from '../enums'
+import { type DatabaseTypeV3, type MemberTypeV3 } from '../constants-and-types'
+import { MEMBER_STRUCTURE_TEMPLATE, type MemberTypeV4 } from '../constants-and-types-2'
+
 
 export function find(database: DatabaseTypeV3, memberId: string): Nullable<MemberTypeV3> {
     const member = database.members.find(member => member.id === memberId)
@@ -64,24 +65,10 @@ export function updateAll(database: DatabaseTypeV3, ...members: MemberTypeV3[]) 
 }
 
 
-export function createEmpty(): MemberTypeV3 {
-    return {
-        id: 'empty',
-        server: 0,
-        name: 'Empty member',
-        earnings: 0,
-        power: 0,
-        role: Role.MEMBER,
-        offline: 0,
+export function createEmpty(): MemberTypeV4 {
+    const member: MemberTypeV4 = JSON.parse(JSON.stringify(MEMBER_STRUCTURE_TEMPLATE))
+    member.id = 'empty'
+    member.name = 'Empty member'
 
-        state: CommissionState.AVAILABLE,
-        time: 0,
-        missed: 0,
-
-        worldTree: '',
-        minesInDungeon: '',
-        cloudKingdom: '',
-        cassinoOnYacht: '',
-        infernoRally: '',
-    }
+    return member
 }
