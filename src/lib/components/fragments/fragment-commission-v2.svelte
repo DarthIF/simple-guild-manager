@@ -63,6 +63,8 @@
         }
     });
 
+    // ------------------------------------------
+
     let cod_15m: Nullable<MemberTypeV3> = $state(null);
     let cod_40m: Nullable<MemberTypeV3> = $state(null);
     let cod_120m: Nullable<MemberTypeV3> = $state(null);
@@ -70,6 +72,42 @@
     let cod_5b: Nullable<MemberTypeV3> = $state(null);
     let cod_9b: Nullable<MemberTypeV3> = $state(null);
     let cod_15b: Nullable<MemberTypeV3> = $state(null);
+
+    type CodCombinedItem = { member: string; level: Set<number> };
+    let cod_combined: Array<CodCombinedItem> = $derived.by(() => {
+        const temp: Array<CodCombinedItem> = [];
+
+        tryCombine(1, cod_15m, temp);
+        tryCombine(2, cod_40m, temp);
+        tryCombine(3, cod_120m, temp);
+        tryCombine(4, cod_300m, temp);
+        tryCombine(5, cod_5b, temp);
+        tryCombine(6, cod_9b, temp);
+        tryCombine(7, cod_15b, temp);
+
+        return temp.filter((v) => v.level.size > 0);
+    });
+
+    function tryCombine(level: number, member: Nullable<MemberTypeV3>, array:  Array<CodCombinedItem> ) {
+        // Tentar adicionar a um item existente
+        let added = false;
+        for (const item of array) {
+            if (member && member.id === item.member) {
+                item.level.add(level);
+                added = true;
+            } else {
+                item.level.delete(level);
+            }
+        }
+
+        // Adicionar o item
+        if (member && !added) {
+            array.push({
+                member: member.id,
+                level: new Set<number>().add(level),
+            });
+        }
+    }
 
     let progress = $state(1 / 3);
 </script>
@@ -120,6 +158,7 @@
                 <b> membros fechados </b>. Por favor confirme se a lista está
                 correta.
             </p>
+            {JSON.stringify(cod_combined)}
             <ol>
                 {#snippet list_item(
                     member: Nullable<MemberTypeV3>,

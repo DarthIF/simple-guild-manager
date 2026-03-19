@@ -38,6 +38,55 @@ export enum CommissionState {
     INACTIVE = 2,
 }
 
+export const CommissionTable: Array<CommissionTableItem> = [
+    {
+        level: 1,
+        power: '15M'
+    },
+    {
+        level: 2,
+        power: '40M'
+    },
+    {
+        level: 3,
+        power: '120M'
+    },
+    {
+        level: 4,
+        power: '300M'
+    },
+    {
+        level: 5,
+        power: '525M',
+        hard: '',
+        extreme: '5.25B'
+    },
+    {
+        level: 6,
+        power: '900M',
+        hard: '',
+        extreme: '9B'
+    },
+    {
+        level: 7,
+        power: '1.5B',
+        hard: '',
+        extreme: '15B'
+    }
+]
+
+export type CommissionTableItem = {
+    level: number
+    power: string
+    hard?: string
+    extreme?: string
+}
+
+export enum CommissionDifficult {
+    NORMAL, HARD, EXTREME
+}
+
+
 export enum Role {
     MEMBER = 0,
     ELITE = 1,
