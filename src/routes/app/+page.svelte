@@ -13,7 +13,7 @@
         Fragments,
         navigateToFragment,
     } from "$lib/components/fragments/fragments";
-    import { UserInformation } from "$lib/client/user-information.svelte";
+    import { UserInformation } from "$lib/client/user.svelte";
     import "animate.css";
 
     onMount(() => {

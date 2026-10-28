@@ -5,7 +5,7 @@
     import Tooltip, { Wrapper } from "@smui/tooltip";
     import IconButton, { Icon } from "@smui/icon-button";
     import CharacterListItem from "../misc/character-list-item.svelte";
-    import { UserInformation } from "$lib/client/user-information.svelte";
+    import { UserInformation } from "$lib/client/user.svelte";
     import type { MemberTypeV3 } from "$lib/common/database/constants-and-types";
     import { CommissionState, Role } from "$lib/common/database/enums";
     import LayoutResponsiveSingleColumn from "../layouts/layout-responsive-single-column.svelte";

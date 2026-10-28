@@ -1,6 +1,7 @@
 import type { Actions } from '$lib/common/database/enums'
 import type { ServerPacketType } from './packet'
 import type { Nullable, NullableU } from '$lib/utils/types'
+import type { PacketType } from '$lib/common/packets/type'
 import { checkIfHasSendedToAllUsersOnline, getOnlineCount } from '../online'
 import { fancyLog } from '../util/server-log'
 
@@ -34,7 +35,14 @@ export function nextPacket(token: string): Nullable<ServerPacketType> {
     return packet
 }
 
+/**
+ * @deprecated
+ */
 export function includePacket(author: NullableU<string>, action: Actions, data: any): boolean {
+    return includePacketV2(author, { action, data })
+}
+
+export function includePacketV2(author: NullableU<string>, packetContent: PacketType): boolean {
     fancyLog(TAG, `tentando incluir um pacote...`)
 
     if (author === undefined || author === null) {
@@ -48,10 +56,10 @@ export function includePacket(author: NullableU<string>, action: Actions, data: 
         return false
     }
 
-    const packet = {
+    const packet: ServerPacketType = {
         author,
         sended: new Set<string>(),
-        send: { action, data }
+        send: packetContent
     }
 
     fancyLog(TAG, `pacote incluído`, packet)

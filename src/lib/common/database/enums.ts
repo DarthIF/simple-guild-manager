@@ -22,6 +22,8 @@ export enum Actions {
 
     SYNC_ONLY_LIST_COMMISSION_MEMBERS = 'lcm',
     SYNC_ONLY_LIST_FREE_MEMBERS_FOR_EVENT = 'lfm',
+
+    SYNC_ONLY_ONLINE_USER = 'on'
 }
 
 export enum GameEvents {
@@ -30,6 +32,7 @@ export enum GameEvents {
     CLOUD_KINGDOM = 'cloud_kingdom',
     CASSINO_ON_YACHT = 'cassino_on_yacht',
     INFERNO_RALLY = 'inferno_rally',
+    GOLDEN_REALM = 'golden_realm'
 }
 
 export enum CommissionState {
@@ -92,6 +95,15 @@ export enum Role {
     ELITE = 1,
     VICE_PRESIDENT = 2,
     PRESIDENT = 3,
+
+    /**
+     * Nao Usar
+     */
+    ADMIN = 4,
+    /**
+    * Nao Usar
+    */
+    DEV = 5,
 }
 
 

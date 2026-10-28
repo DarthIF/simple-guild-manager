@@ -14,7 +14,7 @@ const WAIT_DELAY = 2000
 const SENDED_DELAY = 100
 
 
-function delay(milliseconds: number) {
+function delay(milliseconds: number): Promise<void> {
     return new Promise<void>((resolve) => {
         setTimeout(resolve, milliseconds)
     })
@@ -58,7 +58,7 @@ export const POST = (({ request }) => {
         fancyLog(TAG, `Nova conexão estabelecida para token: ${token}`)
 
         // Definir o usuário como online
-        setUserOnline(token, true)
+        setUserOnline(token, true, true, token)
 
         // Enviar o banco de dados para o cliente
         sendDatabase(connection, token)
@@ -83,7 +83,7 @@ export const POST = (({ request }) => {
                     continue
                 }
 
-                // Ignorar o pacote se estiver sendo enviado para o autor
+                // Ignorar este pacote caso seja do mesmo autor
                 if (packet.author === token) {
                     fancyLog(TAG, `Pacote ignorado para ${token}`)
                     continue
@@ -116,7 +116,7 @@ export const POST = (({ request }) => {
             isConnected = false
 
             if (token)
-                setUserOnline(token, false)
+                setUserOnline(token, false, true, token)
         }
     })
 

@@ -6,6 +6,7 @@ import { Actions, CommissionState, GameEvents } from '$lib/common/database/enums
 import { isSuccessfulResponse } from '$lib/utils/http-util'
 import { ReactiveDB } from './reactive-db.svelte'
 import { MemberUtils, TeamUtils } from '$lib/common/database/utils2'
+import { OnlineUsers } from './user.svelte';
 
 
 
@@ -190,6 +191,9 @@ class ClientSyncImpl {
         if (packet.action === Actions.SYNC_ONLY_DATABASE_LOAD)
             return this.syncDatabaseLoad(packet)
 
+        // Sincronizar os Usuários Online
+        if (packet.action === Actions.SYNC_ONLY_ONLINE_USER)
+            return this.syncOnlineUsers(packet)
 
         // Sincronizar as outras operações
         if (!packet.data)
@@ -363,6 +367,18 @@ class ClientSyncImpl {
         }
 
         return true
+    }
+
+
+    public async syncOnlineUsers(packet: PacketType) {
+        if (!packet.online_packet)
+            return
+
+        if (packet.online_packet.online)
+            OnlineUsers.list.push(packet.online_packet)
+        else
+            OnlineUsers.list = OnlineUsers.list.filter(e => e.name !== packet.online_packet?.name)
+
     }
 
 }
