@@ -37,3 +37,27 @@ export function packetDecode(toDecode: NullableU<string>): NullableU<Partial<Pac
         return null
     }
 }
+
+/**
+ * Função usada no cliente para validar um pacote recebido
+ * 
+ * @param packet pacote a ser verificado
+ * @param onValid callback quando o pacote é valido
+ * @param onInvalid callback para erros
+ */
+export function validatePacket(packet: NullableU<Partial<PacketType>>, onValid: (packet: Partial<PacketType>) => void, onInvalid: (message: string, packet: NullableU<Partial<PacketType>>) => void) {
+    // Pacote vazio
+    if (!packet)
+        return onInvalid('Received empty data', packet)
+
+    // Pacote sem ação
+    if (!packet.action)
+        return onInvalid('Received empty action', packet)
+
+    // Pacotes validos
+    if (packet.data || packet.exported || packet.online_packet)
+        return onValid(packet)
+
+    // Não configurado ou invalido
+    onInvalid('The packet contains an action, but the data was not identified. Check if the packet is configured in [lib/common/packets/utils.ts#validatePacket]', packet)
+}

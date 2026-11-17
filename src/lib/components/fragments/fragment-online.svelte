@@ -1,20 +1,27 @@
 <script lang="ts">
     import Card, { Content } from "@smui/card";
     import LayoutResponsiveSingleColumn from "../layouts/layout-responsive-single-column.svelte";
+    import { OnlineUsers } from "$lib/client/user.svelte";
 
-    let onlineUsers = ["user 1", "user 2", "user 3"];
+    $effect(()=>{
+
+console.log('--> ' , OnlineUsers.list)
+
+    })
+
+
 </script>
 
 <LayoutResponsiveSingleColumn>
     <div class="fragment-content">
-        {#each onlineUsers as user, index}
+        {#each OnlineUsers.list as user, index}
             {#if index === 0}
                 <Card style="width: 100%;">
-                    <Content>{user}</Content>
+                    <Content>{user.name}</Content>
                 </Card>
             {:else}
                 <Card style="width: 100%; margin-top: 16px;">
-                    <Content>{user}</Content>
+                    <Content>{user.name}</Content>
                 </Card>
             {/if}
         {/each}

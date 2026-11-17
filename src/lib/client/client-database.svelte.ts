@@ -187,6 +187,8 @@ class ClientDatabaseApi implements DatabaseOperations, DatabaseEditor {
 class ClientSyncImpl {
 
     public syncFromPacket(packet: PacketType) {
+        console.log('client-database.svelte.ts #syncFromPacket', packet)
+
         // Sincronizar o banco de dados
         if (packet.action === Actions.SYNC_ONLY_DATABASE_LOAD)
             return this.syncDatabaseLoad(packet)
@@ -374,10 +376,14 @@ class ClientSyncImpl {
         if (!packet.online_packet)
             return
 
+
+        console.log('syncOnlineUsers', packet.online_packet)
+
+
         if (packet.online_packet.online)
             OnlineUsers.list.push(packet.online_packet)
         else
-            OnlineUsers.list = OnlineUsers.list.filter(e => e.name !== packet.online_packet?.name)
+            OnlineUsers.list = OnlineUsers.list.filter(e => e.token !== packet.online_packet?.token)
 
     }
 

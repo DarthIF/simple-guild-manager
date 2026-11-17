@@ -24,10 +24,15 @@ export const POST = (async ({ request, cookies, params }) => {
     fancyLog(TAG, `[${token}] está acessando a API ➜  mu/${params.action}`)
 
     // Verificar o usuário
-    if (user === null) {
+    if (!user || !user.value) {
         fancyLog(TAG, `[${token}] não foi autorizado`)
         return send(StatusCodes.UNAUTHORIZED)
     }
+    if (!user.value) {
+        fancyLog(TAG, `[${token}] não foi autorizado, devido ao banco de dados enviar um usuário nulo`)
+        return send(StatusCodes.UNAUTHORIZED)
+    }
+
 
     // Ler o conteúdo do post
     const data: PostTypes = await request.json()

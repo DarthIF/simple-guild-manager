@@ -5,6 +5,5 @@
         "snapdom",
         "zumer"
     ],
-    "js/ts.experimental.useTsgo": true,
-    "typescript.experimental.useTsgo": true
+    "js/ts.experimental.useTsgo": true
 }

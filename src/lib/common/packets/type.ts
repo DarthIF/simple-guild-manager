@@ -19,7 +19,8 @@ export type PacketType = {
 }
 
 export type PacketType_OnlineUser = {
-    name: string
     online: boolean
-    role?: Role
+    token: string
+    name?: string
+    icon?: string
 }

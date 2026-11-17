@@ -3,6 +3,10 @@ import type { PostSetGuildNameType, PostAddMemberType, PostDeleteMemberType, Pos
 import type { UserV2 } from './user'
 import type { DatabaseOperations } from '$lib/common/database/database-interfaces'
 import { Actions } from '$lib/common/database/enums'
+import { fancyLog } from '../util/server-log'
+
+
+const TAG = 'ar.ts'
 
 
 export interface ActionResolver<T> {
@@ -42,6 +46,8 @@ export abstract class ActionResolverBase<T> implements ActionResolver<T> {
 
 
     public resolve(action: Actions, user: NullableU<UserV2>, data: PostTypes): Promise<T> {
+        // fancyLog('TAG', 'Resolvendo ação do usuário', user?.name)
+
         switch (action) {
             case Actions.SET_GUILD_NAME:
                 return this.setGuildName(user, data)

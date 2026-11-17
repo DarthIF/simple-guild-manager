@@ -1,39 +1,64 @@
-import { Actions } from "$lib/common/database/enums";
-import { includePacketV2 } from "../packets";
-import { fancyLog } from "../util/server-log"
+import { Actions, Role } from '$lib/common/database/enums'
+import type { UserV2 } from '../database/user'
+import { includePacketV2 } from '../packets'
+import { fancyLog } from '../util/server-log'
 
-
-const currentOnline = new Set<string>()
+/**
+ * Map<token, username>()
+ */
+const currentUsersOnline = new Map<string, string>()
 const TAG = 'ServerOnline'
 
 
+type SetUserOnlineParams = {
+    online: boolean
+    user: {
+        token: string
+        name?: string
+        icon?: string
+    }
+    packet?: {
+        send: boolean
+        autor?: string
+    }
+}
+
+
 export function getOnlineCount(): number {
-    return currentOnline.size
+    return currentUsersOnline.size
 }
 
 export function getOnlineUsers(): string[] {
-    return [...currentOnline]
+    return [...currentUsersOnline.values()]
 }
 
-export function setUserOnline(token: string, online: boolean, sendPacket: boolean, packetAuthor?: string) {
-    fancyLog(TAG, `Usuário [${token}] está ${online ? 'online' : 'offline'}`)
+export function setUserOnline(params: SetUserOnlineParams) {
+    fancyLog(TAG, `Usuário [${params.user.token}] está ${params.online ? 'online' : 'offline'}`)
 
-    if (online)
-        currentOnline.add(token)
-    else
-        currentOnline.delete(token)
+    if (params.online) {
+        // currentOnline.add(params.user.token)
+        currentUsersOnline.set(params.user.token, params.user.name || '?')
+    } else {
+        // currentOnline.delete(params.user.token)
+        currentUsersOnline.delete(params.user.token)
+    }
 
     // Adicionar um pacote
-    if (sendPacket) {
-        includePacketV2(packetAuthor, {
+    if (params.packet?.send) {
+        includePacketV2(params.packet.autor, {
             action: Actions.SYNC_ONLY_ONLINE_USER,
-            online_packet: { name: token, online }
+            online_packet: {
+                online: params.online,
+                token: params.user.token,
+                name: params.user.name,
+                icon: params.user.icon, 
+            }
         })
     }
 }
 
 export function checkIfHasSendedToAllUsersOnline(sendedTo: Set<string>): boolean {
-    for (const online of currentOnline) {
+    for (const online of currentUsersOnline.keys()) {
         if (!sendedTo.has(online))
             return false
     }

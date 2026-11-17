@@ -1,5 +1,5 @@
 import type { RequestHandler } from './$types'
-import type { Nullable } from '$lib/utils/types'
+import type { Nullable, NullableU } from '$lib/utils/types'
 import type { PacketType } from '$lib/common/packets/type'
 import { produce, type Connection } from 'sveltekit-sse'
 import { fancyLog } from '$lib/server/util/server-log'
@@ -8,6 +8,7 @@ import { nextPacket, type ServerPacketType } from '$lib/server/packets'
 import { setUserOnline } from '$lib/server/online'
 import { RemoteDatabase } from '$lib/server/database/server-database.svelte'
 import { Actions } from '$lib/common/database/enums'
+import type { UserV2 } from '$lib/server/database/user';
 
 const TAG = 'sync+server.ts'
 const WAIT_DELAY = 2000
@@ -42,6 +43,7 @@ async function sendDatabase(connection: Connection, token: string) {
 
 export const POST = (({ request }) => {
     let token = request.headers.get('session')
+    let user: Nullable<UserV2> = null
     let isConnected = false
     let packet: Nullable<ServerPacketType> = null
 
@@ -50,15 +52,31 @@ export const POST = (({ request }) => {
         if (!token)
             return
 
-
         // Validar o token primeiro
+        const findResult = await RemoteDatabase.fundUserByToken(token)
+        if (!findResult.exists)
+            return
+
+        // Salvar o User
+        user = findResult.value as UserV2
 
 
         // Usuário valido
         fancyLog(TAG, `Nova conexão estabelecida para token: ${token}`)
 
-        // Definir o usuário como online
-        setUserOnline(token, true, true, token)
+        // Definir o usuário como online 
+        setUserOnline({
+            online: true,
+            user: {
+                token,
+                name: user.name,
+                icon: user.icon,
+            },
+            packet: {
+                send: true,
+                autor: token,
+            }
+        })
 
         // Enviar o banco de dados para o cliente
         sendDatabase(connection, token)
@@ -115,8 +133,19 @@ export const POST = (({ request }) => {
         stop: () => {
             isConnected = false
 
-            if (token)
-                setUserOnline(token, false, true, token)
+            if (token) {
+                // Enviar um pacote de desconectado
+                setUserOnline({
+                    online: false,
+                    user: {
+                        token,
+                    },
+                    packet: {
+                        send: true,
+                        autor: token,
+                    }
+                })
+            }
         }
     })
 

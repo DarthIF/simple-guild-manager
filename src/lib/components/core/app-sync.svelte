@@ -1,6 +1,6 @@
 <script lang="ts">
     import { source } from "sveltekit-sse";
-    import { packetDecode } from "$lib/common/packets/utils";
+    import { packetDecode, validatePacket } from "$lib/common/packets/utils";
     import { ClientSync } from "$lib/client/client-database.svelte";
 
     let { token } = $props();
@@ -15,25 +15,20 @@
     }).select("message");
 
     sync.subscribe((data) => {
-        const packet = packetDecode(data);
-        if (!packet) {
-            console.warn("Received empty data");
-            return;
-        }
+        validatePacket(
+            // Decodificar a informação
+            packetDecode(data),
 
-        if (!packet.action) {
-            console.warn("Received invalid action");
-            return;
-        }
+            // Pacote Valido
+            (packet) => {
+                console.log(`Received data on [${packet.action}]`);
 
-        if (packet.data || packet.exported) {
-            console.log(`Received data on [${packet.action}]`);
+                // @ts-ignore
+                ClientSync.syncFromPacket(packet);
+            },
 
-            // @ts-ignore
-            ClientSync.syncFromPacket(packet);
-            return;
-        }
-
-        console.warn("Received invalid data", packet);
+            // Pacote Invalido
+            (message, packet) => console.warn(message, packet),
+        );
     });
 </script>

@@ -1,4 +1,4 @@
-import type { FindResult } from "$lib/utils/database/find-result"
+import type { FindResult } from '$lib/utils/database/find-result'
 
 
 /**

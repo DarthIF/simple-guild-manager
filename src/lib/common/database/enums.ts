@@ -18,12 +18,12 @@ export enum Actions {
     COMMISSION_RESET_CYCLE = 'crc',
 
 
-    SYNC_ONLY_DATABASE_LOAD = 'dbl',
+    SYNC_ONLY_DATABASE_LOAD = '$dl',
 
-    SYNC_ONLY_LIST_COMMISSION_MEMBERS = 'lcm',
-    SYNC_ONLY_LIST_FREE_MEMBERS_FOR_EVENT = 'lfm',
+    SYNC_ONLY_LIST_COMMISSION_MEMBERS = '$lcm',
+    SYNC_ONLY_LIST_FREE_MEMBERS_FOR_EVENT = '$lfme',
 
-    SYNC_ONLY_ONLINE_USER = 'on'
+    SYNC_ONLY_ONLINE_USER = '$ou'
 }
 
 export enum GameEvents {

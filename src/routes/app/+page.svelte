@@ -13,18 +13,27 @@
         Fragments,
         navigateToFragment,
     } from "$lib/components/fragments/fragments";
-    import { UserInformation } from "$lib/client/user.svelte";
+    import { OnlineUsers, UserInformation } from "$lib/client/user.svelte";
     import "animate.css";
 
     onMount(() => {
         card_display = "flex";
         card_animation = "animate__fadeInUp";
 
-        console.log(data);
+        console.log("+page.svelte Dados do Usuário", data);
 
         // Salvar as informações
+        UserInformation.token = data.token;
         UserInformation.name = data.name;
         UserInformation.icon = data.icon;
+
+        // Adicionar na lista local
+        OnlineUsers.list.push({
+            online: true,
+            token: data.token,
+            name: data.name,
+            icon: data.icon,
+        });
     });
 
     let database = $state(ClientDatabase);
