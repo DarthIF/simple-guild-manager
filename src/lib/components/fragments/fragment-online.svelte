@@ -3,13 +3,11 @@
     import LayoutResponsiveSingleColumn from "../layouts/layout-responsive-single-column.svelte";
     import { OnlineUsers } from "$lib/client/user.svelte";
 
-    $effect(()=>{
+    $effect(() => {
+        var snapshot = $state.snapshot(OnlineUsers.list);
 
-console.log('--> ' , OnlineUsers.list)
-
-    })
-
-
+        console.log("OnlineUsers:", snapshot);
+    });
 </script>
 
 <LayoutResponsiveSingleColumn>

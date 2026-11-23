@@ -5,7 +5,7 @@ import { produce, type Connection } from 'sveltekit-sse'
 import { fancyLog } from '$lib/server/util/server-log'
 import { packetEncode } from '$lib/common/packets/utils'
 import { nextPacket, type ServerPacketType } from '$lib/server/packets'
-import { setUserOnline } from '$lib/server/online'
+import { getOnlineUsersForPacket, setUserOnline } from '$lib/server/online'
 import { RemoteDatabase } from '$lib/server/database/server-database.svelte'
 import { Actions } from '$lib/common/database/enums'
 import type { UserV2 } from '$lib/server/database/user';
@@ -30,13 +30,27 @@ async function sendDatabase(connection: Connection, token: string) {
     })
 
     const packet: PacketType = {
-        action: Actions.SYNC_ONLY_DATABASE_LOAD,
+        action: Actions.SYNC_ONLY_LOAD_DATABASE,
         exported: exportedDB
     }
 
     const { error } = connection.emit('message', packetEncode(packet))
     if (error) {
         fancyLog(TAG, `Erro ao enviar o banco de dados para ${token} ➜ `, error?.message)
+    }
+}
+
+async function sendOnlineUsers(connection: Connection, token: string) {
+    const online = getOnlineUsersForPacket()
+
+    const packet: PacketType = {
+        action: Actions.SYNC_ONLY_LOAD_ONLINE_USERS,
+        sync_online_users: online
+    }
+
+    const { error } = connection.emit('message', packetEncode(packet))
+    if (error) {
+        fancyLog(TAG, `Erro ao enviar a lista de usuários online para ${token} ➜ `, error?.message)
     }
 }
 
@@ -64,7 +78,7 @@ export const POST = (({ request }) => {
         // Usuário valido
         fancyLog(TAG, `Nova conexão estabelecida para token: ${token}`)
 
-        // Definir o usuário como online 
+        // Definir o usuário atual como online 
         setUserOnline({
             online: true,
             user: {
@@ -80,6 +94,9 @@ export const POST = (({ request }) => {
 
         // Enviar o banco de dados para o cliente
         sendDatabase(connection, token)
+
+        // Enviar a lista de usuários online para o cliente
+        sendOnlineUsers(connection, token)
 
         // Loop para atualizar os pacotes para esse cliente
         isConnected = true

@@ -1,5 +1,5 @@
 import type { DatabaseEditor, DatabaseOperationResult_SetCommissionState, DatabaseOperations } from '$lib/common/database/database-interfaces'
-import type { PacketType } from '$lib/common/packets/type'
+import type { PacketType, PacketType_OnlineUser } from '$lib/common/packets/type'
 import type { PostAddMemberToTeamType, PostDeleteMemberType, PostDeleteTeamType, PostEditMemberType, PostRemoveMemberFromTeamType, PostResetCommissionCycleType, PostSetCommissionSateType, PostSetGuildNameType, ResponseAddMemberType, ResponseCreateTeamType, ResponseEditMemberType, ResponseSetCommissionSateType } from '$lib/common/database/post-types'
 import { UNDEFINED_TEAM, validateEventTeamType, validateMemberTypeV3, type DatabaseTypeV3, type EventTeamType, type MemberTypeV3 } from '$lib/common/database/constants-and-types'
 import { Actions, CommissionState, GameEvents } from '$lib/common/database/enums'
@@ -190,12 +190,15 @@ class ClientSyncImpl {
         console.log('client-database.svelte.ts #syncFromPacket', packet)
 
         // Sincronizar o banco de dados
-        if (packet.action === Actions.SYNC_ONLY_DATABASE_LOAD)
+        if (packet.action === Actions.SYNC_ONLY_LOAD_DATABASE)
             return this.syncDatabaseLoad(packet)
 
         // Sincronizar os Usuários Online
+        if (packet.action === Actions.SYNC_ONLY_LOAD_ONLINE_USERS)
+            return this.syncOnlineUsersList(packet)
+
         if (packet.action === Actions.SYNC_ONLY_ONLINE_USER)
-            return this.syncOnlineUsers(packet)
+            return this.syncOnlineUser(packet)
 
         // Sincronizar as outras operações
         if (!packet.data)
@@ -372,21 +375,51 @@ class ClientSyncImpl {
     }
 
 
-    public async syncOnlineUsers(packet: PacketType) {
-        if (!packet.online_packet)
+
+    public async syncOnlineUsersList(packet: PacketType) {
+        if (!packet.sync_online_users)
             return
 
 
-        console.log('syncOnlineUsers', packet.online_packet)
+        console.log('syncOnlineUsersList', packet.sync_online_users)
 
 
-        if (packet.online_packet.online)
-            OnlineUsers.list.push(packet.online_packet)
-        else
-            OnlineUsers.list = OnlineUsers.list.filter(e => e.token !== packet.online_packet?.token)
-
+        for (const online_user of packet.sync_online_users) {
+            // Adicionar ou remover o usuário da lista local no cliente
+            this.__UpdateOnlineUser(online_user)
+        }
     }
 
+    public async syncOnlineUser(packet: PacketType) {
+        if (!packet.online_user)
+            return
+
+        console.log('syncOnlineUser', packet.online_user)
+
+        // Adicionar ou remover o usuário da lista local no cliente
+        this.__UpdateOnlineUser(packet.online_user)
+    }
+
+
+    private __UpdateOnlineUser(online_user_packet: PacketType_OnlineUser) {
+        const index = OnlineUsers.list.findIndex(e => e.token === online_user_packet.token)
+
+        // Usuário offline
+        if (!online_user_packet.online) {
+
+
+
+            // OnlineUsers.list = OnlineUsers.list.filter(e => e.token !== online_user_packet.token)
+
+
+            OnlineUsers.list.splice(index, 1)
+            return
+        }
+
+        // Usuário Online
+        if (index < 0)
+            OnlineUsers.list.push(online_user_packet)
+    }
 }
 
 

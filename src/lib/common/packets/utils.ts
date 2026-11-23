@@ -55,8 +55,10 @@ export function validatePacket(packet: NullableU<Partial<PacketType>>, onValid: 
         return onInvalid('Received empty action', packet)
 
     // Pacotes validos
-    if (packet.data || packet.exported || packet.online_packet)
+    if (packet.data || packet.exported || packet.sync_online_users
+        || packet.online_user) {
         return onValid(packet)
+    }
 
     // Não configurado ou invalido
     onInvalid('The packet contains an action, but the data was not identified. Check if the packet is configured in [lib/common/packets/utils.ts#validatePacket]', packet)

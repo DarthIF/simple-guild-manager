@@ -13,9 +13,14 @@ export type PacketType = {
     exported?: Partial<DatabaseTypeV3>
 
     /**
-     * Usado apenas por pacotes de sincronização de usuários online
+     * Usado apenas por pacotes de sincronização de mudança de usuários online
      */
-    online_packet?: PacketType_OnlineUser
+    online_user?: PacketType_OnlineUser
+
+    /**
+     * Usado na sincronização inicial de usuários online
+     */
+    sync_online_users?: PacketType_OnlineUser[]
 }
 
 export type PacketType_OnlineUser = {
